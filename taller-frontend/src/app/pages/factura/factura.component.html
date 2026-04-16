@@ -1,0 +1,320 @@
+<div class="factura-page">
+  <div class="factura-wrapper">
+    <div class="factura-header">
+      <h1>Facturas</h1>
+    </div>
+
+    <article class="factura-card selector-card">
+      <div class="form-group">
+        <label for="tipoFactura">Tipo de factura</label>
+        <select
+          id="tipoFactura"
+          [(ngModel)]="tipoSeleccionado"
+          (ngModelChange)="onTipoFacturaChange()"
+        >
+          <option value="">Seleccione una opción</option>
+          <option value="Full Tuning">Full Tuning</option>
+          <option value="Tuneo">Tuneo</option>
+          <option value="Reparación">Reparación</option>
+          <option value="Items">Items</option>
+          <option value="Tasación">Tasación</option>
+        </select>
+      </div>
+    </article>
+
+    @if (tipoSeleccionado === 'Full Tuning') {
+      <article class="factura-card detail-card">
+        <div class="detail-header">
+          <h2>Full Tuning</h2>
+        </div>
+
+        <div class="detail-form">
+          <div class="form-group">
+            <label for="matriculaFull">Matrícula</label>
+            <input
+              id="matriculaFull"
+              type="text"
+              placeholder="0000-XXX"
+              [(ngModel)]="matricula"
+              (ngModelChange)="actualizarTotal()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="categoriaFull">Categoría</label>
+            <select
+              id="categoriaFull"
+              [(ngModel)]="categoria"
+              (ngModelChange)="actualizarTotal()"
+            >
+              <option value="">Seleccione una opción</option>
+              <option value="Compacto">Compacto</option>
+              <option value="Sedan">Sedan</option>
+              <option value="Coupe">Coupe</option>
+              <option value="Muscle">Muscle</option>
+              <option value="Van">Van</option>
+              <option value="Offroad">Offroad</option>
+              <option value="SUV">SUV</option>
+              <option value="Moto">Moto</option>
+              <option value="Deportivo">Deportivo</option>
+              <option value="Deportivo Clasico">Deportivo Clasico</option>
+              <option value="Super">Super</option>
+              <option value="VIP">VIP</option>
+            </select>
+          </div>
+
+          <label class="checkbox-field" for="convenioFull">
+            <input
+              id="convenioFull"
+              type="checkbox"
+              [(ngModel)]="convenio"
+              (ngModelChange)="actualizarTotal()"
+            />
+            <span>Convenio</span>
+          </label>
+
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (tipoSeleccionado === 'Tuneo') {
+      <article class="factura-card detail-card">
+        <div class="detail-header">
+          <h2>Tuneo</h2>
+          <p>Selecciona los elementos de modificación del vehículo.</p>
+        </div>
+
+        <div class="detail-form">
+          <div class="form-group">
+            <label for="matriculaTuneo">Matrícula</label>
+            <input
+              id="matriculaTuneo"
+              type="text"
+              placeholder="0000-XXX"
+              [(ngModel)]="tuneoPlate"
+            />
+          </div>
+
+          <div class="tuneo-table">
+            <div class="tuneo-row tuneo-head">
+              <span>Elemento</span>
+              <span>Seleccionar</span>
+            </div>
+
+            @for (item of tuneoItems; track item) {
+              <label class="tuneo-row">
+                <span>{{ item }}</span>
+                <input
+                  type="checkbox"
+                  [checked]="isTuneoSelected(item)"
+                  (change)="toggleTuneoItem(item, $any($event.target).checked)"
+                />
+              </label>
+            }
+          </div>
+
+          <label class="checkbox-field" for="convenioTuneo">
+            <input
+              id="convenioTuneo"
+              type="checkbox"
+              [(ngModel)]="convenio"
+              (ngModelChange)="actualizarTotal()"
+            />
+            <span>Convenio</span>
+          </label>
+
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (tipoSeleccionado === 'Reparación') {
+      <article class="factura-card detail-card">
+        <div class="detail-header">
+          <h2>Reparación</h2>
+          <p>Selecciona las condiciones de la reparación.</p>
+        </div>
+
+        <div class="detail-form">
+          <div class="form-group">
+            <label for="gravedadReparacion">Gravedad</label>
+            <select
+              id="gravedadReparacion"
+              [(ngModel)]="gravedad"
+              (ngModelChange)="actualizarTotal()"
+            >
+              <option value="">Seleccione una opción</option>
+              <option value="Leve (1-2)">Leve (1-2)</option>
+              <option value="Media (3-4)">Media (3-4)</option>
+              <option value="Grave (5-6)">Grave (5-6)</option>
+              <option value="LSPD">LSPD</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="matriculaReparacion">Matrícula</label>
+            <input
+              id="matriculaReparacion"
+              type="text"
+              placeholder="0000-XXX"
+              [(ngModel)]="matricula"
+              (ngModelChange)="actualizarTotal()"
+            />
+          </div>
+
+          <label class="checkbox-field" for="convenioReparacion">
+            <input
+              id="convenioReparacion"
+              type="checkbox"
+              [(ngModel)]="convenio"
+              (ngModelChange)="actualizarTotal()"
+            />
+            <span>Convenio</span>
+          </label>
+
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (tipoSeleccionado === 'Items') {
+      <article class="factura-card detail-card">
+        <div class="detail-header">
+          <h2>Items</h2>
+          <p>Selecciona el item y la cantidad.</p>
+        </div>
+
+        <div class="detail-form">
+          <div class="form-group">
+            <label for="itemFactura">Item</label>
+            <select
+              id="itemFactura"
+              [(ngModel)]="item"
+              (ngModelChange)="actualizarTotal()"
+            >
+              <option value="">Seleccione una opción</option>
+              <option value="Kit Reparación">Kit Reparación</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cantidadFactura">Cantidad</label>
+            <input
+              id="cantidadFactura"
+              type="number"
+              min="1"
+              [(ngModel)]="cantidad"
+              (ngModelChange)="actualizarTotal()"
+            />
+          </div>
+
+          <label class="checkbox-field" for="convenioItems">
+            <input
+              id="convenioItems"
+              type="checkbox"
+              [(ngModel)]="convenio"
+              (ngModelChange)="actualizarTotal()"
+            />
+            <span>Convenio</span>
+          </label>
+
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
+          </div>
+        </div>
+      </article>
+    }
+
+    @if (tipoSeleccionado === 'Tasación') {
+      <article class="factura-card detail-card">
+        <div class="detail-header">
+          <h2>Tasación</h2>
+          <p>Introduce los datos del vehículo.</p>
+        </div>
+
+        <div class="detail-form">
+          <div class="form-group">
+            <label for="matriculaTasacion">Matrícula</label>
+            <input
+              id="matriculaTasacion"
+              type="text"
+              placeholder="0000-XXX"
+              [(ngModel)]="matricula"
+              (ngModelChange)="actualizarTotal()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="modeloTasacion">Modelo</label>
+            <input
+              id="modeloTasacion"
+              type="text"
+              placeholder="Modelo del vehículo"
+              [(ngModel)]="modelo"
+              (ngModelChange)="actualizarTotal()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="estadoTasacion">Estado</label>
+            <select
+              id="estadoTasacion"
+              [(ngModel)]="estado"
+              (ngModelChange)="actualizarTotal()"
+            >
+              <option value="">Seleccione una opción</option>
+              <option value="De Serie">De Serie</option>
+              <option value="Full Tuning">Full Tuning</option>
+            </select>
+          </div>
+
+          <label class="checkbox-field" for="convenioTasacion">
+            <input
+              id="convenioTasacion"
+              type="checkbox"
+              [(ngModel)]="convenio"
+              (ngModelChange)="actualizarTotal()"
+            />
+            <span>Convenio</span>
+          </label>
+
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</div>

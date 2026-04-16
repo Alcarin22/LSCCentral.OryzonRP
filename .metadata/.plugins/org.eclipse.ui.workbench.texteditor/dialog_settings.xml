@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="java.lang.Class">
+		<item key="replaceBarOpen" value="false"/>
+		<list key="findhistory">
+			<item value="jackson-databind"/>
+			<item value="starter-web"/>
+			<item value="oauth2-client"/>
+			<item value="serviciosMes"/>
+			<item value="serviciosSemana"/>
+			<item value="serviciosHoy"/>
+			<item value="RequestMatchers"/>
+			<item value="@EnableWebSecurity"/>
+		</list>
+	</section>
+</section>

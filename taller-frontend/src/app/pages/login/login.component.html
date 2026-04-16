@@ -1,0 +1,19 @@
+<div class="login-container">
+  <div class="background"></div>
+  <div class="overlay"></div>
+
+  <div class="content">
+    <div class="login-card">
+      <img src="assets/LSCRedondo.webp" class="logo" alt="Logo Taller" />
+
+      <button
+        type="button"
+        (click)="loginWithDiscord()"
+        [disabled]="loading"
+        class="login-btn">
+        <span *ngIf="!loading">Iniciar sesión con Discord</span>
+        <span *ngIf="loading">Conectando...</span>
+      </button>
+    </div>
+  </div>
+</div>

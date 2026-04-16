@@ -1,0 +1,59 @@
+package com.taller.backend.dto;
+
+public class PrimaHistorialSemanaResponse {
+
+    private String semana;
+    private String rangoFechas;
+    private String horas;
+    private Integer servicios;
+    private Integer facturacion;
+    private Integer prima;
+
+    public String getSemana() {
+        return semana;
+    }
+
+    public void setSemana(String semana) {
+        this.semana = semana;
+    }
+
+    public String getRangoFechas() {
+        return rangoFechas;
+    }
+
+    public void setRangoFechas(String rangoFechas) {
+        this.rangoFechas = rangoFechas;
+    }
+
+    public String getHoras() {
+        return horas;
+    }
+
+    public void setHoras(String horas) {
+        this.horas = horas;
+    }
+
+    public Integer getServicios() {
+        return servicios;
+    }
+
+    public void setServicios(Integer servicios) {
+        this.servicios = servicios;
+    }
+
+    public Integer getFacturacion() {
+        return facturacion;
+    }
+
+    public void setFacturacion(Integer facturacion) {
+        this.facturacion = facturacion;
+    }
+
+    public Integer getPrima() {
+        return prima;
+    }
+
+    public void setPrima(Integer prima) {
+        this.prima = prima;
+    }
+}

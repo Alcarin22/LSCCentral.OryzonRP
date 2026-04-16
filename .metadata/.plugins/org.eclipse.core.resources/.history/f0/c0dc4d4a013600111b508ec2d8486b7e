@@ -1,0 +1,7 @@
+package com.taller.backend.repository;
+
+import com.taller.backend.entity.Factura;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface FacturaRepository extends JpaRepository<Factura, Long> {
+}

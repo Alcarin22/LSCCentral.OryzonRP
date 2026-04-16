@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0b0d12 0%, #10141d 45%, #0f1115 100%);
+  color: #f5f7fb;
+}
+
+body.light {
+  background: #f3f5f9;
+  color: #111827;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-layout.with-sidebar {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+}
+
+.app-layout.without-sidebar {
+  display: block;
+}
+
+.app-main {
+  min-width: 0;
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0b0d12 0%, #10141d 45%, #0f1115 100%);
+  color: #f5f7fb;
+}
+
+body.light .app-main {
+  background: #f3f5f9;
+  color: #111827;
+}

@@ -1,0 +1,64 @@
+package com.taller.backend.service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import org.springframework.stereotype.Service;
+
+import com.taller.backend.dto.DashboardHoyResponse;
+import com.taller.backend.entity.Empleado;
+import com.taller.backend.entity.Fichaje;
+import com.taller.backend.repository.EmpleadoRepository;
+import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.FichajeRepository;
+
+@Service
+public class DashboardService {
+
+    private final EmpleadoRepository empleadoRepository;
+    private final FichajeRepository fichajeRepository;
+    private final FacturaRepository facturaRepository;
+
+    public DashboardService(
+            EmpleadoRepository empleadoRepository,
+            FichajeRepository fichajeRepository,
+            FacturaRepository facturaRepository) {
+        this.empleadoRepository = empleadoRepository;
+        this.fichajeRepository = fichajeRepository;
+        this.facturaRepository = facturaRepository;
+    }
+
+    public DashboardHoyResponse getResumenHoy(String discordId) {
+        Empleado empleado = empleadoRepository.findByDiscordId(discordId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        DashboardHoyResponse response = new DashboardHoyResponse();
+
+        Fichaje fichajeAbierto = fichajeRepository
+                .findFirstByEmpleadoIdAndFechaHoraSalidaIsNullOrderByFechaHoraEntradaDesc(empleado.getId())
+                .orElse(null);
+
+        if (fichajeAbierto != null) {
+            response.setHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
+            response.setFichajeActivo(true);
+        } else {
+            response.setHoraEntrada(null);
+            response.setFichajeActivo(false);
+        }
+
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioDia = hoy.atStartOfDay();
+        LocalDateTime finDia = hoy.atTime(LocalTime.MAX);
+
+        long serviciosHoy = facturaRepository.countByEmpleadoIdAndFechaBetween(
+                empleado.getId(),
+                inicioDia,
+                finDia
+        );
+
+        response.setServiciosRealizadosHoy((int) serviciosHoy);
+
+        return response;
+    }
+}

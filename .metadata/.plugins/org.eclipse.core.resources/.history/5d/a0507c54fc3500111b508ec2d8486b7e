@@ -1,0 +1,22 @@
+package com.taller.backend.service;
+
+import com.taller.backend.entity.Factura;
+import com.taller.backend.repository.FacturaRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class FacturaService {
+
+    private final FacturaRepository facturaRepository;
+
+    public FacturaService(FacturaRepository facturaRepository) {
+        this.facturaRepository = facturaRepository;
+    }
+
+    public Factura crearFactura(Factura factura) {
+        factura.setFecha(LocalDateTime.now());
+        return facturaRepository.save(factura);
+    }
+}

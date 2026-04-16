@@ -1,0 +1,147 @@
+package com.taller.backend.service;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.taller.backend.dto.DashboardHoyResponse;
+import com.taller.backend.dto.DashboardSemanaResponse;
+import com.taller.backend.entity.Empleado;
+import com.taller.backend.entity.Fichaje;
+import com.taller.backend.repository.EmpleadoRepository;
+import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.FichajeRepository;
+
+@Service
+public class DashboardService {
+
+    private final EmpleadoRepository empleadoRepository;
+    private final FichajeRepository fichajeRepository;
+    private final FacturaRepository facturaRepository;
+
+    public DashboardService(
+            EmpleadoRepository empleadoRepository,
+            FichajeRepository fichajeRepository,
+            FacturaRepository facturaRepository) {
+        this.empleadoRepository = empleadoRepository;
+        this.fichajeRepository = fichajeRepository;
+        this.facturaRepository = facturaRepository;
+    }
+
+    public DashboardHoyResponse getResumenHoy(String discordId) {
+        Empleado empleado = empleadoRepository.findByDiscordId(discordId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        DashboardHoyResponse response = new DashboardHoyResponse();
+
+        Fichaje fichajeAbierto = fichajeRepository
+                .findFirstByEmpleadoIdAndFechaHoraSalidaIsNullOrderByFechaHoraEntradaDesc(empleado.getId())
+                .orElse(null);
+
+        if (fichajeAbierto != null) {
+            response.setHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
+            response.setFichajeActivo(true);
+        } else {
+            response.setHoraEntrada(null);
+            response.setFichajeActivo(false);
+        }
+
+        LocalDate hoy = LocalDate.now();
+        LocalDateTime inicioDia = hoy.atStartOfDay();
+        LocalDateTime finDia = hoy.atTime(LocalTime.MAX);
+
+        long serviciosHoy = facturaRepository.countByEmpleadoIdAndFechaBetween(
+                empleado.getId(),
+                inicioDia,
+                finDia
+        );
+
+        response.setServiciosRealizadosHoy((int) serviciosHoy);
+
+        return response;
+    }
+
+    public DashboardSemanaResponse getResumenSemana(String discordId) {
+        Empleado empleado = empleadoRepository.findByDiscordId(discordId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioSemanaDate = hoy.with(DayOfWeek.MONDAY);
+        LocalDate finSemanaDate = hoy.with(DayOfWeek.SUNDAY);
+
+        LocalDateTime inicioSemana = inicioSemanaDate.atStartOfDay();
+        LocalDateTime finSemana = finSemanaDate.atTime(LocalTime.MAX);
+
+        List<Fichaje> fichajesSemana = fichajeRepository
+                .findByEmpleadoIdAndFechaHoraEntradaBetween(empleado.getId(), inicioSemana, finSemana);
+
+        int minutosTotales = 0;
+        int diasTrabajados = 0;
+
+        for (Fichaje fichaje : fichajesSemana) {
+            if (fichaje.getMinutosTrabajados() != null) {
+                minutosTotales += fichaje.getMinutosTrabajados();
+            }
+            diasTrabajados++;
+        }
+
+        long serviciosSemana = facturaRepository.countByEmpleadoIdAndFechaBetween(
+                empleado.getId(),
+                inicioSemana,
+                finSemana
+        );
+
+        Integer totalFacturadoSemana = facturaRepository.sumTotalByEmpleadoIdAndFechaBetween(
+                empleado.getId(),
+                inicioSemana,
+                finSemana
+        );
+
+        if (totalFacturadoSemana == null) {
+            totalFacturadoSemana = 0;
+        }
+
+        double porcentajePrima = getPorcentajePrima(empleado.getRango().getNombre());
+        int primaEstimada = (int) Math.round(totalFacturadoSemana * porcentajePrima);
+
+        DashboardSemanaResponse response = new DashboardSemanaResponse();
+        response.setHorasRegistradas(formatearMinutos(minutosTotales));
+        response.setDiasTrabajados(diasTrabajados);
+        response.setServiciosCompletados((int) serviciosSemana);
+        response.setPrimaEstimada(formatearDinero(primaEstimada));
+
+        return response;
+    }
+
+    private double getPorcentajePrima(String rangoNombre) {
+        if (rangoNombre == null) {
+            return 0.50;
+        }
+
+        String rango = rangoNombre.trim().toLowerCase();
+
+        return switch (rango) {
+            case "aprendiz" -> 0.50;
+            case "mecánico", "mecanico" -> 0.55;
+            case "mecánico experimentado", "mecanico experimentado" -> 0.60;
+            case "mecánico experimentado +", "mecanico experimentado +" -> 0.65;
+            case "encargado" -> 0.70;
+            case "jefe mecánico", "jefe mecanico", "jefe seguridad", "dueño", "dueno" -> 0.80;
+            default -> 0.50;
+        };
+    }
+
+    private String formatearMinutos(int minutos) {
+        int horas = minutos / 60;
+        int resto = minutos % 60;
+        return horas + "h " + resto + "m";
+    }
+
+    private String formatearDinero(int cantidad) {
+        return "$" + String.format("%,d", cantidad).replace(',', '.');
+    }
+}

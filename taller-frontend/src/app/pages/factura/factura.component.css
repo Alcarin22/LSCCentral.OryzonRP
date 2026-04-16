@@ -1,0 +1,261 @@
+.factura-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 32px 28px;
+  color: #f5f7fb;
+}
+
+.factura-wrapper {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.factura-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.factura-header h1 {
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 1.1;
+  font-weight: 800;
+  margin: 0;
+  color: #f9fafb;
+}
+
+.factura-card {
+  width: 100%;
+  border-radius: 18px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(35, 41, 56, 0.92), rgba(26, 30, 40, 0.95));
+  border: 1px solid #2f3748;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.selector-card {
+  display: grid;
+  gap: 16px;
+}
+
+.detail-card {
+  display: grid;
+  gap: 18px;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+.detail-header p {
+  margin: 6px 0 0;
+  color: #9ca3af;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.detail-form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-group {
+  display: grid;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.86rem;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  border: 1px solid #2f3748;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5f7fb;
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input::placeholder {
+  color: #6b7280;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: rgba(244, 180, 0, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(244, 180, 0, 0.12);
+}
+
+.form-group select option {
+  color: #111111;
+  background: #ffffff;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f5f7fb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.checkbox-field input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #f4b400;
+  cursor: pointer;
+}
+
+.checkbox-field span {
+  color: #f5f7fb;
+  font-size: 0.92rem;
+}
+
+.tuneo-table {
+  display: grid;
+  gap: 8px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tuneo-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tuneo-row span {
+  color: #f5f7fb;
+  font-size: 0.92rem;
+}
+
+.tuneo-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #f4b400;
+  cursor: pointer;
+}
+
+.tuneo-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.tuneo-head {
+  background: rgba(244, 180, 0, 0.12);
+  border: 1px solid rgba(244, 180, 0, 0.24);
+}
+
+.tuneo-head span {
+  color: #f4b400;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(244, 180, 0, 0.08);
+  border: 1px solid rgba(244, 180, 0, 0.2);
+}
+
+.total-row span {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.total-row strong {
+  font-size: 1.08rem;
+  color: #f9fafb;
+  font-weight: 800;
+}
+
+.action-row {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-primary {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 22px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.95rem;
+  background: #f4b400;
+  color: #111111;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 20px rgba(244, 180, 0, 0.18);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  background: #ffca2c;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .factura-page {
+    padding: 20px 16px;
+  }
+
+  .factura-card {
+    padding: 18px;
+  }
+
+  .factura-wrapper {
+    max-width: 100%;
+  }
+
+  .total-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-row {
+    justify-content: stretch;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .tuneo-row {
+    grid-template-columns: 1fr auto;
+  }
+}

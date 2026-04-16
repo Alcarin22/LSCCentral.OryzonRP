@@ -1,0 +1,5 @@
+package com.taller.backend.repository;
+
+public class FacturaRepository {
+
+}
