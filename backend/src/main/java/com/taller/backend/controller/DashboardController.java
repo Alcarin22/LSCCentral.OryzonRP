@@ -1,0 +1,37 @@
+package com.taller.backend.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.taller.backend.dto.DashboardHoyResponse;
+import com.taller.backend.dto.DashboardMesResponse;
+import com.taller.backend.dto.DashboardSemanaResponse;
+import com.taller.backend.service.DashboardService;
+
+@RestController
+@RequestMapping("/api/dashboard")
+public class DashboardController {
+
+    private final DashboardService dashboardService;
+
+    public DashboardController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
+
+    @GetMapping("/hoy/{discordId}")
+    public DashboardHoyResponse getResumenHoy(@PathVariable String discordId) {
+        return dashboardService.getResumenHoy(discordId);
+    }
+
+    @GetMapping("/semana/{discordId}")
+    public DashboardSemanaResponse getResumenSemana(@PathVariable String discordId) {
+        return dashboardService.getResumenSemana(discordId);
+    }
+
+    @GetMapping("/mes/{discordId}")
+    public DashboardMesResponse getResumenMes(@PathVariable String discordId) {
+        return dashboardService.getResumenMes(discordId);
+    }
+}

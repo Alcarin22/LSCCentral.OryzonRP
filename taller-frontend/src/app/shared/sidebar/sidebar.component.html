@@ -1,0 +1,62 @@
+<aside class="sidebar">
+  <div class="logo-container">
+    <img src="assets/LSCRedondo.webp" alt="LSC Logo" class="logo">
+  </div>
+
+  <nav class="menu">
+    <a [routerLink]="['/dashboard']" routerLinkActive="active">
+      <span class="icon">🏠</span>
+      <span>Inicio</span>
+    </a>
+
+    <a [routerLink]="['/factura']" routerLinkActive="active">
+      <span class="icon">🧾</span>
+      <span>Factura</span>
+    </a>
+
+    <a [routerLink]="['/facturacion']" routerLinkActive="active">
+      <span class="icon">💳</span>
+      <span>Facturación</span>
+    </a>
+
+    <a [routerLink]="['/primas']" routerLinkActive="active">
+      <span class="icon">💎</span>
+      <span>Primas</span>
+    </a>
+
+    <a [routerLink]="['/precios']" routerLinkActive="active">
+      <span class="icon">🏷️</span>
+      <span>Precios</span>
+    </a>
+
+    <a [routerLink]="['/fichajes']" routerLinkActive="active">
+      <span class="icon">⏱️</span>
+      <span>Fichajes</span>
+    </a>
+
+    <a [routerLink]="['/administracion']" routerLinkActive="active">
+      <span class="icon">🗂️</span>
+      <span>Administración</span>
+    </a>
+  </nav>
+
+  <div class="theme-toggle">
+    <button type="button" (click)="toggleTheme()">
+      <span *ngIf="isDarkMode">🌙</span>
+      <span *ngIf="!isDarkMode">☀️</span>
+    </button>
+  </div>
+
+  <div class="profile">
+    <div class="profile-info">
+      <img [src]="avatar" alt="avatar" class="avatar">
+
+      <div class="user-data">
+        <div class="name">{{ nombre }}</div>
+        <div class="role">{{ rango }}</div>
+      </div>
+    </div>
+
+    <button class="logout-btn" type="button" (click)="logout()">↩</button>
+  </div>
+</aside>

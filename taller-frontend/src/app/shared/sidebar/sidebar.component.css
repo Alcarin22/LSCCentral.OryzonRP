@@ -1,0 +1,132 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.sidebar {
+  min-height: 100vh;
+  background: rgba(17, 20, 27, 0.96);
+  border-right: 1px solid #2f3748;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  backdrop-filter: blur(8px);
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  padding: 8px 6px 18px;
+}
+
+.logo {
+  width: 150px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-decoration: none;
+  color: #f5f7fb;
+  padding: 14px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  transition: 0.2s ease;
+}
+
+.menu a:hover,
+.menu a.active {
+  background: #1d212b;
+  border-color: #2f3748;
+  transform: translateX(3px);
+}
+
+.icon {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.theme-toggle {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.theme-toggle button {
+  width: 58px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+}
+
+.profile {
+  margin-top: 14px;
+  background: #1d212b;
+  border: 1px solid #2f3748;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.user-data {
+  min-width: 0;
+}
+
+.name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f5f7fb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role {
+  color: #9aa4b2;
+  font-size: 0.82rem;
+}
+
+.logout-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f7fb;
+  cursor: pointer;
+}
