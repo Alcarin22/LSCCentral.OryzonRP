@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.taller.backend.dto.DiscordLoginResponse;
+import com.taller.backend.dto.AuthResponse;
 import com.taller.backend.service.DiscordOAuth2Service;
 
 @Component
@@ -36,7 +36,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oauth2User.getAttributes();
 
-        DiscordLoginResponse loginResponse = discordOAuth2Service.buildLoginResponse(attributes);
+        String discordId = (String) attributes.get("id");
+        String nombre = (String) attributes.get("username");
+
+        String avatar = (String) attributes.get("avatar");
+        String avatarUrl = null;
+
+        if (discordId != null && avatar != null) {
+            avatarUrl = "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatar + ".png";
+        }
+
+        AuthResponse loginResponse = discordOAuth2Service.buildLoginResponse(discordId, nombre, avatarUrl);
         String payload = objectMapper.writeValueAsString(loginResponse);
 
         String html = """
