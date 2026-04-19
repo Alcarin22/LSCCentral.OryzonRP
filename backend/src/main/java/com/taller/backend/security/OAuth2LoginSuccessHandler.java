@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -22,6 +23,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final DiscordOAuth2Service discordOAuth2Service;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public OAuth2LoginSuccessHandler(DiscordOAuth2Service discordOAuth2Service) {
         this.discordOAuth2Service = discordOAuth2Service;
@@ -61,14 +65,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 (function() {
                   const user = %s;
                   if (window.opener) {
-                    window.opener.postMessage(user, 'http://localhost:4200');
+                    window.opener.postMessage(user, '%s');
                   }
                   window.close();
                 })();
               </script>
             </body>
             </html>
-            """.formatted(payload);
+            """.formatted(payload, frontendUrl);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
