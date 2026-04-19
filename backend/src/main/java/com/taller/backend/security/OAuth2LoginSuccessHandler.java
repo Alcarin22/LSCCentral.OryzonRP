@@ -41,16 +41,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         Map<String, Object> attributes = oauth2User.getAttributes();
 
         String discordId = (String) attributes.get("id");
-        String nombre = (String) attributes.get("username");
-
+        String username = (String) attributes.get("username");
         String avatar = (String) attributes.get("avatar");
-        String avatarUrl = null;
 
-        if (discordId != null && avatar != null) {
-            avatarUrl = "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatar + ".png";
-        }
+        String avatarUrl = "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatar + ".png";
 
-        AuthResponse loginResponse = discordOAuth2Service.buildLoginResponse(discordId, nombre, avatarUrl);
+        AuthResponse loginResponse = discordOAuth2Service.buildLoginResponse(discordId, username, avatarUrl);
+
         String payload = objectMapper.writeValueAsString(loginResponse);
 
         String html = """
