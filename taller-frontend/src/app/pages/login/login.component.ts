@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -24,11 +25,11 @@ export class LoginComponent implements OnDestroy {
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
-    const popup = window.open(
-      'http://localhost:8080/oauth2/authorization/discord',
-      'Discord Login',
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
+const popup = window.open(
+  `${environment.backendUrl}/oauth2/authorization/discord`,
+  'Discord Login',
+  `width=${width},height=${height},left=${left},top=${top}`
+);
 
     if (!popup) {
       this.loading = false;
