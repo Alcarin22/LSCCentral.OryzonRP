@@ -20,7 +20,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:4200",
-                                frontendUrl
+                                "https://lsc-central-oryzon-rp.vercel.app"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*")
