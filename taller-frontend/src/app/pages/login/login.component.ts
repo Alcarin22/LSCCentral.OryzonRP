@@ -1,74 +1,62 @@
-import { Component, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { SessionService } from '../../core/services/session.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent implements OnDestroy {
+export class LoginComponent {
   loading = false;
-  private messageListener?: (event: MessageEvent) => void;
+
+  constructor(
+    private router: Router,
+    private sessionService: SessionService
+  ) {}
 
   loginWithDiscord(): void {
-    if (this.loading) {
-      return;
-    }
-
     this.loading = true;
 
-    const width = 520;
-    const height = 720;
+    const width = 500;
+    const height = 700;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
 
-const popup = window.open(
-  `${environment.backendUrl}/oauth2/authorization/discord`,
-  'Discord Login',
-  `width=${width},height=${height},left=${left},top=${top}`
-);
+    const popup = window.open(
+      `${environment.backendUrl}/oauth2/authorization/discord`,
+      'Discord Login',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
 
     if (!popup) {
       this.loading = false;
-      alert('No se pudo abrir la ventana de login');
+      alert('Popup bloqueado');
       return;
     }
 
-    this.messageListener = (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:8080') {
-        return;
-      }
+    const backendOrigin = new URL(environment.backendUrl).origin;
 
-      if (event.data?.error) {
-        console.error('Error de login:', event.data.error);
+    const listener = (event: MessageEvent) => {
+      if (event.origin !== backendOrigin) return;
+
+      const user = event.data;
+
+      if (!user) {
         this.loading = false;
-        this.removeMessageListener();
         return;
       }
 
-      localStorage.setItem('usuario', JSON.stringify(event.data));
-      localStorage.setItem('empleado', JSON.stringify(event.data));
+      this.sessionService.setEmpleado(user);
 
+      window.removeEventListener('message', listener);
       this.loading = false;
-      this.removeMessageListener();
 
-      window.location.href = '/dashboard';
+      this.router.navigate(['/dashboard']);
     };
 
-    window.addEventListener('message', this.messageListener);
-  }
-
-  ngOnDestroy(): void {
-    this.removeMessageListener();
-  }
-
-  private removeMessageListener(): void {
-    if (this.messageListener) {
-      window.removeEventListener('message', this.messageListener);
-      this.messageListener = undefined;
-    }
+    window.addEventListener('message', listener);
   }
 }
