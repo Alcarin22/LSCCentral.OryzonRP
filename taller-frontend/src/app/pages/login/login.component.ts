@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -6,8 +7,9 @@ import { SessionService } from '../../core/services/session.service';
 @Component({
   selector: 'app-login',
   standalone: true,
+  imports: [CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   loading = false;
@@ -33,14 +35,16 @@ export class LoginComponent {
 
     if (!popup) {
       this.loading = false;
-      alert('Popup bloqueado');
+      alert('El navegador ha bloqueado la ventana emergente.');
       return;
     }
 
     const backendOrigin = new URL(environment.backendUrl).origin;
 
-    const listener = (event: MessageEvent) => {
-      if (event.origin !== backendOrigin) return;
+    const messageListener = (event: MessageEvent) => {
+      if (event.origin !== backendOrigin) {
+        return;
+      }
 
       const user = event.data;
 
@@ -51,12 +55,12 @@ export class LoginComponent {
 
       this.sessionService.setEmpleado(user);
 
-      window.removeEventListener('message', listener);
+      window.removeEventListener('message', messageListener);
       this.loading = false;
 
       this.router.navigate(['/dashboard']);
     };
 
-    window.addEventListener('message', listener);
+    window.addEventListener('message', messageListener);
   }
 }
