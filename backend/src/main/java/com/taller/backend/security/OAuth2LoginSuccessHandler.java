@@ -77,4 +77,4 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.getWriter().write(html);
         response.getWriter().flush();
     }
-}
+} 
