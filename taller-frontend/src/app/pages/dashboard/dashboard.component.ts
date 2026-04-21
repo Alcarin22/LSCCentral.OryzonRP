@@ -94,29 +94,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.timerSub?.unsubscribe();
   }
 
-  toggleFichaje(): void {
-    if (!this.empleado?.discordId || this.procesandoToggle) {
-      return;
-    }
-
-    this.procesandoToggle = true;
-
-    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
-      next: (response: FichajeResponse) => {
-        this.aplicarEstadoDesdeToggle(response);
-        this.procesandoToggle = false;
-
-        if (this.empleado?.discordId) {
-          this.cargarDashboardCompleto(this.empleado.discordId);
-        }
-      },
-      error: (error) => {
-        console.error('Error al hacer toggle de fichaje:', error);
-        this.procesandoToggle = false;
-        alert('No se pudo actualizar el fichaje.');
-      }
-    });
+toggleFichaje(): void {
+  if (!this.empleado?.discordId || this.procesandoToggle) {
+    return;
   }
+
+  this.procesandoToggle = true;
+
+  this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
+    next: (response: FichajeResponse) => {
+      console.log('Respuesta toggle:', response);
+      console.log('procesandoToggle antes de complete:', this.procesandoToggle);
+      this.aplicarEstadoDesdeToggle(response);
+
+      if (this.empleado?.discordId) {
+        this.cargarDashboardCompleto(this.empleado.discordId);
+      }
+    },
+    error: (error) => {
+      console.error('Error al hacer toggle de fichaje:', error);
+      alert('No se pudo actualizar el fichaje.');
+    },
+    complete: () => {
+      this.procesandoToggle = false;
+    }
+  });
+}
 
   private cargarDashboardCompleto(discordId: string): void {
     const baseUrl = environment.backendUrl;
