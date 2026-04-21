@@ -93,28 +93,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.timerSub?.unsubscribe();
   }
 
-  toggleFichaje(): void {
-    if (!this.empleado?.discordId || this.procesandoToggle) {
-      return;
-    }
+toggleFichaje(): void {
+  if (!this.empleado?.discordId || this.procesandoToggle) return;
 
-    this.procesandoToggle = true;
+  this.procesandoToggle = true;
 
-    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
-      next: () => {
-        if (this.empleado?.discordId) {
-          this.cargarDashboardCompleto(this.empleado.discordId, true);
-        } else {
-          this.procesandoToggle = false;
+  this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
+    next: (response) => {
+
+      // 🔥 ACTUALIZACIÓN INMEDIATA (CLAVE)
+      this.fichado = response.fichajeActivo;
+
+      if (this.fichado) {
+        this.estadoActualTexto = 'En servicio';
+        this.textoBotonFichaje = 'Finalizar fichaje';
+
+        if (response.fechaHoraEntrada) {
+          this.fechaEntrada = new Date(response.fechaHoraEntrada);
+          this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+          this.iniciarTemporizador();
         }
-      },
-      error: (error) => {
-        console.error('Error al hacer toggle de fichaje:', error);
-        this.procesandoToggle = false;
-        alert('No se pudo actualizar el fichaje.');
+
+      } else {
+        this.estadoActualTexto = 'Fuera de servicio';
+        this.textoBotonFichaje = 'Iniciar fichaje';
+        this.resetEstadoFichajeVisual();
       }
-    });
-  }
+
+      // 🔁 Refrescamos dashboard PERO YA NO DEPENDEMOS DE ÉL
+      if (this.empleado?.discordId) {
+        this.cargarDashboardCompleto(this.empleado.discordId);
+      }
+
+      this.procesandoToggle = false;
+    },
+    error: (error) => {
+      console.error(error);
+      this.procesandoToggle = false;
+    }
+  });
+}
 
   private cargarDashboardCompleto(discordId: string, liberarToggle = false): void {
     const baseUrl = environment.backendUrl;
