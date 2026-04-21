@@ -5,7 +5,7 @@ import { Subscription, forkJoin, interval } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
-import { FichajeService, FichajeResponse } from '../../core/services/fichaje.service';
+import { FichajeService } from '../../core/services/fichaje.service';
 
 interface DashboardHoyResponse {
   horaEntrada: string | null;
@@ -83,8 +83,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.rangoVisible = empleadoSesion?.rango?.nombre || 'Sin rango';
 
       if (empleadoSesion?.discordId) {
-        this.cargarDashboardReal(empleadoSesion.discordId);
-        this.cargarEstadoFichaje(empleadoSesion.discordId);
+        this.cargarDashboardCompleto(empleadoSesion.discordId);
       }
     });
   }
@@ -102,14 +101,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.procesandoToggle = true;
 
     this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
-      next: (response) => {
-        this.aplicarEstadoFichaje(response);
-
+      next: () => {
         if (this.empleado?.discordId) {
-          this.cargarDashboardReal(this.empleado.discordId);
+          this.cargarDashboardCompleto(this.empleado.discordId, true);
+        } else {
+          this.procesandoToggle = false;
         }
-
-        this.procesandoToggle = false;
       },
       error: (error) => {
         console.error('Error al hacer toggle de fichaje:', error);
@@ -119,7 +116,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  private cargarDashboardReal(discordId: string): void {
+  private cargarDashboardCompleto(discordId: string, liberarToggle = false): void {
     const baseUrl = environment.backendUrl;
 
     forkJoin({
@@ -128,9 +125,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
-        this.resumenHoy = {
-          serviciosRealizadosHoy: hoy.serviciosRealizadosHoy ?? 0
-        };
+        this.aplicarEstadoDesdeDashboardHoy(hoy);
 
         this.resumenSemana = {
           horasRegistradas: semana.horasRegistradas ?? '0h 0m',
@@ -146,42 +141,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
           rendimiento: mes.rendimiento ?? 'Bajo'
         };
 
-        this.fichado = !!hoy.fichajeActivo;
-        this.estadoActualTexto = this.fichado ? 'En servicio' : 'Fuera de servicio';
-        this.textoBotonFichaje = this.fichado ? 'Finalizar fichaje' : 'Iniciar fichaje';
-
-        if (hoy.horaEntrada) {
-          this.fechaEntrada = new Date(hoy.horaEntrada);
-          this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
-          this.iniciarTemporizador();
-        } else {
-          this.resetEstadoFichajeVisual();
+        if (liberarToggle) {
+          this.procesandoToggle = false;
         }
       },
       error: (error) => {
         console.error('Error cargando dashboard real:', error);
+        if (liberarToggle) {
+          this.procesandoToggle = false;
+        }
       }
     });
   }
 
-  private cargarEstadoFichaje(discordId: string): void {
-    this.fichajeService.obtenerEstado(discordId).subscribe({
-      next: (response) => {
-        this.aplicarEstadoFichaje(response);
-      },
-      error: (error) => {
-        console.error('Error cargando estado de fichaje:', error);
-      }
-    });
-  }
+  private aplicarEstadoDesdeDashboardHoy(hoy: DashboardHoyResponse): void {
+    this.resumenHoy = {
+      serviciosRealizadosHoy: hoy.serviciosRealizadosHoy ?? 0
+    };
 
-  private aplicarEstadoFichaje(response: FichajeResponse): void {
-    this.fichado = !!response.fichajeActivo;
+    this.fichado = !!hoy.fichajeActivo;
     this.estadoActualTexto = this.fichado ? 'En servicio' : 'Fuera de servicio';
     this.textoBotonFichaje = this.fichado ? 'Finalizar fichaje' : 'Iniciar fichaje';
 
-    if (this.fichado && response.fechaHoraEntrada) {
-      this.fechaEntrada = new Date(response.fechaHoraEntrada);
+    if (this.fichado && hoy.horaEntrada) {
+      this.fechaEntrada = new Date(hoy.horaEntrada);
       this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
       this.iniciarTemporizador();
     } else {
@@ -210,6 +193,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.timerSub = interval(1000).subscribe(() => {
       if (!this.fechaEntrada) return;
+
       this.tiempoTrabajadoActual = this.formatearDuracion(
         Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
       );
