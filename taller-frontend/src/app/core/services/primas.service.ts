@@ -1,17 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
-export interface PrimaDiaResponse {
-  dia: string;
-  fecha: string;
-  horas: string;
-  servicios: number;
-  facturacion: number;
-  prima: number;
-}
-
-export interface PrimaHistorialSemanaResponse {
+export interface PrimaHistoricoItem {
   semana: string;
   rangoFechas: string;
   horas: string;
@@ -25,9 +17,9 @@ export interface PrimaHistorialSemanaResponse {
 export interface MisPrimasResponse {
   nombreEmpleado: string;
   rango: string;
+  weekOffset: number;
   semana: string;
   rangoFechas: string;
-  weekOffset: number;
   primaEstimada: number;
   primaBase: number;
   extraHoras: number;
@@ -36,23 +28,23 @@ export interface MisPrimasResponse {
   serviciosRealizados: number;
   diasTrabajados: number;
   porcentajeAplicado: number;
-  recordGlobalFacturacion: number;
   recordPersonalFacturacion: number;
-  actividadDiaria: PrimaDiaResponse[];
-  historico: PrimaHistorialSemanaResponse[];
+  recordGlobalFacturacion: number;
+  actividadDiaria: any[];
+  historico: PrimaHistoricoItem[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrimasService {
-  private apiUrl = 'http://localhost:8080/api/primas';
+  private readonly baseUrl = `${environment.backendUrl}/api/primas`;
 
   constructor(private http: HttpClient) {}
 
-  getMisPrimas(discordId: string, weekOffset: number): Observable<MisPrimasResponse> {
+  getMisPrimas(discordId: string, weekOffset = 0): Observable<MisPrimasResponse> {
     return this.http.get<MisPrimasResponse>(
-      `${this.apiUrl}/${discordId}?weekOffset=${weekOffset}`
+      `${this.baseUrl}/${discordId}?weekOffset=${weekOffset}`
     );
   }
 }

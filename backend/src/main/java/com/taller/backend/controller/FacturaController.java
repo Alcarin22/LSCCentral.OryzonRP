@@ -5,7 +5,10 @@ import com.taller.backend.entity.Factura;
 import com.taller.backend.service.FacturaService;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {
+        "http://localhost:4200",
+        "https://lsc-central-oryzon-rp.vercel.app"
+})
 @RestController
 @RequestMapping("/api/facturas")
 public class FacturaController {

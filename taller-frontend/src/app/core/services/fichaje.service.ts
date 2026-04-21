@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface FichajeResponse {
@@ -14,19 +15,15 @@ export interface FichajeResponse {
   providedIn: 'root'
 })
 export class FichajeService {
+  private readonly baseUrl = `${environment.backendUrl}/api/fichajes`;
 
   constructor(private http: HttpClient) {}
 
-  toggleFichaje(discordId: string) {
-    return this.http.post<FichajeResponse>(
-      `${environment.backendUrl}/api/fichajes/toggle/${discordId}`,
-      {}
-    );
+  toggleFichaje(discordId: string): Observable<FichajeResponse> {
+    return this.http.post<FichajeResponse>(`${this.baseUrl}/toggle/${discordId}`, {});
   }
 
-  obtenerEstado(discordId: string) {
-    return this.http.get<FichajeResponse>(
-      `${environment.backendUrl}/api/fichajes/estado/${discordId}`
-    );
+  obtenerEstado(discordId: string): Observable<FichajeResponse> {
+    return this.http.get<FichajeResponse>(`${this.baseUrl}/estado/${discordId}`);
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
+import { FacturaService } from '../../../app/services/factura.service';
 
 @Component({
   selector: 'app-factura',
@@ -37,7 +38,12 @@ export class FacturaComponent implements OnInit {
 
   tuneoSeleccionados: string[] = [];
 
-  constructor(private sessionService: SessionService) {}
+  enviando = false;
+
+  constructor(
+    private sessionService: SessionService,
+    private facturaService: FacturaService
+  ) {}
 
   ngOnInit(): void {
     this.empleado = this.sessionService.getEmpleado();
@@ -130,23 +136,68 @@ export class FacturaComponent implements OnInit {
   }
 
   enviarFactura(): void {
+    if (!this.empleado?.discordId) {
+      alert('No hay sesión de empleado activa.');
+      return;
+    }
+
+    if (this.enviando) {
+      return;
+    }
+
     const payload = {
-      empleadoId: this.empleado?.id ?? null,
+      discordId: this.empleado.discordId,
+      matricula: this.obtenerMatriculaParaBackend(),
       tipo: this.tipoSeleccionado,
-      matricula: this.matricula,
-      modelo: this.modelo,
-      estado: this.estado,
+      total: this.total,
       convenio: this.convenio,
-      cantidad: this.cantidad,
-      item: this.item,
-      categoria: this.categoria,
-      tuneoPlate: this.tuneoPlate,
-      tuneoSeleccionados: this.tuneoSeleccionados,
-      gravedad: this.gravedad,
-      total: this.total
+      modelo: this.modelo?.trim() || null,
+      estado: this.estado || null,
+      cantidad: this.cantidad || null,
+      item: this.item?.trim() || null,
+      categoria: this.categoria || null,
+      gravedad: this.gravedad || null,
+      tuneoPlate: this.tuneoPlate?.trim() || null,
+      tuneoSeleccionados: this.tuneoSeleccionados.length ? this.tuneoSeleccionados.join(', ') : null
     };
 
-    console.log('Factura enviada:', payload);
-    alert('Factura preparada correctamente.');
+    this.enviando = true;
+
+    this.facturaService.crearFactura(payload).subscribe({
+      next: () => {
+        alert('Factura guardada correctamente en la base de datos.');
+        this.resetFormulario();
+        this.enviando = false;
+      },
+      error: (error) => {
+        console.error('Error al guardar factura:', error);
+        alert('No se pudo guardar la factura.');
+        this.enviando = false;
+      }
+    });
+  }
+
+  private obtenerMatriculaParaBackend(): string | null {
+    if (this.tipoSeleccionado === 'Tuneo') {
+      return this.tuneoPlate?.trim() || null;
+    }
+
+    return this.matricula?.trim() || null;
+  }
+
+  private resetFormulario(): void {
+    this.tipoSeleccionado = 'Reparación';
+    this.total = 0;
+    this.matricula = '';
+    this.modelo = '';
+    this.estado = 'SERIE';
+    this.convenio = false;
+    this.cantidad = 1;
+    this.item = '';
+    this.categoria = 'Compacto';
+    this.tuneoPlate = '';
+    this.gravedad = 'Básica';
+    this.tuneoSeleccionados = [];
+    this.actualizarTotal();
   }
 }
