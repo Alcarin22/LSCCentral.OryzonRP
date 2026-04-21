@@ -5,7 +5,7 @@ import { Subscription, forkJoin, interval } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
-import { FichajeService } from '../../core/services/fichaje.service';
+import { FichajeService, FichajeResponse } from '../../core/services/fichaje.service';
 
 interface DashboardHoyResponse {
   horaEntrada: string | null;
@@ -69,6 +69,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private sub!: Subscription;
   private timerSub!: Subscription;
   private fechaEntrada: Date | null = null;
+  private requestVersion = 0;
 
   constructor(
     private sessionService: SessionService,
@@ -93,49 +94,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.timerSub?.unsubscribe();
   }
 
-toggleFichaje(): void {
-  if (!this.empleado?.discordId || this.procesandoToggle) return;
-
-  this.procesandoToggle = true;
-
-  this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
-    next: (response) => {
-
-      // 🔥 ACTUALIZACIÓN INMEDIATA (CLAVE)
-      this.fichado = response.fichajeActivo;
-
-      if (this.fichado) {
-        this.estadoActualTexto = 'En servicio';
-        this.textoBotonFichaje = 'Finalizar fichaje';
-
-        if (response.fechaHoraEntrada) {
-          this.fechaEntrada = new Date(response.fechaHoraEntrada);
-          this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
-          this.iniciarTemporizador();
-        }
-
-      } else {
-        this.estadoActualTexto = 'Fuera de servicio';
-        this.textoBotonFichaje = 'Iniciar fichaje';
-        this.resetEstadoFichajeVisual();
-      }
-
-      // 🔁 Refrescamos dashboard PERO YA NO DEPENDEMOS DE ÉL
-      if (this.empleado?.discordId) {
-        this.cargarDashboardCompleto(this.empleado.discordId);
-      }
-
-      this.procesandoToggle = false;
-    },
-    error: (error) => {
-      console.error(error);
-      this.procesandoToggle = false;
+  toggleFichaje(): void {
+    if (!this.empleado?.discordId || this.procesandoToggle) {
+      return;
     }
-  });
-}
 
-  private cargarDashboardCompleto(discordId: string, liberarToggle = false): void {
+    this.procesandoToggle = true;
+
+    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
+      next: (response: FichajeResponse) => {
+        this.aplicarEstadoDesdeToggle(response);
+        this.procesandoToggle = false;
+
+        if (this.empleado?.discordId) {
+          this.cargarDashboardCompleto(this.empleado.discordId);
+        }
+      },
+      error: (error) => {
+        console.error('Error al hacer toggle de fichaje:', error);
+        this.procesandoToggle = false;
+        alert('No se pudo actualizar el fichaje.');
+      }
+    });
+  }
+
+  private cargarDashboardCompleto(discordId: string): void {
     const baseUrl = environment.backendUrl;
+    const currentVersion = ++this.requestVersion;
 
     forkJoin({
       hoy: this.http.get<DashboardHoyResponse>(`${baseUrl}/api/dashboard/hoy/${discordId}`),
@@ -143,6 +128,10 @@ toggleFichaje(): void {
       mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
+        if (currentVersion !== this.requestVersion) {
+          return;
+        }
+
         this.aplicarEstadoDesdeDashboardHoy(hoy);
 
         this.resumenSemana = {
@@ -158,18 +147,30 @@ toggleFichaje(): void {
           serviciosRealizados: mes.serviciosRealizados ?? 0,
           rendimiento: mes.rendimiento ?? 'Bajo'
         };
-
-        if (liberarToggle) {
-          this.procesandoToggle = false;
-        }
       },
       error: (error) => {
         console.error('Error cargando dashboard real:', error);
-        if (liberarToggle) {
-          this.procesandoToggle = false;
-        }
       }
     });
+  }
+
+  private aplicarEstadoDesdeToggle(response: FichajeResponse): void {
+    this.fichado = !!response.fichajeActivo;
+
+    if (this.fichado) {
+      this.estadoActualTexto = 'En servicio';
+      this.textoBotonFichaje = 'Finalizar fichaje';
+
+      if (response.fechaHoraEntrada) {
+        this.fechaEntrada = new Date(response.fechaHoraEntrada);
+        this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+        this.iniciarTemporizador();
+      }
+    } else {
+      this.estadoActualTexto = 'Fuera de servicio';
+      this.textoBotonFichaje = 'Iniciar fichaje';
+      this.resetEstadoFichajeVisual();
+    }
   }
 
   private aplicarEstadoDesdeDashboardHoy(hoy: DashboardHoyResponse): void {
@@ -178,19 +179,23 @@ toggleFichaje(): void {
     };
 
     this.fichado = !!hoy.fichajeActivo;
-    this.estadoActualTexto = this.fichado ? 'En servicio' : 'Fuera de servicio';
-    this.textoBotonFichaje = this.fichado ? 'Finalizar fichaje' : 'Iniciar fichaje';
 
     if (this.fichado && hoy.horaEntrada) {
+      this.estadoActualTexto = 'En servicio';
+      this.textoBotonFichaje = 'Finalizar fichaje';
+
       this.fechaEntrada = new Date(hoy.horaEntrada);
       this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
       this.iniciarTemporizador();
     } else {
+      this.estadoActualTexto = 'Fuera de servicio';
+      this.textoBotonFichaje = 'Iniciar fichaje';
       this.resetEstadoFichajeVisual();
     }
   }
 
   private resetEstadoFichajeVisual(): void {
+    this.fichado = false;
     this.fechaEntrada = null;
     this.horaEntradaFormateada = '--:--';
     this.tiempoTrabajadoActual = '00:00:00';
@@ -210,7 +215,9 @@ toggleFichaje(): void {
     );
 
     this.timerSub = interval(1000).subscribe(() => {
-      if (!this.fechaEntrada) return;
+      if (!this.fechaEntrada) {
+        return;
+      }
 
       this.tiempoTrabajadoActual = this.formatearDuracion(
         Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
