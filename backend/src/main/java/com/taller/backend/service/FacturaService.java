@@ -32,6 +32,15 @@ public class FacturaService {
         factura.setTotal(request.getTotal());
         factura.setConvenio(Boolean.TRUE.equals(request.getConvenio()));
 
+        factura.setModelo(request.getModelo());
+        factura.setEstado(request.getEstado());
+        factura.setCantidad(request.getCantidad());
+        factura.setItem(request.getItem());
+        factura.setCategoria(request.getCategoria());
+        factura.setGravedad(request.getGravedad());
+        factura.setTuneoPlate(request.getTuneoPlate());
+        factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
+
         return facturaRepository.save(factura);
     }
 }

@@ -29,6 +29,30 @@ public class Factura {
     @Column(nullable = false)
     private Boolean convenio;
 
+    @Column
+    private String modelo;
+
+    @Column
+    private String estado;
+
+    @Column
+    private Integer cantidad;
+
+    @Column
+    private String item;
+
+    @Column
+    private String categoria;
+
+    @Column
+    private String gravedad;
+
+    @Column(name = "tuneo_plate")
+    private String tuneoPlate;
+
+    @Column(name = "tuneo_seleccionados", length = 1000)
+    private String tuneoSeleccionados;
+
     public Long getId() {
         return id;
     }
@@ -79,5 +103,69 @@ public class Factura {
 
     public void setConvenio(Boolean convenio) {
         this.convenio = convenio;
+    }
+
+    public String getModelo() {
+        return modelo;
+    }
+
+    public void setModelo(String modelo) {
+        this.modelo = modelo;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public Integer getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(Integer cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public String getItem() {
+        return item;
+    }
+
+    public void setItem(String item) {
+        this.item = item;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getGravedad() {
+        return gravedad;
+    }
+
+    public void setGravedad(String gravedad) {
+        this.gravedad = gravedad;
+    }
+
+    public String getTuneoPlate() {
+        return tuneoPlate;
+    }
+
+    public void setTuneoPlate(String tuneoPlate) {
+        this.tuneoPlate = tuneoPlate;
+    }
+
+    public String getTuneoSeleccionados() {
+        return tuneoSeleccionados;
+    }
+
+    public void setTuneoSeleccionados(String tuneoSeleccionados) {
+        this.tuneoSeleccionados = tuneoSeleccionados;
     }
 }

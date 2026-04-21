@@ -1,21 +1,26 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription, interval } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Subscription, forkJoin, interval } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
+import { environment } from '../../../environments/environment';
+import { FichajeService, FichajeResponse } from '../../core/services/fichaje.service';
 
-interface ResumenHoy {
+interface DashboardHoyResponse {
+  horaEntrada: string | null;
+  fichajeActivo: boolean;
   serviciosRealizadosHoy: number;
 }
 
-interface ResumenSemana {
+interface DashboardSemanaResponse {
   horasRegistradas: string;
   diasTrabajados: number;
   serviciosCompletados: number;
   primaEstimada: string;
 }
 
-interface ResumenMes {
+interface DashboardMesResponse {
   horasTotales: string;
   jornadasCompletadas: number;
   serviciosRealizados: number;
@@ -43,39 +48,45 @@ export class DashboardComponent implements OnInit, OnDestroy {
   tiempoTrabajadoActual = '00:00:00';
   estadoActualTexto = 'Fuera de servicio';
 
-  resumenHoy: ResumenHoy = {
+  resumenHoy = {
     serviciosRealizadosHoy: 0
   };
 
-  resumenSemana: ResumenSemana = {
-    horasRegistradas: '00:00',
+  resumenSemana = {
+    horasRegistradas: '0h 0m',
     diasTrabajados: 0,
     serviciosCompletados: 0,
     primaEstimada: '$0'
   };
 
-  resumenMes: ResumenMes = {
-    horasTotales: '00:00',
+  resumenMes = {
+    horasTotales: '0h 0m',
     jornadasCompletadas: 0,
     serviciosRealizados: 0,
-    rendimiento: '0%'
+    rendimiento: 'Bajo'
   };
 
   private sub!: Subscription;
   private timerSub!: Subscription;
   private fechaEntrada: Date | null = null;
 
-  constructor(private sessionService: SessionService) {}
+  constructor(
+    private sessionService: SessionService,
+    private http: HttpClient,
+    private fichajeService: FichajeService
+  ) {}
 
   ngOnInit(): void {
-    this.sub = this.sessionService.empleado$
-      .subscribe((empleadoSesion: SessionEmpleado | null) => {
-        this.empleado = empleadoSesion;
-        this.nombreVisible = empleadoSesion?.nickServidor || empleadoSesion?.nombre || 'Empleado';
-        this.rangoVisible = empleadoSesion?.rango?.nombre || 'Sin rango';
-      });
+    this.sub = this.sessionService.empleado$.subscribe((empleadoSesion: SessionEmpleado | null) => {
+      this.empleado = empleadoSesion;
+      this.nombreVisible = empleadoSesion?.nickServidor || empleadoSesion?.nombre || 'Empleado';
+      this.rangoVisible = empleadoSesion?.rango?.nombre || 'Sin rango';
 
-    this.cargarResumenesMock();
+      if (empleadoSesion?.discordId) {
+        this.cargarDashboardReal(empleadoSesion.discordId);
+        this.cargarEstadoFichaje(empleadoSesion.discordId);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -84,59 +95,125 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   toggleFichaje(): void {
+    if (!this.empleado?.discordId || this.procesandoToggle) {
+      return;
+    }
+
     this.procesandoToggle = true;
 
-    setTimeout(() => {
-      if (!this.fichado) {
-        this.iniciarFichaje();
-      } else {
-        this.detenerFichaje();
+    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
+      next: (response) => {
+        this.aplicarEstadoFichaje(response);
+
+        if (this.empleado?.discordId) {
+          this.cargarDashboardReal(this.empleado.discordId);
+        }
+
+        this.procesandoToggle = false;
+      },
+      error: (error) => {
+        console.error('Error al hacer toggle de fichaje:', error);
+        this.procesandoToggle = false;
+        alert('No se pudo actualizar el fichaje.');
       }
-      this.procesandoToggle = false;
-    }, 250);
+    });
   }
 
-  private iniciarFichaje(): void {
-    this.fichado = true;
-    this.fechaEntrada = new Date();
-    this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
-    this.estadoActualTexto = 'En servicio';
-    this.textoBotonFichaje = 'Finalizar fichaje';
+  private cargarDashboardReal(discordId: string): void {
+    const baseUrl = environment.backendUrl;
 
+    forkJoin({
+      hoy: this.http.get<DashboardHoyResponse>(`${baseUrl}/api/dashboard/hoy/${discordId}`),
+      semana: this.http.get<DashboardSemanaResponse>(`${baseUrl}/api/dashboard/semana/${discordId}`),
+      mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
+    }).subscribe({
+      next: ({ hoy, semana, mes }) => {
+        this.resumenHoy = {
+          serviciosRealizadosHoy: hoy.serviciosRealizadosHoy ?? 0
+        };
+
+        this.resumenSemana = {
+          horasRegistradas: semana.horasRegistradas ?? '0h 0m',
+          diasTrabajados: semana.diasTrabajados ?? 0,
+          serviciosCompletados: semana.serviciosCompletados ?? 0,
+          primaEstimada: semana.primaEstimada ?? '$0'
+        };
+
+        this.resumenMes = {
+          horasTotales: mes.horasTotales ?? '0h 0m',
+          jornadasCompletadas: mes.jornadasCompletadas ?? 0,
+          serviciosRealizados: mes.serviciosRealizados ?? 0,
+          rendimiento: mes.rendimiento ?? 'Bajo'
+        };
+
+        this.fichado = !!hoy.fichajeActivo;
+        this.estadoActualTexto = this.fichado ? 'En servicio' : 'Fuera de servicio';
+        this.textoBotonFichaje = this.fichado ? 'Finalizar fichaje' : 'Iniciar fichaje';
+
+        if (hoy.horaEntrada) {
+          this.fechaEntrada = new Date(hoy.horaEntrada);
+          this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+          this.iniciarTemporizador();
+        } else {
+          this.resetEstadoFichajeVisual();
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando dashboard real:', error);
+      }
+    });
+  }
+
+  private cargarEstadoFichaje(discordId: string): void {
+    this.fichajeService.obtenerEstado(discordId).subscribe({
+      next: (response) => {
+        this.aplicarEstadoFichaje(response);
+      },
+      error: (error) => {
+        console.error('Error cargando estado de fichaje:', error);
+      }
+    });
+  }
+
+  private aplicarEstadoFichaje(response: FichajeResponse): void {
+    this.fichado = !!response.fichajeActivo;
+    this.estadoActualTexto = this.fichado ? 'En servicio' : 'Fuera de servicio';
+    this.textoBotonFichaje = this.fichado ? 'Finalizar fichaje' : 'Iniciar fichaje';
+
+    if (this.fichado && response.fechaHoraEntrada) {
+      this.fechaEntrada = new Date(response.fechaHoraEntrada);
+      this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+      this.iniciarTemporizador();
+    } else {
+      this.resetEstadoFichajeVisual();
+    }
+  }
+
+  private resetEstadoFichajeVisual(): void {
+    this.fechaEntrada = null;
+    this.horaEntradaFormateada = '--:--';
+    this.tiempoTrabajadoActual = '00:00:00';
     this.timerSub?.unsubscribe();
+  }
+
+  private iniciarTemporizador(): void {
+    this.timerSub?.unsubscribe();
+
+    if (!this.fechaEntrada) {
+      this.tiempoTrabajadoActual = '00:00:00';
+      return;
+    }
+
+    this.tiempoTrabajadoActual = this.formatearDuracion(
+      Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
+    );
+
     this.timerSub = interval(1000).subscribe(() => {
       if (!this.fechaEntrada) return;
       this.tiempoTrabajadoActual = this.formatearDuracion(
         Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
       );
     });
-  }
-
-  private detenerFichaje(): void {
-    this.fichado = false;
-    this.estadoActualTexto = 'Fuera de servicio';
-    this.textoBotonFichaje = 'Iniciar fichaje';
-    this.timerSub?.unsubscribe();
-  }
-
-  private cargarResumenesMock(): void {
-    this.resumenHoy = {
-      serviciosRealizadosHoy: 4
-    };
-
-    this.resumenSemana = {
-      horasRegistradas: '18:30',
-      diasTrabajados: 4,
-      serviciosCompletados: 11,
-      primaEstimada: '$4,850'
-    };
-
-    this.resumenMes = {
-      horasTotales: '76:15',
-      jornadasCompletadas: 16,
-      serviciosRealizados: 41,
-      rendimiento: '87%'
-    };
   }
 
   private formatearHora(fecha: Date): string {
