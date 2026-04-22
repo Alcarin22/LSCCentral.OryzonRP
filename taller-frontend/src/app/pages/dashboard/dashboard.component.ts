@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, forkJoin, interval } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
@@ -74,7 +75,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private sessionService: SessionService,
     private http: HttpClient,
-    private fichajeService: FichajeService
+    private fichajeService: FichajeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -95,22 +97,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   toggleFichaje(): void {
-    if (!this.empleado?.discordId || this.procesandoToggle) return;
+    if (!this.empleado?.discordId || this.procesandoToggle) {
+      return;
+    }
 
     this.procesandoToggle = true;
+    this.cdr.detectChanges();
 
-    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
+    this.fichajeService.toggleFichaje(this.empleado.discordId).pipe(
+      finalize(() => {
+        this.procesandoToggle = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
       next: (response: FichajeResponse) => {
         this.aplicarEstadoDesdeToggle(response);
-        this.procesandoToggle = false;
+        this.cdr.detectChanges();
 
         if (this.empleado?.discordId) {
-          this.cargarDashboardCompleto(this.empleado.discordId);
+          setTimeout(() => {
+            this.cargarDashboardCompleto(this.empleado!.discordId);
+          }, 0);
         }
       },
       error: (error) => {
         console.error('Error al hacer toggle de fichaje:', error);
-        this.procesandoToggle = false;
         alert('No se pudo actualizar el fichaje.');
       }
     });
@@ -126,7 +137,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
-        if (currentVersion !== this.requestVersion) return;
+        if (currentVersion !== this.requestVersion) {
+          return;
+        }
 
         this.aplicarEstadoDesdeDashboardHoy(hoy);
 
@@ -143,9 +156,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
           serviciosRealizados: mes.serviciosRealizados ?? 0,
           rendimiento: mes.rendimiento ?? 'Bajo'
         };
+
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error cargando dashboard real:', error);
+        console.error('Error cargando dashboard:', error);
       }
     });
   }
@@ -159,6 +174,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
       if (response.fechaHoraEntrada) {
         this.fechaEntrada = this.parseLocalDateTime(response.fechaHoraEntrada);
+
         if (this.fechaEntrada) {
           this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
           this.iniciarTemporizador();
@@ -188,6 +204,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.textoBotonFichaje = 'Finalizar fichaje';
 
       this.fechaEntrada = this.parseLocalDateTime(hoy.horaEntrada);
+
       if (this.fechaEntrada) {
         this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
         this.iniciarTemporizador();
