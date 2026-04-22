@@ -117,7 +117,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (this.empleado?.discordId) {
           setTimeout(() => {
             this.cargarDashboardCompleto(this.empleado!.discordId);
-          }, 0);
+          }, 700);
         }
       },
       error: (error) => {
@@ -130,11 +130,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private cargarDashboardCompleto(discordId: string): void {
     const baseUrl = environment.backendUrl;
     const currentVersion = ++this.requestVersion;
+    const ts = Date.now();
 
     forkJoin({
-      hoy: this.http.get<DashboardHoyResponse>(`${baseUrl}/api/dashboard/hoy/${discordId}`),
-      semana: this.http.get<DashboardSemanaResponse>(`${baseUrl}/api/dashboard/semana/${discordId}`),
-      mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
+      hoy: this.http.get<DashboardHoyResponse>(`${baseUrl}/api/dashboard/hoy/${discordId}?ts=${ts}`),
+      semana: this.http.get<DashboardSemanaResponse>(`${baseUrl}/api/dashboard/semana/${discordId}?ts=${ts}`),
+      mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}?ts=${ts}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
         if (currentVersion !== this.requestVersion) {
