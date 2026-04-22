@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
-import { FacturaService } from '../../../app/services/factura.service';
+import { FacturaService, CreateFacturaRequest } from '../../../app/services/factura.service';
+
 
 @Component({
   selector: 'app-factura',
@@ -66,6 +67,7 @@ export class FacturaComponent implements OnInit {
     } else {
       this.tuneoSeleccionados = this.tuneoSeleccionados.filter(i => i !== item);
     }
+
     this.actualizarTotal();
   }
 
@@ -91,7 +93,9 @@ export class FacturaComponent implements OnInit {
 
       case 'Tuneo':
         base = this.tuneoSeleccionados.length * 800;
-        if (!base) base = 800;
+        if (!base) {
+          base = 800;
+        }
         break;
 
       case 'Full Tuning':
@@ -145,32 +149,35 @@ export class FacturaComponent implements OnInit {
       return;
     }
 
-    const payload = {
+    const payload: CreateFacturaRequest = {
       discordId: this.empleado.discordId,
       matricula: this.obtenerMatriculaParaBackend(),
       tipo: this.tipoSeleccionado,
       total: this.total,
       convenio: this.convenio,
-      modelo: this.modelo?.trim() || null,
-      estado: this.estado || null,
-      cantidad: this.cantidad || null,
-      item: this.item?.trim() || null,
-      categoria: this.categoria || null,
-      gravedad: this.gravedad || null,
-      tuneoPlate: this.tuneoPlate?.trim() || null,
-      tuneoSeleccionados: this.tuneoSeleccionados.length ? this.tuneoSeleccionados.join(', ') : null
+      modelo: this.normalizarTexto(this.modelo),
+      estado: this.normalizarTexto(this.estado),
+      cantidad: this.tipoSeleccionado === 'Items' ? this.cantidad : null,
+      item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
+      categoria: this.tipoSeleccionado === 'Full Tuning' ? this.normalizarTexto(this.categoria) : null,
+      gravedad: this.tipoSeleccionado === 'Reparación' ? this.normalizarTexto(this.gravedad) : null,
+      tuneoPlate: this.tipoSeleccionado === 'Tuneo' ? this.normalizarTexto(this.tuneoPlate) : null,
+      tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'
+        ? (this.tuneoSeleccionados.length ? this.tuneoSeleccionados.join(', ') : null)
+        : null
     };
 
     this.enviando = true;
 
     this.facturaService.crearFactura(payload).subscribe({
-      next: () => {
-        alert('Factura guardada correctamente en la base de datos.');
+      next: (response) => {
+        console.log('Factura guardada en backend:', response);
+        alert('Factura guardada correctamente.');
         this.resetFormulario();
         this.enviando = false;
       },
       error: (error) => {
-        console.error('Error al guardar factura:', error);
+        console.error('Error guardando factura:', error);
         alert('No se pudo guardar la factura.');
         this.enviando = false;
       }
@@ -179,14 +186,24 @@ export class FacturaComponent implements OnInit {
 
   private obtenerMatriculaParaBackend(): string | null {
     if (this.tipoSeleccionado === 'Tuneo') {
-      return this.tuneoPlate?.trim() || null;
+      return this.normalizarTexto(this.tuneoPlate);
     }
 
-    return this.matricula?.trim() || null;
+    return this.normalizarTexto(this.matricula);
+  }
+
+  private normalizarTexto(valor: string | null | undefined): string | null {
+    if (!valor) {
+      return null;
+    }
+
+    const limpio = valor.trim();
+    return limpio.length ? limpio : null;
   }
 
   private resetFormulario(): void {
     this.tipoSeleccionado = 'Reparación';
+
     this.total = 0;
     this.matricula = '';
     this.modelo = '';
@@ -198,6 +215,7 @@ export class FacturaComponent implements OnInit {
     this.tuneoPlate = '';
     this.gravedad = 'Básica';
     this.tuneoSeleccionados = [];
+
     this.actualizarTotal();
   }
 }
