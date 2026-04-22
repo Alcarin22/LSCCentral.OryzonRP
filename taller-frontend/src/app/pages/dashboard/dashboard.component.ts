@@ -1,8 +1,7 @@
-import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, forkJoin, interval } from 'rxjs';
-import { finalize } from 'rxjs/operators';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
@@ -75,8 +74,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private sessionService: SessionService,
     private http: HttpClient,
-    private fichajeService: FichajeService,
-    private cdr: ChangeDetectorRef
+    private fichajeService: FichajeService
   ) {}
 
   ngOnInit(): void {
@@ -102,28 +100,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.procesandoToggle = true;
-    this.cdr.detectChanges();
 
-    this.fichajeService.toggleFichaje(this.empleado.discordId).pipe(
-      finalize(() => {
-        this.procesandoToggle = false;
-        this.cdr.detectChanges();
-      })
-    ).subscribe({
+    this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
       next: (response: FichajeResponse) => {
         console.log('Respuesta toggle:', response);
 
         this.aplicarEstadoDesdeToggle(response);
-        this.cdr.detectChanges();
+
+        this.procesandoToggle = false;
 
         if (this.empleado?.discordId) {
-          setTimeout(() => {
-            this.cargarDashboardCompleto(this.empleado!.discordId);
-          }, 0);
+          this.cargarDashboardCompleto(this.empleado.discordId);
         }
       },
       error: (error) => {
         console.error('Error al hacer toggle de fichaje:', error);
+        this.procesandoToggle = false;
         alert('No se pudo actualizar el fichaje.');
       }
     });
@@ -139,9 +131,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
-        if (currentVersion !== this.requestVersion) return;
-
-        console.log('Dashboard hoy:', hoy);
+        if (currentVersion !== this.requestVersion) {
+          return;
+        }
 
         this.aplicarEstadoDesdeDashboardHoy(hoy);
 
@@ -158,11 +150,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           serviciosRealizados: mes.serviciosRealizados ?? 0,
           rendimiento: mes.rendimiento ?? 'Bajo'
         };
-
-        this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error cargando dashboard:', error);
+        console.error('Error cargando dashboard real:', error);
       }
     });
   }
@@ -187,6 +177,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private aplicarEstadoDesdeDashboardHoy(hoy: DashboardHoyResponse): void {
+
+    // 🔥 PROTECCIÓN CONTRA RESPUESTAS INCOMPLETAS
+    if (hoy.fichajeActivo === undefined) {
+      console.warn('Respuesta inválida de dashboard hoy:', hoy);
+      return;
+    }
+
     this.resumenHoy = {
       serviciosRealizadosHoy: hoy.serviciosRealizadosHoy ?? 0
     };
@@ -218,7 +215,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private iniciarTemporizador(): void {
     this.timerSub?.unsubscribe();
 
-    if (!this.fechaEntrada) return;
+    if (!this.fechaEntrada) {
+      this.tiempoTrabajadoActual = '00:00:00';
+      return;
+    }
+
+    this.tiempoTrabajadoActual = this.formatearDuracion(
+      Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
+    );
 
     this.timerSub = interval(1000).subscribe(() => {
       if (!this.fechaEntrada) return;
