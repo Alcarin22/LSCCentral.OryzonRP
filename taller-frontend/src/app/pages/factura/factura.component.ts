@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { FacturaService, CreateFacturaRequest } from '../../../app/services/factura.service';
 
-
 @Component({
   selector: 'app-factura',
   standalone: true,
@@ -76,19 +75,9 @@ export class FacturaComponent implements OnInit {
 
     switch (this.tipoSeleccionado) {
       case 'Reparación':
-        switch (this.gravedad) {
-          case 'Media':
-            base = 1200;
-            break;
-          case 'Avanzada':
-            base = 2500;
-            break;
-          case 'LSPD':
-            base = 4000;
-            break;
-          default:
-            base = 600;
-        }
+        // El precio real de reparación ahora se calcula en backend.
+        // Aquí dejamos una vista orientativa simple.
+        base = 0;
         break;
 
       case 'Tuneo':
@@ -172,7 +161,7 @@ export class FacturaComponent implements OnInit {
     this.facturaService.crearFactura(payload).subscribe({
       next: (response) => {
         console.log('Factura guardada en backend:', response);
-        alert('Factura guardada correctamente.');
+        alert(`Factura guardada correctamente. Total final: $${response.total ?? 'calculado'}`);
         this.resetFormulario();
         this.enviando = false;
       },
