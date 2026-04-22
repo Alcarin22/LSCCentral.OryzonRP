@@ -95,9 +95,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   toggleFichaje(): void {
-    if (!this.empleado?.discordId || this.procesandoToggle) {
-      return;
-    }
+    if (!this.empleado?.discordId || this.procesandoToggle) return;
 
     this.procesandoToggle = true;
 
@@ -106,7 +104,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.log('Respuesta toggle:', response);
 
         this.aplicarEstadoDesdeToggle(response);
-
         this.procesandoToggle = false;
 
         if (this.empleado?.discordId) {
@@ -131,9 +128,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       mes: this.http.get<DashboardMesResponse>(`${baseUrl}/api/dashboard/mes/${discordId}`)
     }).subscribe({
       next: ({ hoy, semana, mes }) => {
-        if (currentVersion !== this.requestVersion) {
-          return;
-        }
+        if (currentVersion !== this.requestVersion) return;
 
         this.aplicarEstadoDesdeDashboardHoy(hoy);
 
@@ -165,9 +160,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.textoBotonFichaje = 'Finalizar fichaje';
 
       if (response.fechaHoraEntrada) {
-        this.fechaEntrada = new Date(response.fechaHoraEntrada);
-        this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
-        this.iniciarTemporizador();
+        this.fechaEntrada = this.parseLocalDateTime(response.fechaHoraEntrada);
+
+        if (this.fechaEntrada) {
+          this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+          this.iniciarTemporizador();
+        }
       }
     } else {
       this.estadoActualTexto = 'Fuera de servicio';
@@ -178,7 +176,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private aplicarEstadoDesdeDashboardHoy(hoy: DashboardHoyResponse): void {
 
-    // 🔥 PROTECCIÓN CONTRA RESPUESTAS INCOMPLETAS
     if (hoy.fichajeActivo === undefined) {
       console.warn('Respuesta inválida de dashboard hoy:', hoy);
       return;
@@ -194,9 +191,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.estadoActualTexto = 'En servicio';
       this.textoBotonFichaje = 'Finalizar fichaje';
 
-      this.fechaEntrada = new Date(hoy.horaEntrada);
-      this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
-      this.iniciarTemporizador();
+      this.fechaEntrada = this.parseLocalDateTime(hoy.horaEntrada);
+
+      if (this.fechaEntrada) {
+        this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
+        this.iniciarTemporizador();
+      }
     } else {
       this.estadoActualTexto = 'Fuera de servicio';
       this.textoBotonFichaje = 'Iniciar fichaje';
@@ -231,6 +231,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
         Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
       );
     });
+  }
+
+  // 🔥 SOLUCIÓN DEFINITIVA AL PROBLEMA DE LAS 2 HORAS
+  private parseLocalDateTime(value: string | null | undefined): Date | null {
+    if (!value) return null;
+
+    const [datePart, timePart] = value.split('T');
+    if (!datePart || !timePart) return null;
+
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, secondWithMs] = timePart.split(':');
+
+    const second = Number((secondWithMs ?? '0').split('.')[0]);
+
+    return new Date(
+      year,
+      month - 1,
+      day,
+      Number(hour),
+      Number(minute),
+      second
+    );
   }
 
   private formatearHora(fecha: Date): string {
