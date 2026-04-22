@@ -101,8 +101,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.fichajeService.toggleFichaje(this.empleado.discordId).subscribe({
       next: (response: FichajeResponse) => {
-        console.log('Respuesta toggle:', response);
-
         this.aplicarEstadoDesdeToggle(response);
         this.procesandoToggle = false;
 
@@ -160,8 +158,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.textoBotonFichaje = 'Finalizar fichaje';
 
       if (response.fechaHoraEntrada) {
-        this.fechaEntrada = this.parseUtcDateTime(response.fechaHoraEntrada);
-
+        this.fechaEntrada = this.parseLocalDateTime(response.fechaHoraEntrada);
         if (this.fechaEntrada) {
           this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
           this.iniciarTemporizador();
@@ -190,8 +187,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.estadoActualTexto = 'En servicio';
       this.textoBotonFichaje = 'Finalizar fichaje';
 
-      this.fechaEntrada = this.parseUtcDateTime(hoy.horaEntrada);
-
+      this.fechaEntrada = this.parseLocalDateTime(hoy.horaEntrada);
       if (this.fechaEntrada) {
         this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
         this.iniciarTemporizador();
@@ -232,7 +228,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  private parseUtcDateTime(value: string | null | undefined): Date | null {
+  private parseLocalDateTime(value: string | null | undefined): Date | null {
     if (!value) return null;
 
     const [datePart, timePart] = value.split('T');
@@ -240,17 +236,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     const [year, month, day] = datePart.split('-').map(Number);
     const [hour, minute, secondWithMs] = timePart.split(':');
-
     const second = Number((secondWithMs ?? '0').split('.')[0]);
 
-    return new Date(Date.UTC(
+    return new Date(
       year,
       month - 1,
       day,
       Number(hour),
       Number(minute),
       second
-    ));
+    );
   }
 
   private formatearHora(fecha: Date): string {

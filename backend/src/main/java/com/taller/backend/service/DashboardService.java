@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +24,8 @@ import com.taller.backend.repository.FichajeRepository;
 
 @Service
 public class DashboardService {
+
+    private static final ZoneId ZONA_MADRID = ZoneId.of("Europe/Madrid");
 
     private final EmpleadoRepository empleadoRepository;
     private final FichajeRepository fichajeRepository;
@@ -47,14 +51,14 @@ public class DashboardService {
                 .orElse(null);
 
         if (fichajeAbierto != null) {
-            response.setHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
+            response.setHoraEntrada(formatearFechaHoraMadrid(fichajeAbierto.getFechaHoraEntrada()));
             response.setFichajeActivo(true);
         } else {
             response.setHoraEntrada(null);
             response.setFichajeActivo(false);
         }
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDateTime inicioDia = hoy.atStartOfDay();
         LocalDateTime finDia = hoy.atTime(LocalTime.MAX);
 
@@ -73,7 +77,7 @@ public class DashboardService {
         Empleado empleado = empleadoRepository.findByDiscordId(discordId)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDate inicioSemanaDate = hoy.with(DayOfWeek.MONDAY);
         LocalDate finSemanaDate = hoy.with(DayOfWeek.SUNDAY);
 
@@ -127,7 +131,7 @@ public class DashboardService {
         Empleado empleado = empleadoRepository.findByDiscordId(discordId)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
-        YearMonth yearMonth = YearMonth.now();
+        YearMonth yearMonth = YearMonth.now(ZONA_MADRID);
         LocalDateTime inicioMes = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime finMes = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
 
@@ -161,6 +165,18 @@ public class DashboardService {
         response.setRendimiento(rendimiento);
 
         return response;
+    }
+
+    private String formatearFechaHoraMadrid(LocalDateTime fechaHora) {
+        if (fechaHora == null) {
+            return null;
+        }
+
+        return fechaHora
+                .atOffset(ZoneOffset.UTC)
+                .atZoneSameInstant(ZONA_MADRID)
+                .toLocalDateTime()
+                .toString();
     }
 
     private double getPorcentajePrima(String rangoNombre) {
