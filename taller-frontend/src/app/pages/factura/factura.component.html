@@ -39,7 +39,7 @@
                 <option value="">Seleccione una reparación</option>
                 @for (reparacion of reparaciones; track reparacion.id) {
                   <option [value]="reparacion.tipo">
-                    {{ reparacion.tipo }} - {{ reparacion.precio | currency:'USD':'symbol':'1.0-0' }}
+                    {{ reparacion.tipo }}
                   </option>
                 }
               </select>
