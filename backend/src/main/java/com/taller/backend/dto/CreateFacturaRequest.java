@@ -16,6 +16,7 @@ public class CreateFacturaRequest {
     private String gravedad;
     private String tuneoPlate;
     private String tuneoSeleccionados;
+    private Boolean grua;
 
     public String getDiscordId() {
         return discordId;
@@ -119,5 +120,13 @@ public class CreateFacturaRequest {
 
     public void setTuneoSeleccionados(String tuneoSeleccionados) {
         this.tuneoSeleccionados = tuneoSeleccionados;
+    }
+
+    public Boolean getGrua() {
+        return grua;
+    }
+
+    public void setGrua(Boolean grua) {
+        this.grua = grua;
     }
 }

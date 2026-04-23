@@ -53,6 +53,9 @@ public class Factura {
     @Column(name = "tuneo_seleccionados", length = 1000)
     private String tuneoSeleccionados;
 
+    @Column(nullable = false)
+    private Boolean grua = false;
+
     public Long getId() {
         return id;
     }
@@ -167,5 +170,13 @@ public class Factura {
 
     public void setTuneoSeleccionados(String tuneoSeleccionados) {
         this.tuneoSeleccionados = tuneoSeleccionados;
+    }
+
+    public Boolean getGrua() {
+        return grua;
+    }
+
+    public void setGrua(Boolean grua) {
+        this.grua = grua;
     }
 }

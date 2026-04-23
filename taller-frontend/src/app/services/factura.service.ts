@@ -17,6 +17,7 @@ export interface CreateFacturaRequest {
   gravedad?: string | null;
   tuneoPlate?: string | null;
   tuneoSeleccionados?: string | null;
+  grua?: boolean | null;
 }
 
 export interface ReparacionDto {
