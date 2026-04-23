@@ -8,10 +8,14 @@
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
+      
+      <!-- FORMULARIO -->
       <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <h2 class="mb-4 text-lg font-semibold">Datos principales</h2>
 
         <div class="grid gap-4">
+
+          <!-- Tipo -->
           <div>
             <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de factura</label>
             <select
@@ -28,7 +32,11 @@
             </select>
           </div>
 
+          <!-- ========================= -->
+          <!-- REPARACIONES -->
+          <!-- ========================= -->
           @if (tipoSeleccionado === 'Reparación') {
+
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
               <select
@@ -37,16 +45,12 @@
                 (ngModelChange)="actualizarTotal()"
               >
                 <option value="">Seleccione una reparación</option>
-                @for (reparacion of reparaciones; track reparacion.id) {
-                  <option [value]="reparacion.tipo">
-                    {{ reparacion.tipo }}
+                @for (r of reparaciones; track r.id) {
+                  <option [value]="r.tipo">
+                    {{ r.tipo }}
                   </option>
                 }
               </select>
-
-              @if (cargandoReparaciones) {
-                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando reparaciones...</p>
-              }
             </div>
 
             <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
@@ -59,7 +63,11 @@
             </label>
           }
 
+          <!-- ========================= -->
+          <!-- ITEMS -->
+          <!-- ========================= -->
           @if (tipoSeleccionado === 'Items') {
+
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
               <select
@@ -68,147 +76,133 @@
                 (ngModelChange)="actualizarTotal()"
               >
                 <option value="">Seleccione un item</option>
-                @for (itemDisponible of itemsDisponibles; track itemDisponible.id) {
-                  <option [value]="itemDisponible.nombre">
-                    {{ itemDisponible.nombre }}
+                @for (i of itemsDisponibles; track i.id) {
+                  <option [value]="i.nombre">
+                    {{ i.nombre }}
                   </option>
                 }
               </select>
-
-              @if (cargandoItems) {
-                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando items...</p>
-              }
             </div>
 
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
               <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 type="number"
                 min="1"
                 [(ngModel)]="cantidad"
                 (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
               />
             </div>
           }
 
+          <!-- ========================= -->
+          <!-- TASACIONES -->
+          <!-- ========================= -->
           @if (tipoSeleccionado === 'Tasación') {
+
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
               <select
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 [(ngModel)]="estado"
                 (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
               >
-                <option value="">Seleccione un estado</option>
-                @for (precioTasacion of tasacionPrecios; track precioTasacion.id) {
-                  <option [value]="precioTasacion.estado">
-                    {{ precioTasacion.estado }}
+                <option value="">Seleccione estado</option>
+                @for (t of tasacionPrecios; track t.id) {
+                  <option [value]="t.estado">
+                    {{ t.estado }}
                   </option>
                 }
               </select>
-
-              @if (cargandoTasacionPrecios) {
-                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando precios de tasación...</p>
-              }
             </div>
 
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
               <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 type="text"
                 [(ngModel)]="modelo"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
               />
             </div>
 
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Otros</label>
               <textarea
-                class="min-h-[110px] w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 [(ngModel)]="otros"
+                class="w-full min-h-[100px] rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
               ></textarea>
             </div>
           }
 
+          <!-- ========================= -->
+          <!-- FULL TUNING -->
+          <!-- ========================= -->
+          @if (tipoSeleccionado === 'Full Tuning') {
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
+              <select
+                [(ngModel)]="categoria"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                <option value="">Seleccione una categoría</option>
+                @for (ft of fullTuningDisponibles; track ft.id) {
+                  <option [value]="ft.categoria">
+                    {{ ft.categoria }}
+                  </option>
+                }
+              </select>
+            </div>
+          }
+
+          <!-- ========================= -->
+          <!-- TUNEO -->
+          <!-- ========================= -->
           @if (tipoSeleccionado === 'Tuneo') {
+
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
               <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 type="text"
                 [(ngModel)]="tuneoPlate"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
               />
             </div>
 
             <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Elementos de tuneo</label>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Elementos</label>
               <div class="grid gap-2">
-                @for (itemTuneo of tuneoItems; track itemTuneo) {
-                  <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+                @for (item of tuneoItems; track item) {
+                  <label class="flex items-center gap-3">
                     <input
                       type="checkbox"
-                      [checked]="isTuneoSelected(itemTuneo)"
-                      (change)="toggleTuneoItem(itemTuneo, $any($event.target).checked)"
+                      [checked]="isTuneoSelected(item)"
+                      (change)="toggleTuneoItem(item, $any($event.target).checked)"
                     />
-                    <span>{{ itemTuneo }}</span>
+                    <span>{{ item }}</span>
                   </label>
                 }
               </div>
             </div>
           }
 
-          @if (tipoSeleccionado === 'Full Tuning') {
-            <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
-              <select
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-                [(ngModel)]="categoria"
-                (ngModelChange)="actualizarTotal()"
-              >
-                <option value="Compacto">Compacto</option>
-                <option value="Sedán">Sedán</option>
-                <option value="SUV">SUV</option>
-                <option value="Deportivo">Deportivo</option>
-                <option value="Super">Super</option>
-                <option value="Moto">Moto</option>
-              </select>
-            </div>
-          }
-
-          @if (tipoSeleccionado && tipoSeleccionado !== 'Items') {
+          <!-- Matrícula general -->
+          @if (tipoSeleccionado && tipoSeleccionado !== 'Items' && tipoSeleccionado !== 'Tuneo') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
               <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
                 type="text"
                 [(ngModel)]="matricula"
-              />
-            </div>
-          }
-
-          @if (
-            tipoSeleccionado &&
-            tipoSeleccionado !== 'Reparación' &&
-            tipoSeleccionado !== 'Items' &&
-            tipoSeleccionado !== 'Tasación'
-          ) {
-            <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
-              <input
                 class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-                type="text"
-                [(ngModel)]="modelo"
               />
             </div>
           }
 
-          @if (
-            tipoSeleccionado &&
-            tipoSeleccionado !== 'Items' &&
-            tipoSeleccionado !== 'Tasación'
-          ) {
-            <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+          <!-- Convenio -->
+          @if (tipoSeleccionado && tipoSeleccionado !== 'Items' && tipoSeleccionado !== 'Tasación') {
+            <label class="flex items-center gap-3">
               <input
                 type="checkbox"
                 [(ngModel)]="convenio"
@@ -217,85 +211,50 @@
               <span>Aplicar convenio</span>
             </label>
           }
+
         </div>
       </article>
 
+      <!-- ========================= -->
+      <!-- RESUMEN -->
+      <!-- ========================= -->
       <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <h2 class="mb-4 text-lg font-semibold">Resumen</h2>
 
         <div class="grid gap-4">
-          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-            <span class="mb-2 block text-sm text-[#9aa4b2]">Empleado</span>
-            <strong class="text-base text-white">
-              {{ empleado?.nickServidor || empleado?.nombre || 'Sin sesión' }}
-            </strong>
+
+          <div>
+            <span class="text-sm text-[#9aa4b2]">Empleado</span>
+            <div class="font-bold">{{ empleado?.nombre }}</div>
           </div>
 
-          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-            <span class="mb-2 block text-sm text-[#9aa4b2]">Tipo seleccionado</span>
-            <strong class="text-base text-white">
-              {{ tipoSeleccionado || 'Seleccione una opción' }}
-            </strong>
+          <div>
+            <span class="text-sm text-[#9aa4b2]">Tipo</span>
+            <div class="font-bold">{{ tipoSeleccionado || '-' }}</div>
           </div>
 
-          @if (tipoSeleccionado === 'Reparación') {
-            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-              <span class="mb-2 block text-sm text-[#9aa4b2]">Reparación elegida</span>
-              <strong class="text-base text-white">
-                {{ gravedad || 'Seleccione una reparación' }}
-              </strong>
-            </div>
-
-            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-              <span class="mb-2 block text-sm text-[#9aa4b2]">Grúa</span>
-              <strong class="text-base text-white">
-                {{ grua ? 'Sí (+600$)' : 'No' }}
-              </strong>
+          @if (tipoSeleccionado === 'Full Tuning') {
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Categoría</span>
+              <div class="font-bold">{{ categoria || '-' }}</div>
             </div>
           }
 
-          @if (tipoSeleccionado === 'Items') {
-            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-              <span class="mb-2 block text-sm text-[#9aa4b2]">Item elegido</span>
-              <strong class="text-base text-white">
-                {{ item || 'Seleccione un item' }}
-              </strong>
-            </div>
-          }
-
-          @if (tipoSeleccionado === 'Tasación') {
-            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-              <span class="mb-2 block text-sm text-[#9aa4b2]">Estado de tasación</span>
-              <strong class="text-base text-white">
-                {{ estado || 'Seleccione un estado' }}
-              </strong>
-            </div>
-
-            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-              <span class="mb-2 block text-sm text-[#9aa4b2]">Modelo</span>
-              <strong class="text-base text-white">
-                {{ modelo || 'Sin modelo' }}
-              </strong>
-            </div>
-          }
-
-          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
-            <span class="mb-2 block text-sm text-[#9aa4b2]">Total estimado</span>
-            <strong class="text-2xl font-extrabold text-[#f4b400]">
-              {{ total | currency:'USD':'symbol':'1.0-0' }}
-            </strong>
+          <div class="mt-4 text-2xl font-extrabold text-[#f4b400]">
+            {{ total }}$
           </div>
 
           <button
-            type="button"
-            class="rounded-xl border-0 bg-[#f4b400] px-5 py-3 font-bold text-[#111] transition duration-200 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
-            [disabled]="enviando"
+            class="mt-4 rounded-xl bg-[#f4b400] px-4 py-3 font-bold text-black disabled:opacity-50"
             (click)="enviarFactura()"
+            [disabled]="enviando"
           >
             {{ enviando ? 'Guardando...' : 'Guardar factura' }}
           </button>
+
         </div>
       </article>
+
     </div>
   </div>
 </section>

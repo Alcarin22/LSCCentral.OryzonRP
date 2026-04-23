@@ -39,6 +39,12 @@ export interface TasacionPrecioDto {
   precio: number;
 }
 
+export interface FullTuningDto {
+  id: number;
+  categoria: string;
+  precio: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,6 +53,7 @@ export class FacturaService {
   private readonly reparacionesUrl = `${environment.backendUrl}/api/reparaciones`;
   private readonly itemsUrl = `${environment.backendUrl}/api/items`;
   private readonly tasacionPreciosUrl = `${environment.backendUrl}/api/tasacion-precios`;
+  private readonly fullTuningUrl = `${environment.backendUrl}/api/full-tuning`;
 
   constructor(private http: HttpClient) {}
 
@@ -64,5 +71,9 @@ export class FacturaService {
 
   getTasacionPrecios(): Observable<TasacionPrecioDto[]> {
     return this.http.get<TasacionPrecioDto[]>(this.tasacionPreciosUrl);
+  }
+
+  getFullTuning(): Observable<FullTuningDto[]> {
+    return this.http.get<FullTuningDto[]>(this.fullTuningUrl);
   }
 }
