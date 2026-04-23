@@ -16,6 +16,8 @@ import java.util.Locale;
 @Service
 public class FacturaService {
 
+    private static final int PRECIO_GRUA = 600;
+
     private final FacturaRepository facturaRepository;
     private final EmpleadoRepository empleadoRepository;
     private final ReparacionRepository reparacionRepository;
@@ -51,6 +53,7 @@ public class FacturaService {
         factura.setGravedad(request.getGravedad());
         factura.setTuneoPlate(request.getTuneoPlate());
         factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
+        factura.setGrua(Boolean.TRUE.equals(request.getGrua()));
 
         return facturaRepository.save(factura);
     }
@@ -95,7 +98,13 @@ public class FacturaService {
                 .orElseThrow(() -> new RuntimeException(
                         "No existe una reparación configurada en BD para: " + request.getGravedad()));
 
-        return reparacion.getPrecio();
+        int total = reparacion.getPrecio();
+
+        if (Boolean.TRUE.equals(request.getGrua())) {
+            total += PRECIO_GRUA;
+        }
+
+        return total;
     }
 
     private String normalizar(String valor) {

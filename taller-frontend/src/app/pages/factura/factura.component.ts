@@ -36,6 +36,7 @@ export class FacturaComponent implements OnInit {
   categoria = 'Compacto';
   tuneoPlate = '';
   gravedad = '';
+  grua = false;
 
   tuneoItems: string[] = [
     'Parte estética',
@@ -82,6 +83,7 @@ export class FacturaComponent implements OnInit {
 
     if (this.tipoSeleccionado !== 'Reparación') {
       this.gravedad = '';
+      this.grua = false;
     }
 
     this.actualizarTotal();
@@ -113,6 +115,10 @@ export class FacturaComponent implements OnInit {
         );
 
         base = reparacionSeleccionada?.precio ?? 0;
+
+        if (this.grua) {
+          base += 600;
+        }
         break;
       }
 
@@ -190,7 +196,7 @@ export class FacturaComponent implements OnInit {
       tipo: this.tipoSeleccionado,
       total: this.total,
       convenio: this.convenio,
-      modelo: this.normalizarTexto(this.modelo),
+      modelo: this.tipoSeleccionado === 'Reparación' ? null : this.normalizarTexto(this.modelo),
       estado: this.normalizarTexto(this.estado),
       cantidad: this.tipoSeleccionado === 'Items' ? this.cantidad : null,
       item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
@@ -199,7 +205,8 @@ export class FacturaComponent implements OnInit {
       tuneoPlate: this.tipoSeleccionado === 'Tuneo' ? this.normalizarTexto(this.tuneoPlate) : null,
       tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'
         ? (this.tuneoSeleccionados.length ? this.tuneoSeleccionados.join(', ') : null)
-        : null
+        : null,
+      grua: this.tipoSeleccionado === 'Reparación' ? this.grua : false
     };
 
     this.enviando = true;
@@ -260,6 +267,7 @@ export class FacturaComponent implements OnInit {
     this.categoria = 'Compacto';
     this.tuneoPlate = '';
     this.gravedad = '';
+    this.grua = false;
     this.tuneoSeleccionados = [];
   }
 }

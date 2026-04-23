@@ -48,6 +48,15 @@
                 <p class="mt-2 text-sm text-[#9aa4b2]">Cargando reparaciones...</p>
               }
             </div>
+
+            <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+              <input
+                type="checkbox"
+                [(ngModel)]="grua"
+                (ngModelChange)="actualizarTotal()"
+              />
+              <span>Grúa (+600$)</span>
+            </label>
           }
 
           @if (tipoSeleccionado === 'Tuneo') {
@@ -140,7 +149,9 @@
                 [(ngModel)]="matricula"
               />
             </div>
+          }
 
+          @if (tipoSeleccionado && tipoSeleccionado !== 'Reparación') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
               <input
@@ -149,7 +160,9 @@
                 [(ngModel)]="modelo"
               />
             </div>
+          }
 
+          @if (tipoSeleccionado) {
             <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
               <input
                 type="checkbox"
@@ -185,6 +198,13 @@
               <span class="mb-2 block text-sm text-[#9aa4b2]">Reparación elegida</span>
               <strong class="text-base text-white">
                 {{ gravedad || 'Seleccione una reparación' }}
+              </strong>
+            </div>
+
+            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+              <span class="mb-2 block text-sm text-[#9aa4b2]">Grúa</span>
+              <strong class="text-base text-white">
+                {{ grua ? 'Sí (+600$)' : 'No' }}
               </strong>
             </div>
           }
