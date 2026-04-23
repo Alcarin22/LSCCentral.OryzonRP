@@ -2,8 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { SessionEmpleado, SessionService } from '../../core/services/session.service';
-import { FacturaService, CreateFacturaRequest } from '../../../app/services/factura.service';
+import {
+  SessionEmpleado,
+  SessionService
+} from '../../core/services/session.service';
+
+import {
+  FacturaService,
+  CreateFacturaRequest,
+  ReparacionDto
+} from '../../../app/services/factura.service';
 
 @Component({
   selector: 'app-factura',
@@ -15,9 +23,9 @@ import { FacturaService, CreateFacturaRequest } from '../../../app/services/fact
 export class FacturaComponent implements OnInit {
   empleado: SessionEmpleado | null = null;
 
-  tipoSeleccionado = 'Reparación';
-
+  tipoSeleccionado = '';
   total = 0;
+
   matricula = '';
   modelo = '';
   estado = 'SERIE';
@@ -27,7 +35,7 @@ export class FacturaComponent implements OnInit {
 
   categoria = 'Compacto';
   tuneoPlate = '';
-  gravedad = 'Básica';
+  gravedad = '';
 
   tuneoItems: string[] = [
     'Parte estética',
@@ -37,8 +45,10 @@ export class FacturaComponent implements OnInit {
   ];
 
   tuneoSeleccionados: string[] = [];
+  reparaciones: ReparacionDto[] = [];
 
   enviando = false;
+  cargandoReparaciones = false;
 
   constructor(
     private sessionService: SessionService,
@@ -47,10 +57,33 @@ export class FacturaComponent implements OnInit {
 
   ngOnInit(): void {
     this.empleado = this.sessionService.getEmpleado();
+    this.cargarReparaciones();
     this.actualizarTotal();
   }
 
+  cargarReparaciones(): void {
+    this.cargandoReparaciones = true;
+
+    this.facturaService.getReparaciones().subscribe({
+      next: (data) => {
+        this.reparaciones = data ?? [];
+        this.cargandoReparaciones = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando reparaciones:', error);
+        this.cargandoReparaciones = false;
+      }
+    });
+  }
+
   onTipoFacturaChange(): void {
+    this.total = 0;
+
+    if (this.tipoSeleccionado !== 'Reparación') {
+      this.gravedad = '';
+    }
+
     this.actualizarTotal();
   }
 
@@ -74,11 +107,14 @@ export class FacturaComponent implements OnInit {
     let base = 0;
 
     switch (this.tipoSeleccionado) {
-      case 'Reparación':
-        // El precio real de reparación ahora se calcula en backend.
-        // Aquí dejamos una vista orientativa simple.
-        base = 0;
+      case 'Reparación': {
+        const reparacionSeleccionada = this.reparaciones.find(
+          r => this.normalizarClave(r.tipo) === this.normalizarClave(this.gravedad)
+        );
+
+        base = reparacionSeleccionada?.precio ?? 0;
         break;
+      }
 
       case 'Tuneo':
         base = this.tuneoSeleccionados.length * 800;
@@ -134,6 +170,16 @@ export class FacturaComponent implements OnInit {
       return;
     }
 
+    if (!this.tipoSeleccionado) {
+      alert('Debes seleccionar un tipo de factura.');
+      return;
+    }
+
+    if (this.tipoSeleccionado === 'Reparación' && !this.gravedad) {
+      alert('Debes seleccionar un tipo de reparación.');
+      return;
+    }
+
     if (this.enviando) {
       return;
     }
@@ -161,7 +207,7 @@ export class FacturaComponent implements OnInit {
     this.facturaService.crearFactura(payload).subscribe({
       next: (response) => {
         console.log('Factura guardada en backend:', response);
-        alert(`Factura guardada correctamente. Total final: $${response.total ?? 'calculado'}`);
+        alert(`Factura guardada correctamente. Total final: $${response.total ?? this.total}`);
         this.resetFormulario();
         this.enviando = false;
       },
@@ -190,9 +236,20 @@ export class FacturaComponent implements OnInit {
     return limpio.length ? limpio : null;
   }
 
-  private resetFormulario(): void {
-    this.tipoSeleccionado = 'Reparación';
+  private normalizarClave(valor: string | null | undefined): string {
+    if (!valor) {
+      return '';
+    }
 
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  private resetFormulario(): void {
+    this.tipoSeleccionado = '';
     this.total = 0;
     this.matricula = '';
     this.modelo = '';
@@ -202,9 +259,7 @@ export class FacturaComponent implements OnInit {
     this.item = '';
     this.categoria = 'Compacto';
     this.tuneoPlate = '';
-    this.gravedad = 'Básica';
+    this.gravedad = '';
     this.tuneoSeleccionados = [];
-
-    this.actualizarTotal();
   }
 }
