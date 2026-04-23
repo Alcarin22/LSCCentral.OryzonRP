@@ -3,12 +3,14 @@ package com.taller.backend.service;
 import com.taller.backend.dto.CreateFacturaRequest;
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
+import com.taller.backend.entity.FullTuning;
 import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
 import com.taller.backend.entity.Tasacion;
 import com.taller.backend.entity.TasacionPrecio;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.FullTuningRepository;
 import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import com.taller.backend.repository.TasacionPrecioRepository;
@@ -32,6 +34,7 @@ public class FacturaService {
     private final ItemRepository itemRepository;
     private final TasacionPrecioRepository tasacionPrecioRepository;
     private final TasacionRepository tasacionRepository;
+    private final FullTuningRepository fullTuningRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
@@ -39,13 +42,15 @@ public class FacturaService {
             ReparacionRepository reparacionRepository,
             ItemRepository itemRepository,
             TasacionPrecioRepository tasacionPrecioRepository,
-            TasacionRepository tasacionRepository) {
+            TasacionRepository tasacionRepository,
+            FullTuningRepository fullTuningRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
         this.itemRepository = itemRepository;
         this.tasacionPrecioRepository = tasacionPrecioRepository;
         this.tasacionRepository = tasacionRepository;
+        this.fullTuningRepository = fullTuningRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -119,6 +124,10 @@ public class FacturaService {
 
             case "Tasación":
                 totalBase = calcularTotalTasacion(request);
+                break;
+
+            case "Full Tuning":
+                totalBase = calcularTotalFullTuning(request);
                 break;
 
             default:
@@ -196,6 +205,24 @@ public class FacturaService {
                         "No existe un precio configurado para el estado de tasación: " + request.getEstado()));
 
         return tasacionPrecio.getPrecio()
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+    }
+
+    private int calcularTotalFullTuning(CreateFacturaRequest request) {
+        if (request.getCategoria() == null || request.getCategoria().isBlank()) {
+            throw new RuntimeException("Debes seleccionar una categoría para Full Tuning");
+        }
+
+        String categoriaNormalizada = normalizar(request.getCategoria());
+
+        FullTuning fullTuning = fullTuningRepository.findAll().stream()
+                .filter(ft -> normalizar(ft.getCategoria()).equals(categoriaNormalizada))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No existe un precio configurado para la categoría: " + request.getCategoria()));
+
+        return fullTuning.getPrecio()
                 .setScale(0, RoundingMode.HALF_UP)
                 .intValue();
     }

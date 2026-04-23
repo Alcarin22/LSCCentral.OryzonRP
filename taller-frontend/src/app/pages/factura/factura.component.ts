@@ -12,7 +12,8 @@ import {
   CreateFacturaRequest,
   ReparacionDto,
   ItemDto,
-  TasacionPrecioDto
+  TasacionPrecioDto,
+  FullTuningDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -36,7 +37,7 @@ export class FacturaComponent implements OnInit {
   item = '';
   otros = '';
 
-  categoria = 'Compacto';
+  categoria = '';
   tuneoPlate = '';
   gravedad = '';
   grua = false;
@@ -52,11 +53,13 @@ export class FacturaComponent implements OnInit {
   reparaciones: ReparacionDto[] = [];
   itemsDisponibles: ItemDto[] = [];
   tasacionPrecios: TasacionPrecioDto[] = [];
+  fullTuningDisponibles: FullTuningDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
   cargandoItems = false;
   cargandoTasacionPrecios = false;
+  cargandoFullTuning = false;
 
   constructor(
     private sessionService: SessionService,
@@ -68,6 +71,7 @@ export class FacturaComponent implements OnInit {
     this.cargarReparaciones();
     this.cargarItems();
     this.cargarTasacionPrecios();
+    this.cargarFullTuning();
     this.actualizarTotal();
   }
 
@@ -119,6 +123,22 @@ export class FacturaComponent implements OnInit {
     });
   }
 
+  cargarFullTuning(): void {
+    this.cargandoFullTuning = true;
+
+    this.facturaService.getFullTuning().subscribe({
+      next: (data) => {
+        this.fullTuningDisponibles = data ?? [];
+        this.cargandoFullTuning = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando full tuning:', error);
+        this.cargandoFullTuning = false;
+      }
+    });
+  }
+
   onTipoFacturaChange(): void {
     this.total = 0;
 
@@ -135,6 +155,10 @@ export class FacturaComponent implements OnInit {
     if (this.tipoSeleccionado !== 'Tasación') {
       this.estado = 'SERIE';
       this.otros = '';
+    }
+
+    if (this.tipoSeleccionado !== 'Full Tuning') {
+      this.categoria = '';
     }
 
     if (this.tipoSeleccionado === 'Tasación') {
@@ -195,32 +219,19 @@ export class FacturaComponent implements OnInit {
         break;
       }
 
+      case 'Full Tuning': {
+        const fullTuningSeleccionado = this.fullTuningDisponibles.find(
+          ft => this.normalizarClave(ft.categoria) === this.normalizarClave(this.categoria)
+        );
+
+        base = fullTuningSeleccionado?.precio ?? 0;
+        break;
+      }
+
       case 'Tuneo':
         base = this.tuneoSeleccionados.length * 800;
         if (!base) {
           base = 800;
-        }
-        break;
-
-      case 'Full Tuning':
-        switch (this.categoria) {
-          case 'Sedán':
-            base = 6500;
-            break;
-          case 'SUV':
-            base = 8000;
-            break;
-          case 'Deportivo':
-            base = 12000;
-            break;
-          case 'Super':
-            base = 18000;
-            break;
-          case 'Moto':
-            base = 5000;
-            break;
-          default:
-            base = 5500;
         }
         break;
 
@@ -266,6 +277,11 @@ export class FacturaComponent implements OnInit {
         alert('Debes indicar el modelo del vehículo en la tasación.');
         return;
       }
+    }
+
+    if (this.tipoSeleccionado === 'Full Tuning' && !this.categoria) {
+      alert('Debes seleccionar una categoría de Full Tuning.');
+      return;
     }
 
     if (this.enviando) {
@@ -350,7 +366,7 @@ export class FacturaComponent implements OnInit {
     this.cantidad = 1;
     this.item = '';
     this.otros = '';
-    this.categoria = 'Compacto';
+    this.categoria = '';
     this.tuneoPlate = '';
     this.gravedad = '';
     this.grua = false;
