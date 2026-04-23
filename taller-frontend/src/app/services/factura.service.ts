@@ -18,6 +18,7 @@ export interface CreateFacturaRequest {
   tuneoPlate?: string | null;
   tuneoSeleccionados?: string | null;
   grua?: boolean | null;
+  otros?: string | null;
 }
 
 export interface ReparacionDto {
@@ -32,7 +33,7 @@ export interface ItemDto {
   precio: number;
 }
 
-export interface TasacionDto {
+export interface TasacionPrecioDto {
   id: number;
   estado: string;
   precio: number;
@@ -45,7 +46,7 @@ export class FacturaService {
   private readonly baseUrl = `${environment.backendUrl}/api/facturas`;
   private readonly reparacionesUrl = `${environment.backendUrl}/api/reparaciones`;
   private readonly itemsUrl = `${environment.backendUrl}/api/items`;
-  private readonly tasacionesUrl = `${environment.backendUrl}/api/tasaciones`;
+  private readonly tasacionPreciosUrl = `${environment.backendUrl}/api/tasacion-precios`;
 
   constructor(private http: HttpClient) {}
 
@@ -61,7 +62,7 @@ export class FacturaService {
     return this.http.get<ItemDto[]>(this.itemsUrl);
   }
 
-  getTasaciones(): Observable<TasacionDto[]> {
-    return this.http.get<TasacionDto[]>(this.tasacionesUrl);
+  getTasacionPrecios(): Observable<TasacionPrecioDto[]> {
+    return this.http.get<TasacionPrecioDto[]>(this.tasacionPreciosUrl);
   }
 }

@@ -10,7 +10,7 @@ import com.taller.backend.entity.TasacionPrecio;
 import com.taller.backend.repository.TasacionPrecioRepository;
 
 @RestController
-@RequestMapping("/api/tasaciones")
+@RequestMapping("/api/tasacion-precios")
 public class TasacionPrecioController {
 
     private final TasacionPrecioRepository tasacionPrecioRepository;
@@ -20,7 +20,7 @@ public class TasacionPrecioController {
     }
 
     @GetMapping
-    public List<TasacionPrecio> listarTasaciones() {
+    public List<TasacionPrecio> listarPreciosTasacion() {
         return tasacionPrecioRepository.findAll();
     }
 }

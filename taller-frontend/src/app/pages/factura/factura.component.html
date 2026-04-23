@@ -101,16 +101,33 @@
                 (ngModelChange)="actualizarTotal()"
               >
                 <option value="">Seleccione un estado</option>
-                @for (tasacion of tasacionesDisponibles; track tasacion.id) {
-                  <option [value]="tasacion.estado">
-                    {{ tasacion.estado }}
+                @for (precioTasacion of tasacionPrecios; track precioTasacion.id) {
+                  <option [value]="precioTasacion.estado">
+                    {{ precioTasacion.estado }}
                   </option>
                 }
               </select>
 
-              @if (cargandoTasaciones) {
-                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando tasaciones...</p>
+              @if (cargandoTasacionPrecios) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando precios de tasación...</p>
               }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="text"
+                [(ngModel)]="modelo"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Otros</label>
+              <textarea
+                class="min-h-[110px] w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="otros"
+              ></textarea>
             </div>
           }
 
@@ -173,7 +190,8 @@
           @if (
             tipoSeleccionado &&
             tipoSeleccionado !== 'Reparación' &&
-            tipoSeleccionado !== 'Items'
+            tipoSeleccionado !== 'Items' &&
+            tipoSeleccionado !== 'Tasación'
           ) {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
@@ -250,6 +268,13 @@
               <span class="mb-2 block text-sm text-[#9aa4b2]">Estado de tasación</span>
               <strong class="text-base text-white">
                 {{ estado || 'Seleccione un estado' }}
+              </strong>
+            </div>
+
+            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+              <span class="mb-2 block text-sm text-[#9aa4b2]">Modelo</span>
+              <strong class="text-base text-white">
+                {{ modelo || 'Sin modelo' }}
               </strong>
             </div>
           }
