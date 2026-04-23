@@ -32,6 +32,12 @@ export interface ItemDto {
   precio: number;
 }
 
+export interface TasacionDto {
+  id: number;
+  estado: string;
+  precio: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -39,6 +45,7 @@ export class FacturaService {
   private readonly baseUrl = `${environment.backendUrl}/api/facturas`;
   private readonly reparacionesUrl = `${environment.backendUrl}/api/reparaciones`;
   private readonly itemsUrl = `${environment.backendUrl}/api/items`;
+  private readonly tasacionesUrl = `${environment.backendUrl}/api/tasaciones`;
 
   constructor(private http: HttpClient) {}
 
@@ -52,5 +59,9 @@ export class FacturaService {
 
   getItems(): Observable<ItemDto[]> {
     return this.http.get<ItemDto[]>(this.itemsUrl);
+  }
+
+  getTasaciones(): Observable<TasacionDto[]> {
+    return this.http.get<TasacionDto[]>(this.tasacionesUrl);
   }
 }
