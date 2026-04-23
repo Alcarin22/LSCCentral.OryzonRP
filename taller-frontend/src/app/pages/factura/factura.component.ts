@@ -10,7 +10,8 @@ import {
 import {
   FacturaService,
   CreateFacturaRequest,
-  ReparacionDto
+  ReparacionDto,
+  ItemDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -47,9 +48,11 @@ export class FacturaComponent implements OnInit {
 
   tuneoSeleccionados: string[] = [];
   reparaciones: ReparacionDto[] = [];
+  itemsDisponibles: ItemDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
+  cargandoItems = false;
 
   constructor(
     private sessionService: SessionService,
@@ -59,6 +62,7 @@ export class FacturaComponent implements OnInit {
   ngOnInit(): void {
     this.empleado = this.sessionService.getEmpleado();
     this.cargarReparaciones();
+    this.cargarItems();
     this.actualizarTotal();
   }
 
@@ -78,12 +82,33 @@ export class FacturaComponent implements OnInit {
     });
   }
 
+  cargarItems(): void {
+    this.cargandoItems = true;
+
+    this.facturaService.getItems().subscribe({
+      next: (data) => {
+        this.itemsDisponibles = data ?? [];
+        this.cargandoItems = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando items:', error);
+        this.cargandoItems = false;
+      }
+    });
+  }
+
   onTipoFacturaChange(): void {
     this.total = 0;
 
     if (this.tipoSeleccionado !== 'Reparación') {
       this.gravedad = '';
       this.grua = false;
+    }
+
+    if (this.tipoSeleccionado !== 'Items') {
+      this.item = '';
+      this.cantidad = 1;
     }
 
     this.actualizarTotal();
@@ -122,6 +147,15 @@ export class FacturaComponent implements OnInit {
         break;
       }
 
+      case 'Items': {
+        const itemSeleccionado = this.itemsDisponibles.find(
+          i => this.normalizarClave(i.nombre) === this.normalizarClave(this.item)
+        );
+
+        base = (itemSeleccionado?.precio ?? 0) * (this.cantidad || 1);
+        break;
+      }
+
       case 'Tuneo':
         base = this.tuneoSeleccionados.length * 800;
         if (!base) {
@@ -149,10 +183,6 @@ export class FacturaComponent implements OnInit {
           default:
             base = 5500;
         }
-        break;
-
-      case 'Items':
-        base = (this.cantidad || 1) * 250;
         break;
 
       case 'Tasación':
@@ -183,6 +213,11 @@ export class FacturaComponent implements OnInit {
 
     if (this.tipoSeleccionado === 'Reparación' && !this.gravedad) {
       alert('Debes seleccionar un tipo de reparación.');
+      return;
+    }
+
+    if (this.tipoSeleccionado === 'Items' && !this.item) {
+      alert('Debes seleccionar un item.');
       return;
     }
 

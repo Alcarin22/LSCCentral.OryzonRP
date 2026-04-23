@@ -26,12 +26,19 @@ export interface ReparacionDto {
   precio: number;
 }
 
+export interface ItemDto {
+  id: number;
+  nombre: string;
+  precio: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class FacturaService {
   private readonly baseUrl = `${environment.backendUrl}/api/facturas`;
   private readonly reparacionesUrl = `${environment.backendUrl}/api/reparaciones`;
+  private readonly itemsUrl = `${environment.backendUrl}/api/items`;
 
   constructor(private http: HttpClient) {}
 
@@ -41,5 +48,9 @@ export class FacturaService {
 
   getReparaciones(): Observable<ReparacionDto[]> {
     return this.http.get<ReparacionDto[]>(this.reparacionesUrl);
+  }
+
+  getItems(): Observable<ItemDto[]> {
+    return this.http.get<ItemDto[]>(this.itemsUrl);
   }
 }

@@ -59,6 +59,39 @@
             </label>
           }
 
+          @if (tipoSeleccionado === 'Items') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
+              <select
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="item"
+                (ngModelChange)="actualizarTotal()"
+              >
+                <option value="">Seleccione un item</option>
+                @for (itemDisponible of itemsDisponibles; track itemDisponible.id) {
+                  <option [value]="itemDisponible.nombre">
+                    {{ itemDisponible.nombre }}
+                  </option>
+                }
+              </select>
+
+              @if (cargandoItems) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando items...</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="number"
+                min="1"
+                [(ngModel)]="cantidad"
+                (ngModelChange)="actualizarTotal()"
+              />
+            </div>
+          }
+
           @if (tipoSeleccionado === 'Tuneo') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
@@ -101,28 +134,6 @@
                 <option value="Super">Super</option>
                 <option value="Moto">Moto</option>
               </select>
-            </div>
-          }
-
-          @if (tipoSeleccionado === 'Items') {
-            <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Nombre del item</label>
-              <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-                type="text"
-                [(ngModel)]="item"
-              />
-            </div>
-
-            <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
-              <input
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-                type="number"
-                min="1"
-                [(ngModel)]="cantidad"
-                (ngModelChange)="actualizarTotal()"
-              />
             </div>
           }
 
@@ -205,6 +216,15 @@
               <span class="mb-2 block text-sm text-[#9aa4b2]">Grúa</span>
               <strong class="text-base text-white">
                 {{ grua ? 'Sí (+600$)' : 'No' }}
+              </strong>
+            </div>
+          }
+
+          @if (tipoSeleccionado === 'Items') {
+            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+              <span class="mb-2 block text-sm text-[#9aa4b2]">Item elegido</span>
+              <strong class="text-base text-white">
+                {{ item || 'Seleccione un item' }}
               </strong>
             </div>
           }
