@@ -92,6 +92,28 @@
             </div>
           }
 
+          @if (tipoSeleccionado === 'Tasación') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
+              <select
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="estado"
+                (ngModelChange)="actualizarTotal()"
+              >
+                <option value="">Seleccione un estado</option>
+                @for (tasacion of tasacionesDisponibles; track tasacion.id) {
+                  <option [value]="tasacion.estado">
+                    {{ tasacion.estado }}
+                  </option>
+                }
+              </select>
+
+              @if (cargandoTasaciones) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando tasaciones...</p>
+              }
+            </div>
+          }
+
           @if (tipoSeleccionado === 'Tuneo') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
@@ -137,20 +159,6 @@
             </div>
           }
 
-          @if (tipoSeleccionado === 'Tasación') {
-            <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
-              <select
-                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-                [(ngModel)]="estado"
-                (ngModelChange)="actualizarTotal()"
-              >
-                <option value="SERIE">Serie</option>
-                <option value="FULL_TUNING">Full tuning</option>
-              </select>
-            </div>
-          }
-
           @if (tipoSeleccionado && tipoSeleccionado !== 'Items') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
@@ -177,7 +185,11 @@
             </div>
           }
 
-          @if (tipoSeleccionado && tipoSeleccionado !== 'Items') {
+          @if (
+            tipoSeleccionado &&
+            tipoSeleccionado !== 'Items' &&
+            tipoSeleccionado !== 'Tasación'
+          ) {
             <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
               <input
                 type="checkbox"
@@ -229,6 +241,15 @@
               <span class="mb-2 block text-sm text-[#9aa4b2]">Item elegido</span>
               <strong class="text-base text-white">
                 {{ item || 'Seleccione un item' }}
+              </strong>
+            </div>
+          }
+
+          @if (tipoSeleccionado === 'Tasación') {
+            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+              <span class="mb-2 block text-sm text-[#9aa4b2]">Estado de tasación</span>
+              <strong class="text-base text-white">
+                {{ estado || 'Seleccione un estado' }}
               </strong>
             </div>
           }

@@ -5,10 +5,12 @@ import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
 import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
+import com.taller.backend.entity.TasacionPrecio;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
+import com.taller.backend.repository.TasacionPrecioRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,16 +28,19 @@ public class FacturaService {
     private final EmpleadoRepository empleadoRepository;
     private final ReparacionRepository reparacionRepository;
     private final ItemRepository itemRepository;
+    private final TasacionPrecioRepository tasacionPrecioRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
             EmpleadoRepository empleadoRepository,
             ReparacionRepository reparacionRepository,
-            ItemRepository itemRepository) {
+            ItemRepository itemRepository,
+            TasacionPrecioRepository tasacionPrecioRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
         this.itemRepository = itemRepository;
+        this.tasacionPrecioRepository = tasacionPrecioRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -50,7 +55,10 @@ public class FacturaService {
         factura.setMatricula(request.getMatricula());
         factura.setTipo(request.getTipo());
         factura.setTotal(totalCalculado);
-        factura.setConvenio(Boolean.TRUE.equals(request.getConvenio()));
+
+        // Convenio solo tiene sentido en tipos que lo usen; para Tasación lo forzamos a false
+        boolean convenioAplicado = Boolean.TRUE.equals(request.getConvenio()) && !"Tasación".equals(request.getTipo());
+        factura.setConvenio(convenioAplicado);
 
         factura.setModelo(request.getModelo());
         factura.setEstado(request.getEstado());
@@ -60,7 +68,7 @@ public class FacturaService {
         factura.setGravedad(request.getGravedad());
         factura.setTuneoPlate(request.getTuneoPlate());
         factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
-        factura.setGrua(Boolean.TRUE.equals(request.getGrua()));
+        factura.setGrua(Boolean.TRUE.equals(request.getGrua()) && "Reparación".equals(request.getTipo()));
 
         return facturaRepository.save(factura);
     }
@@ -81,6 +89,10 @@ public class FacturaService {
                 totalBase = calcularTotalItems(request);
                 break;
 
+            case "Tasación":
+                totalBase = calcularTotalTasacion(request);
+                break;
+
             default:
                 if (request.getTotal() == null) {
                     throw new RuntimeException("No se pudo calcular el total de la factura");
@@ -89,7 +101,8 @@ public class FacturaService {
                 break;
         }
 
-        if (Boolean.TRUE.equals(request.getConvenio())) {
+        // Convenio no aplica a Tasación
+        if (Boolean.TRUE.equals(request.getConvenio()) && !"Tasación".equals(request.getTipo())) {
             totalBase = (int) Math.round(totalBase * 0.8);
         }
 
@@ -140,6 +153,24 @@ public class FacturaService {
                 .setScale(0, RoundingMode.HALF_UP);
 
         return total.intValue();
+    }
+
+    private int calcularTotalTasacion(CreateFacturaRequest request) {
+        if (request.getEstado() == null || request.getEstado().isBlank()) {
+            throw new RuntimeException("Debes seleccionar un estado para la tasación");
+        }
+
+        String estadoNormalizado = normalizar(request.getEstado());
+
+        TasacionPrecio tasacion = tasacionPrecioRepository.findAll().stream()
+                .filter(t -> normalizar(t.getEstado()).equals(estadoNormalizado))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No existe una tasación configurada en BD para el estado: " + request.getEstado()));
+
+        return tasacion.getPrecio()
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
     }
 
     private String normalizar(String valor) {

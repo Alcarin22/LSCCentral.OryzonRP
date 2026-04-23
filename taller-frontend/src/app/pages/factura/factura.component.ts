@@ -11,7 +11,8 @@ import {
   FacturaService,
   CreateFacturaRequest,
   ReparacionDto,
-  ItemDto
+  ItemDto,
+  TasacionDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -49,10 +50,12 @@ export class FacturaComponent implements OnInit {
   tuneoSeleccionados: string[] = [];
   reparaciones: ReparacionDto[] = [];
   itemsDisponibles: ItemDto[] = [];
+  tasacionesDisponibles: TasacionDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
   cargandoItems = false;
+  cargandoTasaciones = false;
 
   constructor(
     private sessionService: SessionService,
@@ -63,6 +66,7 @@ export class FacturaComponent implements OnInit {
     this.empleado = this.sessionService.getEmpleado();
     this.cargarReparaciones();
     this.cargarItems();
+    this.cargarTasaciones();
     this.actualizarTotal();
   }
 
@@ -98,6 +102,22 @@ export class FacturaComponent implements OnInit {
     });
   }
 
+  cargarTasaciones(): void {
+    this.cargandoTasaciones = true;
+
+    this.facturaService.getTasaciones().subscribe({
+      next: (data) => {
+        this.tasacionesDisponibles = data ?? [];
+        this.cargandoTasaciones = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando tasaciones:', error);
+        this.cargandoTasaciones = false;
+      }
+    });
+  }
+
   onTipoFacturaChange(): void {
     this.total = 0;
 
@@ -109,6 +129,14 @@ export class FacturaComponent implements OnInit {
     if (this.tipoSeleccionado !== 'Items') {
       this.item = '';
       this.cantidad = 1;
+    }
+
+    if (this.tipoSeleccionado !== 'Tasación') {
+      this.estado = 'SERIE';
+    }
+
+    if (this.tipoSeleccionado === 'Tasación') {
+      this.convenio = false;
     }
 
     this.actualizarTotal();
@@ -156,6 +184,15 @@ export class FacturaComponent implements OnInit {
         break;
       }
 
+      case 'Tasación': {
+        const tasacionSeleccionada = this.tasacionesDisponibles.find(
+          t => this.normalizarClave(t.estado) === this.normalizarClave(this.estado)
+        );
+
+        base = tasacionSeleccionada?.precio ?? 0;
+        break;
+      }
+
       case 'Tuneo':
         base = this.tuneoSeleccionados.length * 800;
         if (!base) {
@@ -185,15 +222,11 @@ export class FacturaComponent implements OnInit {
         }
         break;
 
-      case 'Tasación':
-        base = this.estado === 'FULL_TUNING' ? 1500 : 700;
-        break;
-
       default:
         base = 0;
     }
 
-    if (this.convenio) {
+    if (this.convenio && this.tipoSeleccionado !== 'Tasación') {
       base = Math.round(base * 0.8);
     }
 
@@ -221,6 +254,11 @@ export class FacturaComponent implements OnInit {
       return;
     }
 
+    if (this.tipoSeleccionado === 'Tasación' && !this.estado) {
+      alert('Debes seleccionar un estado de tasación.');
+      return;
+    }
+
     if (this.enviando) {
       return;
     }
@@ -230,9 +268,11 @@ export class FacturaComponent implements OnInit {
       matricula: this.obtenerMatriculaParaBackend(),
       tipo: this.tipoSeleccionado,
       total: this.total,
-      convenio: this.convenio,
-      modelo: this.tipoSeleccionado === 'Reparación' ? null : this.normalizarTexto(this.modelo),
-      estado: this.normalizarTexto(this.estado),
+      convenio: this.tipoSeleccionado === 'Tasación' ? false : this.convenio,
+      modelo: this.tipoSeleccionado === 'Reparación' || this.tipoSeleccionado === 'Items'
+        ? null
+        : this.normalizarTexto(this.modelo),
+      estado: this.tipoSeleccionado === 'Tasación' ? this.normalizarTexto(this.estado) : this.normalizarTexto(this.estado),
       cantidad: this.tipoSeleccionado === 'Items' ? this.cantidad : null,
       item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
       categoria: this.tipoSeleccionado === 'Full Tuning' ? this.normalizarTexto(this.categoria) : null,
