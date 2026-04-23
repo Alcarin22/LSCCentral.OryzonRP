@@ -3,12 +3,16 @@ package com.taller.backend.service;
 import com.taller.backend.dto.CreateFacturaRequest;
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
+import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -21,14 +25,17 @@ public class FacturaService {
     private final FacturaRepository facturaRepository;
     private final EmpleadoRepository empleadoRepository;
     private final ReparacionRepository reparacionRepository;
+    private final ItemRepository itemRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
             EmpleadoRepository empleadoRepository,
-            ReparacionRepository reparacionRepository) {
+            ReparacionRepository reparacionRepository,
+            ItemRepository itemRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
+        this.itemRepository = itemRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -70,6 +77,10 @@ public class FacturaService {
                 totalBase = calcularTotalReparacion(request);
                 break;
 
+            case "Items":
+                totalBase = calcularTotalItems(request);
+                break;
+
             default:
                 if (request.getTotal() == null) {
                     throw new RuntimeException("No se pudo calcular el total de la factura");
@@ -105,6 +116,30 @@ public class FacturaService {
         }
 
         return total;
+    }
+
+    private int calcularTotalItems(CreateFacturaRequest request) {
+        if (request.getItem() == null || request.getItem().isBlank()) {
+            throw new RuntimeException("Debes seleccionar un item");
+        }
+
+        if (request.getCantidad() == null || request.getCantidad() <= 0) {
+            throw new RuntimeException("La cantidad debe ser mayor que 0");
+        }
+
+        String itemNormalizado = normalizar(request.getItem());
+
+        Item item = itemRepository.findAll().stream()
+                .filter(i -> normalizar(i.getNombre()).equals(itemNormalizado))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No existe un item configurado en BD para: " + request.getItem()));
+
+        BigDecimal total = item.getPrecio()
+                .multiply(BigDecimal.valueOf(request.getCantidad()))
+                .setScale(0, RoundingMode.HALF_UP);
+
+        return total.intValue();
     }
 
     private String normalizar(String valor) {
