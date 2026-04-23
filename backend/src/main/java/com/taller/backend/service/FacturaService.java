@@ -9,7 +9,9 @@ import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Service
 public class FacturaService {
@@ -54,7 +56,7 @@ public class FacturaService {
     }
 
     private int calcularTotal(CreateFacturaRequest request) {
-        if (request.getTipo() == null) {
+        if (request.getTipo() == null || request.getTipo().isBlank()) {
             throw new RuntimeException("El tipo de factura es obligatorio");
         }
 
@@ -85,10 +87,25 @@ public class FacturaService {
             throw new RuntimeException("La gravedad de la reparación es obligatoria");
         }
 
-        Reparacion reparacion = reparacionRepository.findByTipoIgnoreCase(request.getGravedad().trim())
+        String gravedadNormalizada = normalizar(request.getGravedad());
+
+        Reparacion reparacion = reparacionRepository.findAll().stream()
+                .filter(r -> normalizar(r.getTipo()).equals(gravedadNormalizada))
+                .findFirst()
                 .orElseThrow(() -> new RuntimeException(
                         "No existe una reparación configurada en BD para: " + request.getGravedad()));
 
         return reparacion.getPrecio();
+    }
+
+    private String normalizar(String valor) {
+        if (valor == null) {
+            return "";
+        }
+
+        String sinAcentos = Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        return sinAcentos.trim().toLowerCase(Locale.ROOT);
     }
 }

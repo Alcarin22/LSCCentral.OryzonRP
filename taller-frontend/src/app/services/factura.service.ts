@@ -19,15 +19,26 @@ export interface CreateFacturaRequest {
   tuneoSeleccionados?: string | null;
 }
 
+export interface ReparacionDto {
+  id: number;
+  tipo: string;
+  precio: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class FacturaService {
   private readonly baseUrl = `${environment.backendUrl}/api/facturas`;
+  private readonly reparacionesUrl = `${environment.backendUrl}/api/reparaciones`;
 
   constructor(private http: HttpClient) {}
 
   crearFactura(payload: CreateFacturaRequest): Observable<any> {
     return this.http.post<any>(this.baseUrl, payload);
+  }
+
+  getReparaciones(): Observable<ReparacionDto[]> {
+    return this.http.get<ReparacionDto[]>(this.reparacionesUrl);
   }
 }

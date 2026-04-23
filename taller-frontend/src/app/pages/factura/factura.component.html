@@ -1,320 +1,211 @@
-<div class="factura-page">
-  <div class="factura-wrapper">
-    <div class="factura-header">
-      <h1>Facturas</h1>
+<section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8 lg:py-6">
+  <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    <div>
+      <h1 class="text-3xl font-extrabold">Factura</h1>
+      <p class="mt-2 text-sm text-[#9aa4b2]">
+        Genera una factura y guarda el registro en la base de datos.
+      </p>
     </div>
 
-    <article class="factura-card selector-card">
-      <div class="form-group">
-        <label for="tipoFactura">Tipo de factura</label>
-        <select
-          id="tipoFactura"
-          [(ngModel)]="tipoSeleccionado"
-          (ngModelChange)="onTipoFacturaChange()"
-        >
-          <option value="">Seleccione una opción</option>
-          <option value="Full Tuning">Full Tuning</option>
-          <option value="Tuneo">Tuneo</option>
-          <option value="Reparación">Reparación</option>
-          <option value="Items">Items</option>
-          <option value="Tasación">Tasación</option>
-        </select>
-      </div>
-    </article>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <h2 class="mb-4 text-lg font-semibold">Datos principales</h2>
 
-    @if (tipoSeleccionado === 'Full Tuning') {
-      <article class="factura-card detail-card">
-        <div class="detail-header">
-          <h2>Full Tuning</h2>
-        </div>
-
-        <div class="detail-form">
-          <div class="form-group">
-            <label for="matriculaFull">Matrícula</label>
-            <input
-              id="matriculaFull"
-              type="text"
-              placeholder="0000-XXX"
-              [(ngModel)]="matricula"
-              (ngModelChange)="actualizarTotal()"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="categoriaFull">Categoría</label>
+        <div class="grid gap-4">
+          <div>
+            <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de factura</label>
             <select
-              id="categoriaFull"
-              [(ngModel)]="categoria"
-              (ngModelChange)="actualizarTotal()"
+              class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              [(ngModel)]="tipoSeleccionado"
+              (ngModelChange)="onTipoFacturaChange()"
             >
               <option value="">Seleccione una opción</option>
-              <option value="Compacto">Compacto</option>
-              <option value="Sedan">Sedan</option>
-              <option value="Coupe">Coupe</option>
-              <option value="Muscle">Muscle</option>
-              <option value="Van">Van</option>
-              <option value="Offroad">Offroad</option>
-              <option value="SUV">SUV</option>
-              <option value="Moto">Moto</option>
-              <option value="Deportivo">Deportivo</option>
-              <option value="Deportivo Clasico">Deportivo Clasico</option>
-              <option value="Super">Super</option>
-              <option value="VIP">VIP</option>
+              <option value="Reparación">Reparación</option>
+              <option value="Tuneo">Tuneo</option>
+              <option value="Full Tuning">Full Tuning</option>
+              <option value="Items">Items</option>
+              <option value="Tasación">Tasación</option>
             </select>
           </div>
 
-          <label class="checkbox-field" for="convenioFull">
-            <input
-              id="convenioFull"
-              type="checkbox"
-              [(ngModel)]="convenio"
-              (ngModelChange)="actualizarTotal()"
-            />
-            <span>Convenio</span>
-          </label>
+          @if (tipoSeleccionado === 'Reparación') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
+              <select
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="gravedad"
+                (ngModelChange)="actualizarTotal()"
+              >
+                <option value="">Seleccione una reparación</option>
+                @for (reparacion of reparaciones; track reparacion.id) {
+                  <option [value]="reparacion.tipo">
+                    {{ reparacion.tipo }} - {{ reparacion.precio | currency:'USD':'symbol':'1.0-0' }}
+                  </option>
+                }
+              </select>
 
-          <div class="total-row">
-            <span>Total</span>
-            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </div>
+              @if (cargandoReparaciones) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando reparaciones...</p>
+              }
+            </div>
+          }
 
-          <div class="action-row">
-            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
-          </div>
-        </div>
-      </article>
-    }
-
-    @if (tipoSeleccionado === 'Tuneo') {
-      <article class="factura-card detail-card">
-        <div class="detail-header">
-          <h2>Tuneo</h2>
-          <p>Selecciona los elementos de modificación del vehículo.</p>
-        </div>
-
-        <div class="detail-form">
-          <div class="form-group">
-            <label for="matriculaTuneo">Matrícula</label>
-            <input
-              id="matriculaTuneo"
-              type="text"
-              placeholder="0000-XXX"
-              [(ngModel)]="tuneoPlate"
-            />
-          </div>
-
-          <div class="tuneo-table">
-            <div class="tuneo-row tuneo-head">
-              <span>Elemento</span>
-              <span>Seleccionar</span>
+          @if (tipoSeleccionado === 'Tuneo') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="text"
+                [(ngModel)]="tuneoPlate"
+              />
             </div>
 
-            @for (item of tuneoItems; track item) {
-              <label class="tuneo-row">
-                <span>{{ item }}</span>
-                <input
-                  type="checkbox"
-                  [checked]="isTuneoSelected(item)"
-                  (change)="toggleTuneoItem(item, $any($event.target).checked)"
-                />
-              </label>
-            }
-          </div>
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Elementos de tuneo</label>
+              <div class="grid gap-2">
+                @for (itemTuneo of tuneoItems; track itemTuneo) {
+                  <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+                    <input
+                      type="checkbox"
+                      [checked]="isTuneoSelected(itemTuneo)"
+                      (change)="toggleTuneoItem(itemTuneo, $any($event.target).checked)"
+                    />
+                    <span>{{ itemTuneo }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
 
-          <label class="checkbox-field" for="convenioTuneo">
-            <input
-              id="convenioTuneo"
-              type="checkbox"
-              [(ngModel)]="convenio"
-              (ngModelChange)="actualizarTotal()"
-            />
-            <span>Convenio</span>
-          </label>
+          @if (tipoSeleccionado === 'Full Tuning') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
+              <select
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="categoria"
+                (ngModelChange)="actualizarTotal()"
+              >
+                <option value="Compacto">Compacto</option>
+                <option value="Sedán">Sedán</option>
+                <option value="SUV">SUV</option>
+                <option value="Deportivo">Deportivo</option>
+                <option value="Super">Super</option>
+                <option value="Moto">Moto</option>
+              </select>
+            </div>
+          }
 
-          <div class="total-row">
-            <span>Total</span>
-            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </div>
+          @if (tipoSeleccionado === 'Items') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Nombre del item</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="text"
+                [(ngModel)]="item"
+              />
+            </div>
 
-          <div class="action-row">
-            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
-          </div>
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="number"
+                min="1"
+                [(ngModel)]="cantidad"
+                (ngModelChange)="actualizarTotal()"
+              />
+            </div>
+          }
+
+          @if (tipoSeleccionado === 'Tasación') {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
+              <select
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                [(ngModel)]="estado"
+                (ngModelChange)="actualizarTotal()"
+              >
+                <option value="SERIE">Serie</option>
+                <option value="FULL_TUNING">Full tuning</option>
+              </select>
+            </div>
+          }
+
+          @if (tipoSeleccionado) {
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="text"
+                [(ngModel)]="matricula"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
+              <input
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+                type="text"
+                [(ngModel)]="modelo"
+              />
+            </div>
+
+            <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+              <input
+                type="checkbox"
+                [(ngModel)]="convenio"
+                (ngModelChange)="actualizarTotal()"
+              />
+              <span>Aplicar convenio</span>
+            </label>
+          }
         </div>
       </article>
-    }
 
-    @if (tipoSeleccionado === 'Reparación') {
-      <article class="factura-card detail-card">
-        <div class="detail-header">
-          <h2>Reparación</h2>
-          <p>Selecciona las condiciones de la reparación.</p>
-        </div>
+      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <h2 class="mb-4 text-lg font-semibold">Resumen</h2>
 
-        <div class="detail-form">
-          <div class="form-group">
-            <label for="gravedadReparacion">Gravedad</label>
-            <select
-              id="gravedadReparacion"
-              [(ngModel)]="gravedad"
-              (ngModelChange)="actualizarTotal()"
-            >
-              <option value="">Seleccione una opción</option>
-              <option value="Leve (1-2)">Leve (1-2)</option>
-              <option value="Media (3-4)">Media (3-4)</option>
-              <option value="Grave (5-6)">Grave (5-6)</option>
-              <option value="LSPD">LSPD</option>
-            </select>
+        <div class="grid gap-4">
+          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+            <span class="mb-2 block text-sm text-[#9aa4b2]">Empleado</span>
+            <strong class="text-base text-white">
+              {{ empleado?.nickServidor || empleado?.nombre || 'Sin sesión' }}
+            </strong>
           </div>
 
-          <div class="form-group">
-            <label for="matriculaReparacion">Matrícula</label>
-            <input
-              id="matriculaReparacion"
-              type="text"
-              placeholder="0000-XXX"
-              [(ngModel)]="matricula"
-              (ngModelChange)="actualizarTotal()"
-            />
+          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+            <span class="mb-2 block text-sm text-[#9aa4b2]">Tipo seleccionado</span>
+            <strong class="text-base text-white">
+              {{ tipoSeleccionado || 'Seleccione una opción' }}
+            </strong>
           </div>
 
-          <label class="checkbox-field" for="convenioReparacion">
-            <input
-              id="convenioReparacion"
-              type="checkbox"
-              [(ngModel)]="convenio"
-              (ngModelChange)="actualizarTotal()"
-            />
-            <span>Convenio</span>
-          </label>
+          @if (tipoSeleccionado === 'Reparación') {
+            <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+              <span class="mb-2 block text-sm text-[#9aa4b2]">Reparación elegida</span>
+              <strong class="text-base text-white">
+                {{ gravedad || 'Seleccione una reparación' }}
+              </strong>
+            </div>
+          }
 
-          <div class="total-row">
-            <span>Total</span>
-            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
+          <div class="rounded-xl border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-4">
+            <span class="mb-2 block text-sm text-[#9aa4b2]">Total estimado</span>
+            <strong class="text-2xl font-extrabold text-[#f4b400]">
+              {{ total | currency:'USD':'symbol':'1.0-0' }}
+            </strong>
           </div>
 
-          <div class="action-row">
-            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
-          </div>
+          <button
+            type="button"
+            class="rounded-xl border-0 bg-[#f4b400] px-5 py-3 font-bold text-[#111] transition duration-200 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="enviando"
+            (click)="enviarFactura()"
+          >
+            {{ enviando ? 'Guardando...' : 'Guardar factura' }}
+          </button>
         </div>
       </article>
-    }
-
-    @if (tipoSeleccionado === 'Items') {
-      <article class="factura-card detail-card">
-        <div class="detail-header">
-          <h2>Items</h2>
-          <p>Selecciona el item y la cantidad.</p>
-        </div>
-
-        <div class="detail-form">
-          <div class="form-group">
-            <label for="itemFactura">Item</label>
-            <select
-              id="itemFactura"
-              [(ngModel)]="item"
-              (ngModelChange)="actualizarTotal()"
-            >
-              <option value="">Seleccione una opción</option>
-              <option value="Kit Reparación">Kit Reparación</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="cantidadFactura">Cantidad</label>
-            <input
-              id="cantidadFactura"
-              type="number"
-              min="1"
-              [(ngModel)]="cantidad"
-              (ngModelChange)="actualizarTotal()"
-            />
-          </div>
-
-          <label class="checkbox-field" for="convenioItems">
-            <input
-              id="convenioItems"
-              type="checkbox"
-              [(ngModel)]="convenio"
-              (ngModelChange)="actualizarTotal()"
-            />
-            <span>Convenio</span>
-          </label>
-
-          <div class="total-row">
-            <span>Total</span>
-            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </div>
-
-          <div class="action-row">
-            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
-          </div>
-        </div>
-      </article>
-    }
-
-    @if (tipoSeleccionado === 'Tasación') {
-      <article class="factura-card detail-card">
-        <div class="detail-header">
-          <h2>Tasación</h2>
-          <p>Introduce los datos del vehículo.</p>
-        </div>
-
-        <div class="detail-form">
-          <div class="form-group">
-            <label for="matriculaTasacion">Matrícula</label>
-            <input
-              id="matriculaTasacion"
-              type="text"
-              placeholder="0000-XXX"
-              [(ngModel)]="matricula"
-              (ngModelChange)="actualizarTotal()"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="modeloTasacion">Modelo</label>
-            <input
-              id="modeloTasacion"
-              type="text"
-              placeholder="Modelo del vehículo"
-              [(ngModel)]="modelo"
-              (ngModelChange)="actualizarTotal()"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="estadoTasacion">Estado</label>
-            <select
-              id="estadoTasacion"
-              [(ngModel)]="estado"
-              (ngModelChange)="actualizarTotal()"
-            >
-              <option value="">Seleccione una opción</option>
-              <option value="De Serie">De Serie</option>
-              <option value="Full Tuning">Full Tuning</option>
-            </select>
-          </div>
-
-          <label class="checkbox-field" for="convenioTasacion">
-            <input
-              id="convenioTasacion"
-              type="checkbox"
-              [(ngModel)]="convenio"
-              (ngModelChange)="actualizarTotal()"
-            />
-            <span>Convenio</span>
-          </label>
-
-          <div class="total-row">
-            <span>Total</span>
-            <strong>{{ total | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </div>
-
-          <div class="action-row">
-            <button class="btn-primary" (click)="enviarFactura()">Enviar</button>
-          </div>
-        </div>
-      </article>
-    }
+    </div>
   </div>
-</div>
+</section>
