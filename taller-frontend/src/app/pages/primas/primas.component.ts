@@ -12,7 +12,6 @@ import { MisPrimasResponse, PrimasService } from '../../core/services/primas.ser
   styleUrls: ['./primas.component.css']
 })
 export class PrimasComponent implements OnInit {
-
   empleado: SessionEmpleado | null = null;
 
   nombreVisible = 'Empleado';
@@ -54,7 +53,6 @@ export class PrimasComponent implements OnInit {
   }
 
   private refrescarVista(): void {
-
     if (!this.empleado?.discordId) {
       this.error = 'No hay sesión activa.';
       return;
@@ -64,37 +62,39 @@ export class PrimasComponent implements OnInit {
     this.error = '';
 
     this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset).subscribe({
-
       next: (response) => {
-
-        this.data = response;
+        this.data = {
+          ...this.getEmptyData(),
+          ...response,
+          actividadDiaria: response.actividadDiaria ?? [],
+          historico: response.historico ?? []
+        };
 
         this.nombreVisible = response.nombreEmpleado || this.nombreVisible;
         this.rangoVisible = response.rango || this.rangoVisible;
 
         this.progresoRecordGlobal = this.calcularPorcentaje(
-          response.facturacionSemanal,
-          response.recordGlobalFacturacion
+          this.data.facturacionSemanal,
+          this.data.recordGlobalFacturacion
         );
 
         this.progresoRecordPersonal = this.calcularPorcentaje(
-          response.facturacionSemanal,
-          response.recordPersonalFacturacion
+          this.data.facturacionSemanal,
+          this.data.recordPersonalFacturacion
         );
 
         this.restanteRecordGlobal = Math.max(
-          (response.recordGlobalFacturacion || 0) - (response.facturacionSemanal || 0),
+          (this.data.recordGlobalFacturacion || 0) - (this.data.facturacionSemanal || 0),
           0
         );
 
         this.restanteRecordPersonal = Math.max(
-          (response.recordPersonalFacturacion || 0) - (response.facturacionSemanal || 0),
+          (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
           0
         );
 
         this.loading = false;
       },
-
       error: (error) => {
         console.error('Error cargando primas:', error);
         this.error = 'No se pudieron cargar las primas.';
@@ -102,15 +102,6 @@ export class PrimasComponent implements OnInit {
       }
     });
   }
-
-  private calcularPorcentaje(actual: number, objetivo: number): number {
-    if (!objetivo || objetivo <= 0) return 0;
-    return Math.min(Math.round((actual / objetivo) * 100), 100);
-  }
-
-  // =========================
-  // MÉTRICAS VISUALES
-  // =========================
 
   get maxHistoricoFacturacion(): number {
     return Math.max(
@@ -121,8 +112,9 @@ export class PrimasComponent implements OnInit {
   }
 
   get mejorSemanaHistorico(): string {
-
-    if (!this.data.historico.length) return '-';
+    if (!this.data.historico.length) {
+      return '-';
+    }
 
     const mejor = this.data.historico.reduce((a, b) =>
       b.facturacion > a.facturacion ? b : a
@@ -132,10 +124,22 @@ export class PrimasComponent implements OnInit {
   }
 
   getPorcentajeBarra(valor: number): number {
+    if (!this.maxHistoricoFacturacion) {
+      return 0;
+    }
+
     return Math.min(
       Math.round((valor / this.maxHistoricoFacturacion) * 100),
       100
     );
+  }
+
+  private calcularPorcentaje(actual: number, objetivo: number): number {
+    if (!objetivo || objetivo <= 0) {
+      return 0;
+    }
+
+    return Math.min(Math.round((actual / objetivo) * 100), 100);
   }
 
   private formatearDinero(valor: number): string {
@@ -145,8 +149,6 @@ export class PrimasComponent implements OnInit {
       maximumFractionDigits: 0
     }).format(valor || 0);
   }
-
-  // =========================
 
   private getEmptyData(): MisPrimasResponse {
     return {
