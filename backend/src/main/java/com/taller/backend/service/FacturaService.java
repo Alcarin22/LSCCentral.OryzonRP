@@ -8,7 +8,6 @@ import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
 import com.taller.backend.entity.Tasacion;
 import com.taller.backend.entity.TasacionPrecio;
-import com.taller.backend.entity.Tuneo;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.FullTuningRepository;
@@ -16,7 +15,6 @@ import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import com.taller.backend.repository.TasacionPrecioRepository;
 import com.taller.backend.repository.TasacionRepository;
-import com.taller.backend.repository.TuneoRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,6 +27,7 @@ import java.util.Locale;
 public class FacturaService {
 
     private static final int PRECIO_GRUA = 600;
+    private static final BigDecimal PORCENTAJE_TUNEO = BigDecimal.valueOf(0.30);
 
     private final FacturaRepository facturaRepository;
     private final EmpleadoRepository empleadoRepository;
@@ -37,7 +36,6 @@ public class FacturaService {
     private final TasacionPrecioRepository tasacionPrecioRepository;
     private final TasacionRepository tasacionRepository;
     private final FullTuningRepository fullTuningRepository;
-    private final TuneoRepository tuneoRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
@@ -46,8 +44,7 @@ public class FacturaService {
             ItemRepository itemRepository,
             TasacionPrecioRepository tasacionPrecioRepository,
             TasacionRepository tasacionRepository,
-            FullTuningRepository fullTuningRepository,
-            TuneoRepository tuneoRepository) {
+            FullTuningRepository fullTuningRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
@@ -55,7 +52,6 @@ public class FacturaService {
         this.tasacionPrecioRepository = tasacionPrecioRepository;
         this.tasacionRepository = tasacionRepository;
         this.fullTuningRepository = fullTuningRepository;
-        this.tuneoRepository = tuneoRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -253,26 +249,11 @@ public class FacturaService {
                 .orElseThrow(() -> new RuntimeException(
                         "No existe un precio de Full Tuning para la categoría: " + request.getCategoria()));
 
-        BigDecimal precioBaseCategoria = fullTuning.getPrecio();
-        String[] piezasSeleccionadas = request.getTuneoSeleccionados().split(",");
+        int cantidadMejoras = request.getTuneoSeleccionados().split(",").length;
 
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (String piezaSeleccionada : piezasSeleccionadas) {
-            String piezaNormalizada = normalizar(piezaSeleccionada);
-
-            Tuneo tuneo = tuneoRepository.findAll().stream()
-                    .filter(t -> normalizar(t.getPieza()).equals(piezaNormalizada))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException(
-                            "No existe una pieza de tuneo configurada en BD para: " + piezaSeleccionada));
-
-            BigDecimal rendimiento = tuneo.getRendimiento() != null
-                    ? tuneo.getRendimiento()
-                    : BigDecimal.ZERO;
-
-            total = total.add(precioBaseCategoria.multiply(rendimiento));
-        }
+        BigDecimal total = fullTuning.getPrecio()
+                .multiply(PORCENTAJE_TUNEO)
+                .multiply(BigDecimal.valueOf(cantidadMejoras));
 
         return total.setScale(0, RoundingMode.HALF_UP).intValue();
     }

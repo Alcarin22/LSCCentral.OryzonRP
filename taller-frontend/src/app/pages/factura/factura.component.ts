@@ -13,8 +13,7 @@ import {
   ReparacionDto,
   ItemDto,
   TasacionPrecioDto,
-  FullTuningDto,
-  TuneoDto
+  FullTuningDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -43,20 +42,27 @@ export class FacturaComponent implements OnInit {
   gravedad = '';
   grua = false;
 
+  tuneoOpciones: string[] = [
+    'Motor',
+    'Frenos',
+    'Transmisión',
+    'Suspensión',
+    'Blindaje',
+    'Turbo'
+  ];
+
   tuneoSeleccionados: string[] = [];
 
   reparaciones: ReparacionDto[] = [];
   itemsDisponibles: ItemDto[] = [];
   tasacionPrecios: TasacionPrecioDto[] = [];
   fullTuningDisponibles: FullTuningDto[] = [];
-  tuneoDisponibles: TuneoDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
   cargandoItems = false;
   cargandoTasacionPrecios = false;
   cargandoFullTuning = false;
-  cargandoTuneo = false;
 
   constructor(
     private sessionService: SessionService,
@@ -70,7 +76,6 @@ export class FacturaComponent implements OnInit {
     this.cargarItems();
     this.cargarTasacionPrecios();
     this.cargarFullTuning();
-    this.cargarTuneo();
 
     this.actualizarTotal();
   }
@@ -139,22 +144,6 @@ export class FacturaComponent implements OnInit {
     });
   }
 
-  cargarTuneo(): void {
-    this.cargandoTuneo = true;
-
-    this.facturaService.getTuneo().subscribe({
-      next: (data) => {
-        this.tuneoDisponibles = data ?? [];
-        this.cargandoTuneo = false;
-        this.actualizarTotal();
-      },
-      error: (error) => {
-        console.error('Error cargando tuneo:', error);
-        this.cargandoTuneo = false;
-      }
-    });
-  }
-
   onTipoFacturaChange(): void {
     this.total = 0;
 
@@ -189,17 +178,17 @@ export class FacturaComponent implements OnInit {
     this.actualizarTotal();
   }
 
-  isTuneoSelected(pieza: string): boolean {
-    return this.tuneoSeleccionados.includes(pieza);
+  isTuneoSelected(opcion: string): boolean {
+    return this.tuneoSeleccionados.includes(opcion);
   }
 
-  toggleTuneoItem(pieza: string, checked: boolean): void {
+  toggleTuneoItem(opcion: string, checked: boolean): void {
     if (checked) {
-      if (!this.tuneoSeleccionados.includes(pieza)) {
-        this.tuneoSeleccionados.push(pieza);
+      if (!this.tuneoSeleccionados.includes(opcion)) {
+        this.tuneoSeleccionados.push(opcion);
       }
     } else {
-      this.tuneoSeleccionados = this.tuneoSeleccionados.filter(i => i !== pieza);
+      this.tuneoSeleccionados = this.tuneoSeleccionados.filter(i => i !== opcion);
     }
 
     this.actualizarTotal();
@@ -255,18 +244,10 @@ export class FacturaComponent implements OnInit {
           ft => this.normalizarClave(ft.categoria) === this.normalizarClave(this.categoria)
         );
 
-        const precioBaseCategoria = fullTuningSeleccionado?.precio ?? 0;
+        const precioFullTuning = fullTuningSeleccionado?.precio ?? 0;
+        const precioPorMejora = precioFullTuning * 0.3;
 
-        base = this.tuneoSeleccionados.reduce((acc, pieza) => {
-          const tuneo = this.tuneoDisponibles.find(
-            t => this.normalizarClave(t.pieza) === this.normalizarClave(pieza)
-          );
-
-          const rendimiento = tuneo?.rendimiento ?? 0;
-
-          return acc + precioBaseCategoria * rendimiento;
-        }, 0);
-
+        base = this.tuneoSeleccionados.length * precioPorMejora;
         break;
       }
 
