@@ -55,20 +55,25 @@ export class PrimasComponent implements OnInit {
   private refrescarVista(): void {
     if (!this.empleado?.discordId) {
       this.error = 'No hay sesión activa.';
+      this.loading = false;
       return;
     }
 
     this.loading = true;
     this.error = '';
 
+    console.log('Cargando primas para:', this.empleado.discordId, this.weekOffset);
+
     this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset).subscribe({
       next: (response) => {
-        this.data = {
-          ...this.getEmptyData(),
-          ...response,
-          actividadDiaria: response.actividadDiaria ?? [],
-          historico: response.historico ?? []
-        };
+        console.log('DATA PRIMAS:', response);
+
+        this.loading = false;
+
+        this.data = response;
+
+        this.data.actividadDiaria = this.data.actividadDiaria || [];
+        this.data.historico = this.data.historico || [];
 
         this.nombreVisible = response.nombreEmpleado || this.nombreVisible;
         this.rangoVisible = response.rango || this.rangoVisible;
@@ -92,8 +97,6 @@ export class PrimasComponent implements OnInit {
           (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
           0
         );
-
-        this.loading = false;
       },
       error: (error) => {
         console.error('Error cargando primas:', error);
