@@ -31,7 +31,6 @@ export class PrimasComponent implements OnInit, OnDestroy {
 
   private sessionSub?: Subscription;
   private requestVersion = 0;
-  private ultimoDiscordId: string | null = null;
 
   constructor(
     private sessionService: SessionService,
@@ -39,19 +38,14 @@ export class PrimasComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const empleadoActual = this.sessionService.getEmpleado();
-
-    if (empleadoActual?.discordId) {
-      this.aplicarEmpleadoYCargar(empleadoActual, true);
-    }
+    this.cargarEmpleadoInicial();
 
     this.sessionSub = this.sessionService.empleado$.subscribe((empleadoSesion) => {
-      if (!empleadoSesion?.discordId) {
-        return;
-      }
+      if (!empleadoSesion?.discordId) return;
 
-      const cambioEmpleado = empleadoSesion.discordId !== this.ultimoDiscordId;
-      this.aplicarEmpleadoYCargar(empleadoSesion, cambioEmpleado);
+      this.aplicarEmpleado(empleadoSesion);
+      this.weekOffset = 0;
+      this.refrescarVista();
     });
   }
 
@@ -69,18 +63,45 @@ export class PrimasComponent implements OnInit, OnDestroy {
     this.refrescarVista();
   }
 
-  private aplicarEmpleadoYCargar(empleadoSesion: SessionEmpleado, resetSemana: boolean): void {
-    this.empleado = empleadoSesion;
-    this.ultimoDiscordId = empleadoSesion.discordId;
+  private cargarEmpleadoInicial(): void {
+    const empleadoServicio = this.sessionService.getEmpleado();
 
-    this.nombreVisible = empleadoSesion.nickServidor || empleadoSesion.nombre || 'Empleado';
-    this.rangoVisible = empleadoSesion.rango?.nombre || 'Sin rango';
-
-    if (resetSemana) {
+    if (empleadoServicio?.discordId) {
+      this.aplicarEmpleado(empleadoServicio);
       this.weekOffset = 0;
+      this.refrescarVista();
+      return;
     }
 
-    this.refrescarVista();
+    const empleadoLocal = this.getEmpleadoDesdeLocalStorage();
+
+    if (empleadoLocal?.discordId) {
+      this.aplicarEmpleado(empleadoLocal);
+      this.weekOffset = 0;
+      this.refrescarVista();
+      return;
+    }
+
+    this.error = 'No hay sesión activa.';
+    this.loading = false;
+  }
+
+  private getEmpleadoDesdeLocalStorage(): SessionEmpleado | null {
+    try {
+      const raw = localStorage.getItem('empleado');
+      if (!raw) return null;
+
+      return JSON.parse(raw) as SessionEmpleado;
+    } catch {
+      return null;
+    }
+  }
+
+  private aplicarEmpleado(empleado: SessionEmpleado): void {
+    this.empleado = empleado;
+    this.nombreVisible = empleado.nickServidor || empleado.nombre || 'Empleado';
+    this.rangoVisible = empleado.rango?.nombre || 'Sin rango';
+    this.error = '';
   }
 
   private async refrescarVista(): Promise<void> {
@@ -100,9 +121,7 @@ export class PrimasComponent implements OnInit, OnDestroy {
         this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
       );
 
-      if (currentRequest !== this.requestVersion) {
-        return;
-      }
+      if (currentRequest !== this.requestVersion) return;
 
       this.data = {
         ...this.getEmptyData(),
@@ -118,10 +137,6 @@ export class PrimasComponent implements OnInit, OnDestroy {
 
       this.recalcularMetricas();
     } catch (error) {
-      if (currentRequest !== this.requestVersion) {
-        return;
-      }
-
       console.error('Error cargando primas:', error);
       this.error = 'No se pudieron cargar las primas.';
     } finally {
@@ -162,9 +177,7 @@ export class PrimasComponent implements OnInit, OnDestroy {
   }
 
   get mejorSemanaHistorico(): string {
-    if (!this.data.historico.length) {
-      return '-';
-    }
+    if (!this.data.historico.length) return '-';
 
     const mejor = this.data.historico.reduce((a, b) =>
       b.facturacion > a.facturacion ? b : a
@@ -181,10 +194,7 @@ export class PrimasComponent implements OnInit, OnDestroy {
   }
 
   private calcularPorcentaje(actual: number, objetivo: number): number {
-    if (!objetivo || objetivo <= 0) {
-      return 0;
-    }
-
+    if (!objetivo || objetivo <= 0) return 0;
     return Math.min(Math.round((actual / objetivo) * 100), 100);
   }
 
