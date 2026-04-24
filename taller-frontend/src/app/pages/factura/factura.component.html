@@ -1,13 +1,11 @@
 <section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8">
   <div class="mx-auto max-w-5xl space-y-6">
 
-    <!-- TÍTULO -->
     <div>
       <h1 class="text-3xl font-bold">Crear factura</h1>
       <p class="text-[#9aa4b2]">Genera una nueva operación del taller</p>
     </div>
 
-    <!-- TIPO DE FACTURA -->
     <div>
       <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de factura</label>
       <select
@@ -24,10 +22,8 @@
       </select>
     </div>
 
-    <!-- ================= REPARACIÓN ================= -->
     @if (tipoSeleccionado === 'Reparación') {
       <div class="grid gap-4">
-
         <div>
           <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
           <select
@@ -51,14 +47,11 @@
           <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
           <span>Convenio (-20%)</span>
         </label>
-
       </div>
     }
 
-    <!-- ================= ITEMS ================= -->
     @if (tipoSeleccionado === 'Items') {
       <div class="grid gap-4">
-
         <div>
           <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
           <select
@@ -83,14 +76,11 @@
             class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
           />
         </div>
-
       </div>
     }
 
-    <!-- ================= TASACIÓN ================= -->
     @if (tipoSeleccionado === 'Tasación') {
       <div class="grid gap-4">
-
         <div>
           <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
           <input
@@ -120,14 +110,11 @@
             class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
           ></textarea>
         </div>
-
       </div>
     }
 
-    <!-- ================= FULL TUNING ================= -->
     @if (tipoSeleccionado === 'Full Tuning') {
       <div class="grid gap-4">
-
         <div>
           <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
           <select
@@ -141,14 +128,11 @@
             }
           </select>
         </div>
-
       </div>
     }
 
-    <!-- ================= TUNEO ================= -->
     @if (tipoSeleccionado === 'Tuneo') {
       <div class="grid gap-4">
-
         <div>
           <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
           <input
@@ -173,37 +157,38 @@
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Mejoras</label>
+          <label class="mb-2 block text-sm text-[#9aa4b2]">Mejoras de rendimiento</label>
+
           <div class="grid gap-2">
-            @for (t of tuneoDisponibles; track t.id) {
-              <label class="flex items-center gap-3">
+            @for (opcion of tuneoOpciones; track opcion) {
+              <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
                 <input
                   type="checkbox"
-                  [checked]="isTuneoSelected(t.pieza)"
-                  (change)="toggleTuneoItem(t.pieza, $any($event.target).checked)"
+                  [checked]="isTuneoSelected(opcion)"
+                  (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
                 />
-                <span>{{ t.pieza }}</span>
+                <span>{{ opcion }}</span>
               </label>
             }
           </div>
         </div>
-
       </div>
     }
 
-    <!-- ================= TOTAL ================= -->
     <div class="mt-6 rounded-xl bg-[#1b2130] p-6 text-center">
       <p class="text-sm text-[#9aa4b2]">Total</p>
-      <p class="text-3xl font-bold text-[#f4b400]">${{ total }}</p>
+      <p class="text-3xl font-bold text-[#f4b400]">
+        {{ total | currency:'USD':'symbol':'1.0-0' }}
+      </p>
     </div>
 
-    <!-- BOTÓN -->
     <div class="flex justify-end">
       <button
         (click)="enviarFactura()"
-        class="rounded-xl bg-[#f4b400] px-6 py-3 font-bold text-black"
+        [disabled]="enviando"
+        class="rounded-xl bg-[#f4b400] px-6 py-3 font-bold text-black disabled:opacity-50"
       >
-        Crear factura
+        {{ enviando ? 'Guardando...' : 'Crear factura' }}
       </button>
     </div>
 
