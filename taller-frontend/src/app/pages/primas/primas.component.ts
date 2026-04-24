@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { MisPrimasResponse, PrimasService } from '../../core/services/primas.service';
@@ -12,7 +12,7 @@ import { MisPrimasResponse, PrimasService } from '../../core/services/primas.ser
   templateUrl: './primas.component.html',
   styleUrls: ['./primas.component.css']
 })
-export class PrimasComponent implements OnInit {
+export class PrimasComponent implements OnInit, OnDestroy {
   empleado: SessionEmpleado | null = null;
 
   nombreVisible = 'Empleado';
@@ -29,20 +29,43 @@ export class PrimasComponent implements OnInit {
   restanteRecordGlobal = 0;
   restanteRecordPersonal = 0;
 
+  private sessionSub?: Subscription;
+  private ultimoDiscordIdCargado: string | null = null;
+  private cargandoRequest = false;
+
   constructor(
     private sessionService: SessionService,
     private primasService: PrimasService
   ) {}
 
   ngOnInit(): void {
-    alert('VERSION NUEVA PRIMAS');
+    this.sessionSub = this.sessionService.empleado$.subscribe((empleadoSesion) => {
+      this.empleado = empleadoSesion;
 
-    this.empleado = this.sessionService.getEmpleado();
+      this.nombreVisible = empleadoSesion?.nickServidor || empleadoSesion?.nombre || 'Empleado';
+      this.rangoVisible = empleadoSesion?.rango?.nombre || 'Sin rango';
 
-    this.nombreVisible = this.empleado?.nickServidor || this.empleado?.nombre || 'Empleado';
-    this.rangoVisible = this.empleado?.rango?.nombre || 'Sin rango';
+      if (empleadoSesion?.discordId && empleadoSesion.discordId !== this.ultimoDiscordIdCargado) {
+        this.ultimoDiscordIdCargado = empleadoSesion.discordId;
+        this.weekOffset = 0;
+        this.refrescarVista();
+      }
+    });
 
-    this.refrescarVista();
+    const empleadoActual = this.sessionService.getEmpleado();
+
+    if (empleadoActual?.discordId) {
+      this.empleado = empleadoActual;
+      this.nombreVisible = empleadoActual.nickServidor || empleadoActual.nombre || 'Empleado';
+      this.rangoVisible = empleadoActual.rango?.nombre || 'Sin rango';
+      this.ultimoDiscordIdCargado = empleadoActual.discordId;
+      this.weekOffset = 0;
+      this.refrescarVista();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.sessionSub?.unsubscribe();
   }
 
   semanaAnterior(): void {
@@ -56,23 +79,18 @@ export class PrimasComponent implements OnInit {
   }
 
   private async refrescarVista(): Promise<void> {
-    if (!this.empleado?.discordId) {
-      this.error = 'No hay sesión activa.';
-      this.loading = false;
+    if (!this.empleado?.discordId || this.cargandoRequest) {
       return;
     }
 
     this.loading = true;
     this.error = '';
+    this.cargandoRequest = true;
 
     try {
-      console.log('PIDIENDO PRIMAS:', this.empleado.discordId, this.weekOffset);
-
       const response = await firstValueFrom(
         this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
       );
-
-      console.log('RESPUESTA PRIMAS COMPONENT:', response);
 
       this.data = {
         ...this.getEmptyData(),
@@ -80,6 +98,8 @@ export class PrimasComponent implements OnInit {
         actividadDiaria: response.actividadDiaria ?? [],
         historico: response.historico ?? []
       };
+
+      this.weekOffset = this.data.weekOffset ?? this.weekOffset;
 
       this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
       this.rangoVisible = this.data.rango || this.rangoVisible;
@@ -104,11 +124,11 @@ export class PrimasComponent implements OnInit {
         0
       );
     } catch (error) {
-      console.error('ERROR PRIMAS COMPONENT:', error);
+      console.error('Error cargando primas:', error);
       this.error = 'No se pudieron cargar las primas.';
     } finally {
-      console.log('FINALIZANDO CARGA PRIMAS');
       this.loading = false;
+      this.cargandoRequest = false;
     }
   }
 
