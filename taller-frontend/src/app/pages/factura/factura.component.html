@@ -160,7 +160,24 @@
           <label class="mb-2 block text-sm text-[#9aa4b2]">Mejoras de rendimiento</label>
 
           <div class="grid gap-2">
-            @for (opcion of tuneoOpciones; track opcion) {
+            @for (opcion of tuneoRendimientoOpciones; track opcion) {
+              <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
+                <input
+                  type="checkbox"
+                  [checked]="isTuneoSelected(opcion)"
+                  (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
+                />
+                <span>{{ opcion }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm text-[#9aa4b2]">Piezas estéticas</label>
+
+          <div class="grid gap-2">
+            @for (opcion of tuneoEsteticaOpciones; track opcion) {
               <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
                 <input
                   type="checkbox"

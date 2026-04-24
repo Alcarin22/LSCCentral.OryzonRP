@@ -8,6 +8,7 @@ import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
 import com.taller.backend.entity.Tasacion;
 import com.taller.backend.entity.TasacionPrecio;
+import com.taller.backend.entity.Tuneo;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.FullTuningRepository;
@@ -15,6 +16,7 @@ import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import com.taller.backend.repository.TasacionPrecioRepository;
 import com.taller.backend.repository.TasacionRepository;
+import com.taller.backend.repository.TuneoRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,7 +29,7 @@ import java.util.Locale;
 public class FacturaService {
 
     private static final int PRECIO_GRUA = 600;
-    private static final BigDecimal PORCENTAJE_TUNEO = BigDecimal.valueOf(0.30);
+    private static final BigDecimal PORCENTAJE_RENDIMIENTO = BigDecimal.valueOf(0.30);
 
     private final FacturaRepository facturaRepository;
     private final EmpleadoRepository empleadoRepository;
@@ -36,6 +38,7 @@ public class FacturaService {
     private final TasacionPrecioRepository tasacionPrecioRepository;
     private final TasacionRepository tasacionRepository;
     private final FullTuningRepository fullTuningRepository;
+    private final TuneoRepository tuneoRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
@@ -44,7 +47,8 @@ public class FacturaService {
             ItemRepository itemRepository,
             TasacionPrecioRepository tasacionPrecioRepository,
             TasacionRepository tasacionRepository,
-            FullTuningRepository fullTuningRepository) {
+            FullTuningRepository fullTuningRepository,
+            TuneoRepository tuneoRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
@@ -52,6 +56,7 @@ public class FacturaService {
         this.tasacionPrecioRepository = tasacionPrecioRepository;
         this.tasacionRepository = tasacionRepository;
         this.fullTuningRepository = fullTuningRepository;
+        this.tuneoRepository = tuneoRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -238,7 +243,7 @@ public class FacturaService {
         }
 
         if (request.getTuneoSeleccionados() == null || request.getTuneoSeleccionados().isBlank()) {
-            throw new RuntimeException("Debes seleccionar al menos una mejora de tuneo");
+            throw new RuntimeException("Debes seleccionar al menos una pieza de tuneo");
         }
 
         String categoriaNormalizada = normalizar(request.getCategoria());
@@ -249,13 +254,58 @@ public class FacturaService {
                 .orElseThrow(() -> new RuntimeException(
                         "No existe un precio de Full Tuning para la categoría: " + request.getCategoria()));
 
-        int cantidadMejoras = request.getTuneoSeleccionados().split(",").length;
+        String[] piezasSeleccionadas = request.getTuneoSeleccionados().split(",");
+        BigDecimal total = BigDecimal.ZERO;
 
-        BigDecimal total = fullTuning.getPrecio()
-                .multiply(PORCENTAJE_TUNEO)
-                .multiply(BigDecimal.valueOf(cantidadMejoras));
+        for (String piezaRaw : piezasSeleccionadas) {
+            String pieza = piezaRaw.trim();
+
+            if (esPiezaRendimiento(pieza)) {
+                total = total.add(fullTuning.getPrecio().multiply(PORCENTAJE_RENDIMIENTO));
+                continue;
+            }
+
+            String clavePrecio = getClavePrecioTuneo(pieza);
+
+            Tuneo tuneo = tuneoRepository.findAll().stream()
+                    .filter(t -> normalizar(t.getPieza()).equals(normalizar(clavePrecio)))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(
+                            "No existe precio configurado en tuneo para: " + clavePrecio));
+
+            total = total.add(tuneo.getPrecio());
+        }
 
         return total.setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    private boolean esPiezaRendimiento(String pieza) {
+        String p = normalizar(pieza);
+
+        return p.equals(normalizar("Motor"))
+                || p.equals(normalizar("Frenos"))
+                || p.equals(normalizar("Transmisión"))
+                || p.equals(normalizar("Suspensión"))
+                || p.equals(normalizar("Blindaje"))
+                || p.equals(normalizar("Turbo"));
+    }
+
+    private String getClavePrecioTuneo(String pieza) {
+        String p = normalizar(pieza);
+
+        if (p.equals(normalizar("Pintura"))) {
+            return "Pintura";
+        }
+
+        if (p.equals(normalizar("Livery"))) {
+            return "Vinilo";
+        }
+
+        if (p.equals(normalizar("Pintura Llantas"))) {
+            return "Pintura de ruedas";
+        }
+
+        return "Parte estetica";
     }
 
     private String normalizar(String valor) {
