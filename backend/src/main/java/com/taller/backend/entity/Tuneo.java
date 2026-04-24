@@ -17,6 +17,9 @@ public class Tuneo {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal precio;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal rendimiento;
+
     public Long getId() {
         return id;
     }
@@ -35,5 +38,13 @@ public class Tuneo {
 
     public void setPrecio(BigDecimal precio) {
         this.precio = precio;
+    }
+
+    public BigDecimal getRendimiento() {
+        return rendimiento;
+    }
+
+    public void setRendimiento(BigDecimal rendimiento) {
+        this.rendimiento = rendimiento;
     }
 }
