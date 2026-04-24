@@ -13,7 +13,8 @@ import {
   ReparacionDto,
   ItemDto,
   TasacionPrecioDto,
-  FullTuningDto
+  FullTuningDto,
+  TuneoDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -42,24 +43,20 @@ export class FacturaComponent implements OnInit {
   gravedad = '';
   grua = false;
 
-  tuneoItems: string[] = [
-    'Parte estética',
-    'Pintura',
-    'Vinilo',
-    'Pintura de ruedas'
-  ];
-
   tuneoSeleccionados: string[] = [];
+
   reparaciones: ReparacionDto[] = [];
   itemsDisponibles: ItemDto[] = [];
   tasacionPrecios: TasacionPrecioDto[] = [];
   fullTuningDisponibles: FullTuningDto[] = [];
+  tuneoDisponibles: TuneoDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
   cargandoItems = false;
   cargandoTasacionPrecios = false;
   cargandoFullTuning = false;
+  cargandoTuneo = false;
 
   constructor(
     private sessionService: SessionService,
@@ -68,10 +65,13 @@ export class FacturaComponent implements OnInit {
 
   ngOnInit(): void {
     this.empleado = this.sessionService.getEmpleado();
+
     this.cargarReparaciones();
     this.cargarItems();
     this.cargarTasacionPrecios();
     this.cargarFullTuning();
+    this.cargarTuneo();
+
     this.actualizarTotal();
   }
 
@@ -139,6 +139,22 @@ export class FacturaComponent implements OnInit {
     });
   }
 
+  cargarTuneo(): void {
+    this.cargandoTuneo = true;
+
+    this.facturaService.getTuneo().subscribe({
+      next: (data) => {
+        this.tuneoDisponibles = data ?? [];
+        this.cargandoTuneo = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando tuneo:', error);
+        this.cargandoTuneo = false;
+      }
+    });
+  }
+
   onTipoFacturaChange(): void {
     this.total = 0;
 
@@ -161,6 +177,11 @@ export class FacturaComponent implements OnInit {
       this.categoria = '';
     }
 
+    if (this.tipoSeleccionado !== 'Tuneo') {
+      this.tuneoPlate = '';
+      this.tuneoSeleccionados = [];
+    }
+
     if (this.tipoSeleccionado === 'Tasación') {
       this.convenio = false;
     }
@@ -168,17 +189,17 @@ export class FacturaComponent implements OnInit {
     this.actualizarTotal();
   }
 
-  isTuneoSelected(item: string): boolean {
-    return this.tuneoSeleccionados.includes(item);
+  isTuneoSelected(pieza: string): boolean {
+    return this.tuneoSeleccionados.includes(pieza);
   }
 
-  toggleTuneoItem(item: string, checked: boolean): void {
+  toggleTuneoItem(pieza: string, checked: boolean): void {
     if (checked) {
-      if (!this.tuneoSeleccionados.includes(item)) {
-        this.tuneoSeleccionados.push(item);
+      if (!this.tuneoSeleccionados.includes(pieza)) {
+        this.tuneoSeleccionados.push(pieza);
       }
     } else {
-      this.tuneoSeleccionados = this.tuneoSeleccionados.filter(i => i !== item);
+      this.tuneoSeleccionados = this.tuneoSeleccionados.filter(i => i !== pieza);
     }
 
     this.actualizarTotal();
@@ -198,6 +219,7 @@ export class FacturaComponent implements OnInit {
         if (this.grua) {
           base += 600;
         }
+
         break;
       }
 
@@ -228,12 +250,17 @@ export class FacturaComponent implements OnInit {
         break;
       }
 
-      case 'Tuneo':
-        base = this.tuneoSeleccionados.length * 800;
-        if (!base) {
-          base = 800;
-        }
+      case 'Tuneo': {
+        base = this.tuneoSeleccionados.reduce((acc, pieza) => {
+          const tuneo = this.tuneoDisponibles.find(
+            t => this.normalizarClave(t.pieza) === this.normalizarClave(pieza)
+          );
+
+          return acc + (tuneo?.precio ?? 0);
+        }, 0);
+
         break;
+      }
 
       default:
         base = 0;
@@ -284,6 +311,18 @@ export class FacturaComponent implements OnInit {
       return;
     }
 
+    if (this.tipoSeleccionado === 'Tuneo') {
+      if (!this.tuneoPlate.trim()) {
+        alert('Debes indicar la matrícula del vehículo.');
+        return;
+      }
+
+      if (this.tuneoSeleccionados.length === 0) {
+        alert('Debes seleccionar al menos una pieza de tuneo.');
+        return;
+      }
+    }
+
     if (this.enviando) {
       return;
     }
@@ -304,7 +343,7 @@ export class FacturaComponent implements OnInit {
       gravedad: this.tipoSeleccionado === 'Reparación' ? this.normalizarTexto(this.gravedad) : null,
       tuneoPlate: this.tipoSeleccionado === 'Tuneo' ? this.normalizarTexto(this.tuneoPlate) : null,
       tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'
-        ? (this.tuneoSeleccionados.length ? this.tuneoSeleccionados.join(', ') : null)
+        ? this.tuneoSeleccionados.join(', ')
         : null,
       grua: this.tipoSeleccionado === 'Reparación' ? this.grua : false,
       otros: this.tipoSeleccionado === 'Tasación' ? this.normalizarTexto(this.otros) : null
