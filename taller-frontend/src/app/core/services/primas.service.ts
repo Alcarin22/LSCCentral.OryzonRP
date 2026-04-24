@@ -46,7 +46,6 @@ export interface MisPrimasResponse {
   providedIn: 'root'
 })
 export class PrimasService {
-
   private readonly baseUrl = `${environment.backendUrl}/api/primas`;
 
   constructor(private http: HttpClient) {}
