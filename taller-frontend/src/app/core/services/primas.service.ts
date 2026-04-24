@@ -3,6 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface PrimaActividadDia {
+  fecha: string;
+  dia: string;
+  horas: string;
+  servicios: number;
+  facturacion: number;
+}
+
 export interface PrimaHistoricoItem {
   semana: string;
   rangoFechas: string;
@@ -30,7 +38,7 @@ export interface MisPrimasResponse {
   porcentajeAplicado: number;
   recordPersonalFacturacion: number;
   recordGlobalFacturacion: number;
-  actividadDiaria: any[];
+  actividadDiaria: PrimaActividadDia[];
   historico: PrimaHistoricoItem[];
 }
 
@@ -38,6 +46,7 @@ export interface MisPrimasResponse {
   providedIn: 'root'
 })
 export class PrimasService {
+
   private readonly baseUrl = `${environment.backendUrl}/api/primas`;
 
   constructor(private http: HttpClient) {}

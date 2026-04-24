@@ -1,20 +1,17 @@
 package com.taller.backend.service;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.taller.backend.dto.MisPrimasResponse;
-import com.taller.backend.dto.PrimaHistorialSemanaResponse;
-import com.taller.backend.entity.Empleado;
-import com.taller.backend.entity.Factura;
-import com.taller.backend.entity.Fichaje;
-import com.taller.backend.repository.EmpleadoRepository;
-import com.taller.backend.repository.FacturaRepository;
-import com.taller.backend.repository.FichajeRepository;
+import com.taller.backend.dto.*;
+import com.taller.backend.entity.*;
+import com.taller.backend.repository.*;
 
 @Service
 public class PrimasService {
@@ -37,6 +34,7 @@ public class PrimasService {
     }
 
     public MisPrimasResponse getMisPrimas(String discordId, Integer weekOffset) {
+
         Empleado empleado = empleadoRepository.findByDiscordId(discordId)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
@@ -49,9 +47,17 @@ public class PrimasService {
         int offset = Math.max(0, weekOffset != null ? weekOffset : 0);
         int selectedWeek = Math.max(0, currentWeek - offset);
 
-        SemanaData semana = calcularSemana(empleado.getId(), selectedWeek, empleado.getRango().getNombre());
+        SemanaData semana = calcularSemana(
+                empleado.getId(),
+                selectedWeek,
+                empleado.getRango().getNombre()
+        );
+
+        LocalDate inicioSemana = FECHA_INICIO_SEMANA_0.plusWeeks(selectedWeek);
+        LocalDate finSemana = inicioSemana.plusDays(6);
 
         MisPrimasResponse response = new MisPrimasResponse();
+
         response.setNombreEmpleado(empleado.getNombre());
         response.setRango(empleado.getRango().getNombre());
         response.setWeekOffset(offset);
@@ -70,17 +76,21 @@ public class PrimasService {
         response.setRecordPersonalFacturacion(calcularRecordPersonal(empleado.getId()));
         response.setRecordGlobalFacturacion(calcularRecordGlobal());
 
-        response.setActividadDiaria(new ArrayList<>());
-        response.setHistorico(generarHistorico(empleado.getId(), selectedWeek));
+        response.setActividadDiaria(
+                generarActividadDiaria(empleado.getId(), inicioSemana, finSemana)
+        );
+
+        response.setHistorico(
+                generarHistorico(empleado.getId(), selectedWeek)
+        );
 
         return response;
     }
 
-    // =========================
-    // CORE
-    // =========================
+    // ================= CORE =================
 
     private SemanaData calcularSemana(Long empleadoId, int weekNumber, String rango) {
+
         LocalDate inicio = FECHA_INICIO_SEMANA_0.plusWeeks(weekNumber);
         LocalDate fin = inicio.plusDays(6);
 
@@ -125,20 +135,68 @@ public class PrimasService {
         );
     }
 
-    // =========================
-    // HISTÓRICO
-    // =========================
+    // ================= ACTIVIDAD DIARIA =================
+
+    private List<PrimaActividadDiaResponse> generarActividadDiaria(
+            Long empleadoId,
+            LocalDate inicioSemana,
+            LocalDate finSemana) {
+
+        List<PrimaActividadDiaResponse> actividad = new ArrayList<>();
+
+        for (LocalDate dia = inicioSemana; !dia.isAfter(finSemana); dia = dia.plusDays(1)) {
+
+            LocalDateTime inicioDia = dia.atStartOfDay();
+            LocalDateTime finDia = dia.atTime(LocalTime.MAX);
+
+            List<Fichaje> fichajes = fichajeRepository
+                    .findByEmpleadoIdAndFechaHoraEntradaBetween(empleadoId, inicioDia, finDia);
+
+            List<Factura> facturas = facturaRepository
+                    .findByIdEmpleadoAndFechaBetweenOrderByFechaAsc(empleadoId, inicioDia, finDia);
+
+            int minutos = sumarMinutos(fichajes);
+
+            int facturacion = facturas.stream()
+                    .map(Factura::getTotal)
+                    .filter(Objects::nonNull)
+                    .mapToInt(Integer::intValue)
+                    .sum();
+
+            PrimaActividadDiaResponse item = new PrimaActividadDiaResponse();
+
+            item.setFecha(dia.format(DateTimeFormatter.ofPattern("dd/MM")));
+            item.setDia(capitalizar(
+                    dia.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("es", "ES"))
+            ));
+            item.setHoras(formatearMinutos(minutos));
+            item.setServicios(facturas.size());
+            item.setFacturacion(facturacion);
+
+            actividad.add(item);
+        }
+
+        return actividad;
+    }
+
+    // ================= HISTORICO =================
 
     private List<PrimaHistorialSemanaResponse> generarHistorico(Long idEmpleado, int selectedWeek) {
+
         List<PrimaHistorialSemanaResponse> historico = new ArrayList<>();
 
         int minWeek = Math.max(0, selectedWeek - 3);
 
         for (int week = selectedWeek; week >= minWeek; week--) {
 
-            SemanaData data = calcularSemana(idEmpleado, week, obtenerRangoEmpleado(idEmpleado));
+            SemanaData data = calcularSemana(
+                    idEmpleado,
+                    week,
+                    obtenerRangoEmpleado(idEmpleado)
+            );
 
             PrimaHistorialSemanaResponse semana = new PrimaHistorialSemanaResponse();
+
             semana.setSemana("Semana " + week);
             semana.setRangoFechas(data.rangoFechas);
             semana.setHoras(data.horasTexto);
@@ -154,21 +212,17 @@ public class PrimasService {
         return historico;
     }
 
-    private String obtenerRangoEmpleado(Long idEmpleado) {
-        return empleadoRepository.findById(idEmpleado)
-                .map(e -> e.getRango().getNombre())
-                .orElse("aprendiz");
-    }
-
-    // =========================
-    // RECORDS
-    // =========================
+    // ================= RECORDS =================
 
     private int calcularRecordPersonal(Long idEmpleado) {
+
         return facturaRepository.findAllByIdEmpleado(idEmpleado).stream()
                 .filter(f -> f.getFecha() != null && f.getTotal() != null)
                 .collect(Collectors.groupingBy(
-                        f -> (int) ChronoUnit.WEEKS.between(FECHA_INICIO_SEMANA_0, f.getFecha().toLocalDate()),
+                        f -> (int) ChronoUnit.WEEKS.between(
+                                FECHA_INICIO_SEMANA_0,
+                                f.getFecha().toLocalDate()
+                        ),
                         Collectors.summingInt(Factura::getTotal)
                 ))
                 .values()
@@ -178,11 +232,15 @@ public class PrimasService {
     }
 
     private int calcularRecordGlobal() {
+
         return facturaRepository.findAll().stream()
                 .filter(f -> f.getFecha() != null && f.getTotal() != null)
                 .collect(Collectors.groupingBy(
                         f -> f.getIdEmpleado() + "-" +
-                             (int) ChronoUnit.WEEKS.between(FECHA_INICIO_SEMANA_0, f.getFecha().toLocalDate()),
+                                (int) ChronoUnit.WEEKS.between(
+                                        FECHA_INICIO_SEMANA_0,
+                                        f.getFecha().toLocalDate()
+                                ),
                         Collectors.summingInt(Factura::getTotal)
                 ))
                 .values()
@@ -191,16 +249,12 @@ public class PrimasService {
                 .orElse(0);
     }
 
-    // =========================
-    // UTILIDADES
-    // =========================
+    // ================= UTILS =================
 
     private int getCurrentWeek() {
         LocalDate hoy = LocalDate.now();
 
-        if (hoy.isBefore(FECHA_INICIO_SEMANA_0)) {
-            return -1;
-        }
+        if (hoy.isBefore(FECHA_INICIO_SEMANA_0)) return -1;
 
         return (int) ChronoUnit.WEEKS.between(FECHA_INICIO_SEMANA_0, hoy);
     }
@@ -242,6 +296,16 @@ public class PrimasService {
                f.getDayOfMonth() + "/" + f.getMonthValue();
     }
 
+    private String capitalizar(String s) {
+        return s.substring(0,1).toUpperCase() + s.substring(1);
+    }
+
+    private String obtenerRangoEmpleado(Long idEmpleado) {
+        return empleadoRepository.findById(idEmpleado)
+                .map(e -> e.getRango().getNombre())
+                .orElse("aprendiz");
+    }
+
     private MisPrimasResponse crearRespuestaSinSemana(Empleado empleado) {
         MisPrimasResponse r = new MisPrimasResponse();
         r.setNombreEmpleado(empleado.getNombre());
@@ -252,10 +316,6 @@ public class PrimasService {
         r.setHistorico(new ArrayList<>());
         return r;
     }
-
-    // =========================
-    // DTO INTERNO
-    // =========================
 
     private record SemanaData(
             int prima,
