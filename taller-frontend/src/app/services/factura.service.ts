@@ -49,7 +49,7 @@ export interface TuneoDto {
   id: number;
   pieza: string;
   precio: number;
-  rendimiento: number;
+  rendimiento?: number;
 }
 
 @Injectable({

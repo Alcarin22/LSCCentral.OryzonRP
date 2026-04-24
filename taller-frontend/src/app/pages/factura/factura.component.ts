@@ -13,7 +13,8 @@ import {
   ReparacionDto,
   ItemDto,
   TasacionPrecioDto,
-  FullTuningDto
+  FullTuningDto,
+  TuneoDto
 } from '../../../app/services/factura.service';
 
 @Component({
@@ -42,7 +43,7 @@ export class FacturaComponent implements OnInit {
   gravedad = '';
   grua = false;
 
-  tuneoOpciones: string[] = [
+  tuneoRendimientoOpciones: string[] = [
     'Motor',
     'Frenos',
     'Transmisión',
@@ -51,18 +52,62 @@ export class FacturaComponent implements OnInit {
     'Turbo'
   ];
 
+  tuneoEsteticaOpciones: string[] = [
+    'Aleron',
+    'Parachoques Delantero',
+    'Parachoques Trasero',
+    'Falda Lateral',
+    'Escape',
+    'Jaula Antivuelco',
+    'Reja',
+    'Capo',
+    'Guardabarros Derecho',
+    'Guardabarros Izquierdo',
+    'Techo',
+    'Trim A',
+    'Ornamentas',
+    'Panel',
+    'Marcador',
+    'Altavoz de puerta',
+    'Asientos',
+    'Volante',
+    'Palanca de cambios',
+    'Placa',
+    'Maletero',
+    'Hydraulica',
+    'Bloque Motor',
+    'Filtro de aire',
+    'Cubierta de arco',
+    'Antena',
+    'Trim B',
+    'Deposito de combustible',
+    'Livery',
+    'Claxon',
+    'Pintura',
+    'Window Tint',
+    'Neon',
+    'Faro Xenon',
+    'Humo Neumatico',
+    'Llanta',
+    'Pintura Llantas',
+    'Old Livery',
+    'Plate Index'
+  ];
+
   tuneoSeleccionados: string[] = [];
 
   reparaciones: ReparacionDto[] = [];
   itemsDisponibles: ItemDto[] = [];
   tasacionPrecios: TasacionPrecioDto[] = [];
   fullTuningDisponibles: FullTuningDto[] = [];
+  tuneoDisponibles: TuneoDto[] = [];
 
   enviando = false;
   cargandoReparaciones = false;
   cargandoItems = false;
   cargandoTasacionPrecios = false;
   cargandoFullTuning = false;
+  cargandoTuneo = false;
 
   constructor(
     private sessionService: SessionService,
@@ -76,6 +121,7 @@ export class FacturaComponent implements OnInit {
     this.cargarItems();
     this.cargarTasacionPrecios();
     this.cargarFullTuning();
+    this.cargarTuneo();
 
     this.actualizarTotal();
   }
@@ -140,6 +186,22 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando full tuning:', error);
         this.cargandoFullTuning = false;
+      }
+    });
+  }
+
+  cargarTuneo(): void {
+    this.cargandoTuneo = true;
+
+    this.facturaService.getTuneo().subscribe({
+      next: (data) => {
+        this.tuneoDisponibles = data ?? [];
+        this.cargandoTuneo = false;
+        this.actualizarTotal();
+      },
+      error: (error) => {
+        console.error('Error cargando tuneo:', error);
+        this.cargandoTuneo = false;
       }
     });
   }
@@ -245,9 +307,25 @@ export class FacturaComponent implements OnInit {
         );
 
         const precioFullTuning = fullTuningSeleccionado?.precio ?? 0;
-        const precioPorMejora = precioFullTuning * 0.3;
+        const precioPorRendimiento = precioFullTuning * 0.3;
 
-        base = this.tuneoSeleccionados.length * precioPorMejora;
+        const totalRendimiento = this.tuneoSeleccionados
+          .filter(pieza => this.tuneoRendimientoOpciones.includes(pieza))
+          .length * precioPorRendimiento;
+
+        const totalEstetica = this.tuneoSeleccionados
+          .filter(pieza => this.tuneoEsteticaOpciones.includes(pieza))
+          .reduce((acc, pieza) => {
+            const clavePrecio = this.getClavePrecioTuneo(pieza);
+
+            const tuneo = this.tuneoDisponibles.find(
+              t => this.normalizarClave(t.pieza) === this.normalizarClave(clavePrecio)
+            );
+
+            return acc + (tuneo?.precio ?? 0);
+          }, 0);
+
+        base = totalRendimiento + totalEstetica;
         break;
       }
 
@@ -312,7 +390,7 @@ export class FacturaComponent implements OnInit {
       }
 
       if (this.tuneoSeleccionados.length === 0) {
-        alert('Debes seleccionar al menos una mejora de rendimiento.');
+        alert('Debes seleccionar al menos una pieza de tuneo.');
         return;
       }
     }
@@ -360,6 +438,22 @@ export class FacturaComponent implements OnInit {
         this.enviando = false;
       }
     });
+  }
+
+  private getClavePrecioTuneo(pieza: string): string {
+    switch (pieza) {
+      case 'Pintura':
+        return 'Pintura';
+
+      case 'Livery':
+        return 'Vinilo';
+
+      case 'Pintura Llantas':
+        return 'Pintura de ruedas';
+
+      default:
+        return 'Parte estetica';
+    }
   }
 
   private obtenerMatriculaParaBackend(): string | null {
