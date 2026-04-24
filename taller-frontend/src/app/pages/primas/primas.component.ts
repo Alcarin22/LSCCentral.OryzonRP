@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { catchError, finalize, of, timeout } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { MisPrimasResponse, PrimasService } from '../../core/services/primas.service';
@@ -62,21 +63,28 @@ export class PrimasComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    console.log('Cargando primas para:', this.empleado.discordId, this.weekOffset);
+    this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
+      .pipe(
+        timeout(10000),
+        catchError((error) => {
+          console.error('Error cargando primas:', error);
+          this.error = 'No se pudieron cargar las primas.';
+          return of(this.getEmptyData());
+        }),
+        finalize(() => {
+          this.loading = false;
+        })
+      )
+      .subscribe((response) => {
+        this.data = {
+          ...this.getEmptyData(),
+          ...response,
+          actividadDiaria: response.actividadDiaria ?? [],
+          historico: response.historico ?? []
+        };
 
-    this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset).subscribe({
-      next: (response) => {
-        console.log('DATA PRIMAS:', response);
-
-        this.loading = false;
-
-        this.data = response;
-
-        this.data.actividadDiaria = this.data.actividadDiaria || [];
-        this.data.historico = this.data.historico || [];
-
-        this.nombreVisible = response.nombreEmpleado || this.nombreVisible;
-        this.rangoVisible = response.rango || this.rangoVisible;
+        this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
+        this.rangoVisible = this.data.rango || this.rangoVisible;
 
         this.progresoRecordGlobal = this.calcularPorcentaje(
           this.data.facturacionSemanal,
@@ -97,13 +105,7 @@ export class PrimasComponent implements OnInit {
           (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
           0
         );
-      },
-      error: (error) => {
-        console.error('Error cargando primas:', error);
-        this.error = 'No se pudieron cargar las primas.';
-        this.loading = false;
-      }
-    });
+      });
   }
 
   get maxHistoricoFacturacion(): number {
@@ -127,10 +129,6 @@ export class PrimasComponent implements OnInit {
   }
 
   getPorcentajeBarra(valor: number): number {
-    if (!this.maxHistoricoFacturacion) {
-      return 0;
-    }
-
     return Math.min(
       Math.round((valor / this.maxHistoricoFacturacion) * 100),
       100
