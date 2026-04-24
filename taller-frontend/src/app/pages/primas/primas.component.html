@@ -30,21 +30,6 @@
         </button>
       </div>
     </div>
-
-<div class="rounded-[18px] border border-[#2f3748] bg-[#1d212b] p-8 text-center">
-  <p class="text-[#9aa4b2]">
-    DEBUG loading: {{ loading }}
-  </p>
-
-  <p class="text-[#9aa4b2]">
-    DEBUG semana: {{ data.semana }}
-  </p>
-
-  <p class="text-[#9aa4b2]">
-    DEBUG facturación: {{ data.facturacionSemanal }}
-  </p>
-</div>
-
     <ng-container *ngIf="!loading">
       <div
         *ngIf="error"
