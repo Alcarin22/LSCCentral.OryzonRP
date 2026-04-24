@@ -35,6 +35,7 @@ export class PrimasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    alert('PRIMAS COMPONENT NUEVO CARGADO');
     this.empleado = this.sessionService.getEmpleado();
 
     this.nombreVisible = this.empleado?.nickServidor || this.empleado?.nombre || 'Empleado';
