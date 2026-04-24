@@ -30,8 +30,8 @@ export class PrimasComponent implements OnInit, OnDestroy {
   restanteRecordPersonal = 0;
 
   private sessionSub?: Subscription;
-  private ultimoDiscordIdCargado: string | null = null;
-  private cargandoRequest = false;
+  private requestVersion = 0;
+  private ultimoDiscordId: string | null = null;
 
   constructor(
     private sessionService: SessionService,
@@ -39,29 +39,20 @@ export class PrimasComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.sessionSub = this.sessionService.empleado$.subscribe((empleadoSesion) => {
-      this.empleado = empleadoSesion;
-
-      this.nombreVisible = empleadoSesion?.nickServidor || empleadoSesion?.nombre || 'Empleado';
-      this.rangoVisible = empleadoSesion?.rango?.nombre || 'Sin rango';
-
-      if (empleadoSesion?.discordId && empleadoSesion.discordId !== this.ultimoDiscordIdCargado) {
-        this.ultimoDiscordIdCargado = empleadoSesion.discordId;
-        this.weekOffset = 0;
-        this.refrescarVista();
-      }
-    });
-
     const empleadoActual = this.sessionService.getEmpleado();
 
     if (empleadoActual?.discordId) {
-      this.empleado = empleadoActual;
-      this.nombreVisible = empleadoActual.nickServidor || empleadoActual.nombre || 'Empleado';
-      this.rangoVisible = empleadoActual.rango?.nombre || 'Sin rango';
-      this.ultimoDiscordIdCargado = empleadoActual.discordId;
-      this.weekOffset = 0;
-      this.refrescarVista();
+      this.aplicarEmpleadoYCargar(empleadoActual, true);
     }
+
+    this.sessionSub = this.sessionService.empleado$.subscribe((empleadoSesion) => {
+      if (!empleadoSesion?.discordId) {
+        return;
+      }
+
+      const cambioEmpleado = empleadoSesion.discordId !== this.ultimoDiscordId;
+      this.aplicarEmpleadoYCargar(empleadoSesion, cambioEmpleado);
+    });
   }
 
   ngOnDestroy(): void {
@@ -78,19 +69,40 @@ export class PrimasComponent implements OnInit, OnDestroy {
     this.refrescarVista();
   }
 
+  private aplicarEmpleadoYCargar(empleadoSesion: SessionEmpleado, resetSemana: boolean): void {
+    this.empleado = empleadoSesion;
+    this.ultimoDiscordId = empleadoSesion.discordId;
+
+    this.nombreVisible = empleadoSesion.nickServidor || empleadoSesion.nombre || 'Empleado';
+    this.rangoVisible = empleadoSesion.rango?.nombre || 'Sin rango';
+
+    if (resetSemana) {
+      this.weekOffset = 0;
+    }
+
+    this.refrescarVista();
+  }
+
   private async refrescarVista(): Promise<void> {
-    if (!this.empleado?.discordId || this.cargandoRequest) {
+    if (!this.empleado?.discordId) {
+      this.error = 'No hay sesión activa.';
+      this.loading = false;
       return;
     }
 
+    const currentRequest = ++this.requestVersion;
+
     this.loading = true;
     this.error = '';
-    this.cargandoRequest = true;
 
     try {
       const response = await firstValueFrom(
         this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
       );
+
+      if (currentRequest !== this.requestVersion) {
+        return;
+      }
 
       this.data = {
         ...this.getEmptyData(),
@@ -104,32 +116,41 @@ export class PrimasComponent implements OnInit, OnDestroy {
       this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
       this.rangoVisible = this.data.rango || this.rangoVisible;
 
-      this.progresoRecordGlobal = this.calcularPorcentaje(
-        this.data.facturacionSemanal,
-        this.data.recordGlobalFacturacion
-      );
-
-      this.progresoRecordPersonal = this.calcularPorcentaje(
-        this.data.facturacionSemanal,
-        this.data.recordPersonalFacturacion
-      );
-
-      this.restanteRecordGlobal = Math.max(
-        (this.data.recordGlobalFacturacion || 0) - (this.data.facturacionSemanal || 0),
-        0
-      );
-
-      this.restanteRecordPersonal = Math.max(
-        (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
-        0
-      );
+      this.recalcularMetricas();
     } catch (error) {
+      if (currentRequest !== this.requestVersion) {
+        return;
+      }
+
       console.error('Error cargando primas:', error);
       this.error = 'No se pudieron cargar las primas.';
     } finally {
-      this.loading = false;
-      this.cargandoRequest = false;
+      if (currentRequest === this.requestVersion) {
+        this.loading = false;
+      }
     }
+  }
+
+  private recalcularMetricas(): void {
+    this.progresoRecordGlobal = this.calcularPorcentaje(
+      this.data.facturacionSemanal,
+      this.data.recordGlobalFacturacion
+    );
+
+    this.progresoRecordPersonal = this.calcularPorcentaje(
+      this.data.facturacionSemanal,
+      this.data.recordPersonalFacturacion
+    );
+
+    this.restanteRecordGlobal = Math.max(
+      (this.data.recordGlobalFacturacion || 0) - (this.data.facturacionSemanal || 0),
+      0
+    );
+
+    this.restanteRecordPersonal = Math.max(
+      (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
+      0
+    );
   }
 
   get maxHistoricoFacturacion(): number {
