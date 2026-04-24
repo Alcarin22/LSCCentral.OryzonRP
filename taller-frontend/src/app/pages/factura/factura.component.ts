@@ -173,7 +173,7 @@ export class FacturaComponent implements OnInit {
       this.otros = '';
     }
 
-    if (this.tipoSeleccionado !== 'Full Tuning') {
+    if (this.tipoSeleccionado !== 'Full Tuning' && this.tipoSeleccionado !== 'Tuneo') {
       this.categoria = '';
     }
 
@@ -251,12 +251,20 @@ export class FacturaComponent implements OnInit {
       }
 
       case 'Tuneo': {
+        const fullTuningSeleccionado = this.fullTuningDisponibles.find(
+          ft => this.normalizarClave(ft.categoria) === this.normalizarClave(this.categoria)
+        );
+
+        const precioBaseCategoria = fullTuningSeleccionado?.precio ?? 0;
+
         base = this.tuneoSeleccionados.reduce((acc, pieza) => {
           const tuneo = this.tuneoDisponibles.find(
             t => this.normalizarClave(t.pieza) === this.normalizarClave(pieza)
           );
 
-          return acc + (tuneo?.precio ?? 0);
+          const rendimiento = tuneo?.rendimiento ?? 0;
+
+          return acc + precioBaseCategoria * rendimiento;
         }, 0);
 
         break;
@@ -270,7 +278,7 @@ export class FacturaComponent implements OnInit {
       base = Math.round(base * 0.8);
     }
 
-    this.total = base;
+    this.total = Math.round(base);
   }
 
   enviarFactura(): void {
@@ -317,8 +325,13 @@ export class FacturaComponent implements OnInit {
         return;
       }
 
+      if (!this.categoria) {
+        alert('Debes seleccionar la categoría del vehículo.');
+        return;
+      }
+
       if (this.tuneoSeleccionados.length === 0) {
-        alert('Debes seleccionar al menos una pieza de tuneo.');
+        alert('Debes seleccionar al menos una mejora de rendimiento.');
         return;
       }
     }
@@ -339,7 +352,9 @@ export class FacturaComponent implements OnInit {
       estado: this.normalizarTexto(this.estado),
       cantidad: this.tipoSeleccionado === 'Items' ? this.cantidad : null,
       item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
-      categoria: this.tipoSeleccionado === 'Full Tuning' ? this.normalizarTexto(this.categoria) : null,
+      categoria: this.tipoSeleccionado === 'Full Tuning' || this.tipoSeleccionado === 'Tuneo'
+        ? this.normalizarTexto(this.categoria)
+        : null,
       gravedad: this.tipoSeleccionado === 'Reparación' ? this.normalizarTexto(this.gravedad) : null,
       tuneoPlate: this.tipoSeleccionado === 'Tuneo' ? this.normalizarTexto(this.tuneoPlate) : null,
       tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'

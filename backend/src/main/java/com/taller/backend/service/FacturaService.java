@@ -8,6 +8,7 @@ import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
 import com.taller.backend.entity.Tasacion;
 import com.taller.backend.entity.TasacionPrecio;
+import com.taller.backend.entity.Tuneo;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.FullTuningRepository;
@@ -15,6 +16,7 @@ import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
 import com.taller.backend.repository.TasacionPrecioRepository;
 import com.taller.backend.repository.TasacionRepository;
+import com.taller.backend.repository.TuneoRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ public class FacturaService {
     private final TasacionPrecioRepository tasacionPrecioRepository;
     private final TasacionRepository tasacionRepository;
     private final FullTuningRepository fullTuningRepository;
+    private final TuneoRepository tuneoRepository;
 
     public FacturaService(
             FacturaRepository facturaRepository,
@@ -43,7 +46,8 @@ public class FacturaService {
             ItemRepository itemRepository,
             TasacionPrecioRepository tasacionPrecioRepository,
             TasacionRepository tasacionRepository,
-            FullTuningRepository fullTuningRepository) {
+            FullTuningRepository fullTuningRepository,
+            TuneoRepository tuneoRepository) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
@@ -51,6 +55,7 @@ public class FacturaService {
         this.tasacionPrecioRepository = tasacionPrecioRepository;
         this.tasacionRepository = tasacionRepository;
         this.fullTuningRepository = fullTuningRepository;
+        this.tuneoRepository = tuneoRepository;
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
@@ -128,6 +133,10 @@ public class FacturaService {
 
             case "Full Tuning":
                 totalBase = calcularTotalFullTuning(request);
+                break;
+
+            case "Tuneo":
+                totalBase = calcularTotalTuneo(request);
                 break;
 
             default:
@@ -225,6 +234,47 @@ public class FacturaService {
         return fullTuning.getPrecio()
                 .setScale(0, RoundingMode.HALF_UP)
                 .intValue();
+    }
+
+    private int calcularTotalTuneo(CreateFacturaRequest request) {
+        if (request.getCategoria() == null || request.getCategoria().isBlank()) {
+            throw new RuntimeException("Debes seleccionar una categoría para el tuneo");
+        }
+
+        if (request.getTuneoSeleccionados() == null || request.getTuneoSeleccionados().isBlank()) {
+            throw new RuntimeException("Debes seleccionar al menos una mejora de tuneo");
+        }
+
+        String categoriaNormalizada = normalizar(request.getCategoria());
+
+        FullTuning fullTuning = fullTuningRepository.findAll().stream()
+                .filter(ft -> normalizar(ft.getCategoria()).equals(categoriaNormalizada))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No existe un precio de Full Tuning para la categoría: " + request.getCategoria()));
+
+        BigDecimal precioBaseCategoria = fullTuning.getPrecio();
+        String[] piezasSeleccionadas = request.getTuneoSeleccionados().split(",");
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (String piezaSeleccionada : piezasSeleccionadas) {
+            String piezaNormalizada = normalizar(piezaSeleccionada);
+
+            Tuneo tuneo = tuneoRepository.findAll().stream()
+                    .filter(t -> normalizar(t.getPieza()).equals(piezaNormalizada))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(
+                            "No existe una pieza de tuneo configurada en BD para: " + piezaSeleccionada));
+
+            BigDecimal rendimiento = tuneo.getRendimiento() != null
+                    ? tuneo.getRendimiento()
+                    : BigDecimal.ZERO;
+
+            total = total.add(precioBaseCategoria.multiply(rendimiento));
+        }
+
+        return total.setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
     private String normalizar(String valor) {
