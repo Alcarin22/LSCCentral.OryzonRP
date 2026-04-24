@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { catchError, finalize, of, timeout } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { MisPrimasResponse, PrimasService } from '../../core/services/primas.service';
@@ -35,7 +35,8 @@ export class PrimasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    alert('PRIMAS COMPONENT NUEVO CARGADO');
+    alert('VERSION NUEVA PRIMAS');
+
     this.empleado = this.sessionService.getEmpleado();
 
     this.nombreVisible = this.empleado?.nickServidor || this.empleado?.nombre || 'Empleado';
@@ -54,7 +55,7 @@ export class PrimasComponent implements OnInit {
     this.refrescarVista();
   }
 
-  private refrescarVista(): void {
+  private async refrescarVista(): Promise<void> {
     if (!this.empleado?.discordId) {
       this.error = 'No hay sesión activa.';
       this.loading = false;
@@ -64,49 +65,51 @@ export class PrimasComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
-      .pipe(
-        timeout(10000),
-        catchError((error) => {
-          console.error('Error cargando primas:', error);
-          this.error = 'No se pudieron cargar las primas.';
-          return of(this.getEmptyData());
-        }),
-        finalize(() => {
-          this.loading = false;
-        })
-      )
-      .subscribe((response) => {
-        this.data = {
-          ...this.getEmptyData(),
-          ...response,
-          actividadDiaria: response.actividadDiaria ?? [],
-          historico: response.historico ?? []
-        };
+    try {
+      console.log('PIDIENDO PRIMAS:', this.empleado.discordId, this.weekOffset);
 
-        this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
-        this.rangoVisible = this.data.rango || this.rangoVisible;
+      const response = await firstValueFrom(
+        this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
+      );
 
-        this.progresoRecordGlobal = this.calcularPorcentaje(
-          this.data.facturacionSemanal,
-          this.data.recordGlobalFacturacion
-        );
+      console.log('RESPUESTA PRIMAS COMPONENT:', response);
 
-        this.progresoRecordPersonal = this.calcularPorcentaje(
-          this.data.facturacionSemanal,
-          this.data.recordPersonalFacturacion
-        );
+      this.data = {
+        ...this.getEmptyData(),
+        ...response,
+        actividadDiaria: response.actividadDiaria ?? [],
+        historico: response.historico ?? []
+      };
 
-        this.restanteRecordGlobal = Math.max(
-          (this.data.recordGlobalFacturacion || 0) - (this.data.facturacionSemanal || 0),
-          0
-        );
+      this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
+      this.rangoVisible = this.data.rango || this.rangoVisible;
 
-        this.restanteRecordPersonal = Math.max(
-          (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
-          0
-        );
-      });
+      this.progresoRecordGlobal = this.calcularPorcentaje(
+        this.data.facturacionSemanal,
+        this.data.recordGlobalFacturacion
+      );
+
+      this.progresoRecordPersonal = this.calcularPorcentaje(
+        this.data.facturacionSemanal,
+        this.data.recordPersonalFacturacion
+      );
+
+      this.restanteRecordGlobal = Math.max(
+        (this.data.recordGlobalFacturacion || 0) - (this.data.facturacionSemanal || 0),
+        0
+      );
+
+      this.restanteRecordPersonal = Math.max(
+        (this.data.recordPersonalFacturacion || 0) - (this.data.facturacionSemanal || 0),
+        0
+      );
+    } catch (error) {
+      console.error('ERROR PRIMAS COMPONENT:', error);
+      this.error = 'No se pudieron cargar las primas.';
+    } finally {
+      console.log('FINALIZANDO CARGA PRIMAS');
+      this.loading = false;
+    }
   }
 
   get maxHistoricoFacturacion(): number {
