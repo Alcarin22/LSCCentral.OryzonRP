@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { MisPrimasResponse, PrimasService } from '../../core/services/primas.service';
@@ -12,7 +12,7 @@ import { MisPrimasResponse, PrimasService } from '../../core/services/primas.ser
   templateUrl: './primas.component.html',
   styleUrls: ['./primas.component.css']
 })
-export class PrimasComponent implements OnInit, OnDestroy {
+export class PrimasComponent implements OnInit {
   empleado: SessionEmpleado | null = null;
 
   nombreVisible = 'Empleado';
@@ -29,28 +29,24 @@ export class PrimasComponent implements OnInit, OnDestroy {
   restanteRecordGlobal = 0;
   restanteRecordPersonal = 0;
 
-  private sessionSub?: Subscription;
-  private requestVersion = 0;
-
   constructor(
     private sessionService: SessionService,
     private primasService: PrimasService
   ) {}
 
   ngOnInit(): void {
-    this.cargarEmpleadoInicial();
+    this.empleado = this.obtenerEmpleado();
 
-    this.sessionSub = this.sessionService.empleado$.subscribe((empleadoSesion) => {
-      if (!empleadoSesion?.discordId) return;
+    if (!this.empleado?.discordId) {
+      this.error = 'No hay sesión activa.';
+      return;
+    }
 
-      this.aplicarEmpleado(empleadoSesion);
-      this.weekOffset = 0;
-      this.refrescarVista();
-    });
-  }
+    this.nombreVisible = this.empleado.nickServidor || this.empleado.nombre || 'Empleado';
+    this.rangoVisible = this.empleado.rango?.nombre || 'Sin rango';
 
-  ngOnDestroy(): void {
-    this.sessionSub?.unsubscribe();
+    this.weekOffset = 0;
+    this.refrescarVista();
   }
 
   semanaAnterior(): void {
@@ -63,45 +59,19 @@ export class PrimasComponent implements OnInit, OnDestroy {
     this.refrescarVista();
   }
 
-  private cargarEmpleadoInicial(): void {
+  private obtenerEmpleado(): SessionEmpleado | null {
     const empleadoServicio = this.sessionService.getEmpleado();
 
     if (empleadoServicio?.discordId) {
-      this.aplicarEmpleado(empleadoServicio);
-      this.weekOffset = 0;
-      this.refrescarVista();
-      return;
+      return empleadoServicio;
     }
 
-    const empleadoLocal = this.getEmpleadoDesdeLocalStorage();
-
-    if (empleadoLocal?.discordId) {
-      this.aplicarEmpleado(empleadoLocal);
-      this.weekOffset = 0;
-      this.refrescarVista();
-      return;
-    }
-
-    this.error = 'No hay sesión activa.';
-    this.loading = false;
-  }
-
-  private getEmpleadoDesdeLocalStorage(): SessionEmpleado | null {
     try {
       const raw = localStorage.getItem('empleado');
-      if (!raw) return null;
-
-      return JSON.parse(raw) as SessionEmpleado;
+      return raw ? JSON.parse(raw) as SessionEmpleado : null;
     } catch {
       return null;
     }
-  }
-
-  private aplicarEmpleado(empleado: SessionEmpleado): void {
-    this.empleado = empleado;
-    this.nombreVisible = empleado.nickServidor || empleado.nombre || 'Empleado';
-    this.rangoVisible = empleado.rango?.nombre || 'Sin rango';
-    this.error = '';
   }
 
   private async refrescarVista(): Promise<void> {
@@ -111,8 +81,6 @@ export class PrimasComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentRequest = ++this.requestVersion;
-
     this.loading = true;
     this.error = '';
 
@@ -120,8 +88,6 @@ export class PrimasComponent implements OnInit, OnDestroy {
       const response = await firstValueFrom(
         this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
       );
-
-      if (currentRequest !== this.requestVersion) return;
 
       this.data = {
         ...this.getEmptyData(),
@@ -140,9 +106,7 @@ export class PrimasComponent implements OnInit, OnDestroy {
       console.error('Error cargando primas:', error);
       this.error = 'No se pudieron cargar las primas.';
     } finally {
-      if (currentRequest === this.requestVersion) {
-        this.loading = false;
-      }
+      this.loading = false;
     }
   }
 
@@ -177,7 +141,9 @@ export class PrimasComponent implements OnInit, OnDestroy {
   }
 
   get mejorSemanaHistorico(): string {
-    if (!this.data.historico.length) return '-';
+    if (!this.data.historico.length) {
+      return '-';
+    }
 
     const mejor = this.data.historico.reduce((a, b) =>
       b.facturacion > a.facturacion ? b : a
@@ -194,7 +160,10 @@ export class PrimasComponent implements OnInit, OnDestroy {
   }
 
   private calcularPorcentaje(actual: number, objetivo: number): number {
-    if (!objetivo || objetivo <= 0) return 0;
+    if (!objetivo || objetivo <= 0) {
+      return 0;
+    }
+
     return Math.min(Math.round((actual / objetivo) * 100), 100);
   }
 

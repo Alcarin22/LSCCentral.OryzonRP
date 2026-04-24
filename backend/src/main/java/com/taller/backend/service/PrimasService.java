@@ -3,6 +3,7 @@ package com.taller.backend.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
@@ -231,7 +232,7 @@ public class PrimasService {
     }
 
     private int getCurrentWeek() {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZoneId.of("Europe/Madrid"));
 
         if (hoy.isBefore(FECHA_INICIO_SEMANA_0)) {
             return -1;
