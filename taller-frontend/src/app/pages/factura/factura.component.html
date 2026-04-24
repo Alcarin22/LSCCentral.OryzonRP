@@ -8,14 +8,10 @@
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
-      
-      <!-- FORMULARIO -->
       <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <h2 class="mb-4 text-lg font-semibold">Datos principales</h2>
 
         <div class="grid gap-4">
-
-          <!-- Tipo -->
           <div>
             <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de factura</label>
             <select
@@ -32,11 +28,7 @@
             </select>
           </div>
 
-          <!-- ========================= -->
-          <!-- REPARACIONES -->
-          <!-- ========================= -->
           @if (tipoSeleccionado === 'Reparación') {
-
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
               <select
@@ -46,11 +38,13 @@
               >
                 <option value="">Seleccione una reparación</option>
                 @for (r of reparaciones; track r.id) {
-                  <option [value]="r.tipo">
-                    {{ r.tipo }}
-                  </option>
+                  <option [value]="r.tipo">{{ r.tipo }}</option>
                 }
               </select>
+
+              @if (cargandoReparaciones) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando reparaciones...</p>
+              }
             </div>
 
             <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
@@ -63,11 +57,7 @@
             </label>
           }
 
-          <!-- ========================= -->
-          <!-- ITEMS -->
-          <!-- ========================= -->
           @if (tipoSeleccionado === 'Items') {
-
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
               <select
@@ -77,11 +67,13 @@
               >
                 <option value="">Seleccione un item</option>
                 @for (i of itemsDisponibles; track i.id) {
-                  <option [value]="i.nombre">
-                    {{ i.nombre }}
-                  </option>
+                  <option [value]="i.nombre">{{ i.nombre }}</option>
                 }
               </select>
+
+              @if (cargandoItems) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando items...</p>
+              }
             </div>
 
             <div>
@@ -96,11 +88,7 @@
             </div>
           }
 
-          <!-- ========================= -->
-          <!-- TASACIONES -->
-          <!-- ========================= -->
           @if (tipoSeleccionado === 'Tasación') {
-
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
               <select
@@ -110,11 +98,13 @@
               >
                 <option value="">Seleccione estado</option>
                 @for (t of tasacionPrecios; track t.id) {
-                  <option [value]="t.estado">
-                    {{ t.estado }}
-                  </option>
+                  <option [value]="t.estado">{{ t.estado }}</option>
                 }
               </select>
+
+              @if (cargandoTasacionPrecios) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando precios de tasación...</p>
+              }
             </div>
 
             <div>
@@ -135,11 +125,7 @@
             </div>
           }
 
-          <!-- ========================= -->
-          <!-- FULL TUNING -->
-          <!-- ========================= -->
           @if (tipoSeleccionado === 'Full Tuning') {
-
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
               <select
@@ -149,19 +135,17 @@
               >
                 <option value="">Seleccione una categoría</option>
                 @for (ft of fullTuningDisponibles; track ft.id) {
-                  <option [value]="ft.categoria">
-                    {{ ft.categoria }}
-                  </option>
+                  <option [value]="ft.categoria">{{ ft.categoria }}</option>
                 }
               </select>
+
+              @if (cargandoFullTuning) {
+                <p class="mt-2 text-sm text-[#9aa4b2]">Cargando precios de Full Tuning...</p>
+              }
             </div>
           }
 
-          <!-- ========================= -->
-          <!-- TUNEO -->
-          <!-- ========================= -->
           @if (tipoSeleccionado === 'Tuneo') {
-
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
               <input
@@ -172,23 +156,27 @@
             </div>
 
             <div>
-              <label class="mb-2 block text-sm text-[#9aa4b2]">Elementos</label>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Piezas de tuneo</label>
+
+              @if (cargandoTuneo) {
+                <p class="mb-2 text-sm text-[#9aa4b2]">Cargando piezas de tuneo...</p>
+              }
+
               <div class="grid gap-2">
-                @for (item of tuneoItems; track item) {
-                  <label class="flex items-center gap-3">
+                @for (pieza of tuneoDisponibles; track pieza.id) {
+                  <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
                     <input
                       type="checkbox"
-                      [checked]="isTuneoSelected(item)"
-                      (change)="toggleTuneoItem(item, $any($event.target).checked)"
+                      [checked]="isTuneoSelected(pieza.pieza)"
+                      (change)="toggleTuneoItem(pieza.pieza, $any($event.target).checked)"
                     />
-                    <span>{{ item }}</span>
+                    <span>{{ pieza.pieza }}</span>
                   </label>
                 }
               </div>
             </div>
           }
 
-          <!-- Matrícula general -->
           @if (tipoSeleccionado && tipoSeleccionado !== 'Items' && tipoSeleccionado !== 'Tuneo') {
             <div>
               <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
@@ -200,9 +188,12 @@
             </div>
           }
 
-          <!-- Convenio -->
-          @if (tipoSeleccionado && tipoSeleccionado !== 'Items' && tipoSeleccionado !== 'Tasación') {
-            <label class="flex items-center gap-3">
+          @if (
+            tipoSeleccionado &&
+            tipoSeleccionado !== 'Items' &&
+            tipoSeleccionado !== 'Tasación'
+          ) {
+            <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
               <input
                 type="checkbox"
                 [(ngModel)]="convenio"
@@ -211,27 +202,60 @@
               <span>Aplicar convenio</span>
             </label>
           }
-
         </div>
       </article>
 
-      <!-- ========================= -->
-      <!-- RESUMEN -->
-      <!-- ========================= -->
       <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-5 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <h2 class="mb-4 text-lg font-semibold">Resumen</h2>
 
         <div class="grid gap-4">
-
           <div>
             <span class="text-sm text-[#9aa4b2]">Empleado</span>
-            <div class="font-bold">{{ empleado?.nombre }}</div>
+            <div class="font-bold">
+              {{ empleado?.nickServidor || empleado?.nombre || 'Sin sesión' }}
+            </div>
           </div>
 
           <div>
             <span class="text-sm text-[#9aa4b2]">Tipo</span>
             <div class="font-bold">{{ tipoSeleccionado || '-' }}</div>
           </div>
+
+          @if (tipoSeleccionado === 'Reparación') {
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Reparación</span>
+              <div class="font-bold">{{ gravedad || '-' }}</div>
+            </div>
+
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Grúa</span>
+              <div class="font-bold">{{ grua ? 'Sí (+600$)' : 'No' }}</div>
+            </div>
+          }
+
+          @if (tipoSeleccionado === 'Items') {
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Item</span>
+              <div class="font-bold">{{ item || '-' }}</div>
+            </div>
+
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Cantidad</span>
+              <div class="font-bold">{{ cantidad }}</div>
+            </div>
+          }
+
+          @if (tipoSeleccionado === 'Tasación') {
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Estado</span>
+              <div class="font-bold">{{ estado || '-' }}</div>
+            </div>
+
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Modelo</span>
+              <div class="font-bold">{{ modelo || '-' }}</div>
+            </div>
+          }
 
           @if (tipoSeleccionado === 'Full Tuning') {
             <div>
@@ -240,8 +264,22 @@
             </div>
           }
 
+          @if (tipoSeleccionado === 'Tuneo') {
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Matrícula</span>
+              <div class="font-bold">{{ tuneoPlate || '-' }}</div>
+            </div>
+
+            <div>
+              <span class="text-sm text-[#9aa4b2]">Piezas seleccionadas</span>
+              <div class="font-bold">
+                {{ tuneoSeleccionados.length ? tuneoSeleccionados.join(', ') : '-' }}
+              </div>
+            </div>
+          }
+
           <div class="mt-4 text-2xl font-extrabold text-[#f4b400]">
-            {{ total }}$
+            {{ total | currency:'USD':'symbol':'1.0-0' }}
           </div>
 
           <button
@@ -251,10 +289,8 @@
           >
             {{ enviando ? 'Guardando...' : 'Guardar factura' }}
           </button>
-
         </div>
       </article>
-
     </div>
   </div>
 </section>
