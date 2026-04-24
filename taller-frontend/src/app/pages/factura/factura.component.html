@@ -128,6 +128,11 @@
             }
           </select>
         </div>
+
+        <label class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
+          <span>Convenio (-20%)</span>
+        </label>
       </div>
     }
 
@@ -189,6 +194,11 @@
             }
           </div>
         </div>
+
+        <label class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
+          <span>Convenio (-20%)</span>
+        </label>
       </div>
     }
 
