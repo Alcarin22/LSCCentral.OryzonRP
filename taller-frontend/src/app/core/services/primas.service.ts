@@ -52,7 +52,7 @@ export class PrimasService {
 
   getMisPrimas(discordId: string, weekOffset = 0): Observable<MisPrimasResponse> {
     return this.http.get<MisPrimasResponse>(
-      `${this.baseUrl}/${discordId}?weekOffset=${weekOffset}`
+      `${this.baseUrl}/${discordId}?weekOffset=${weekOffset}&t=${Date.now()}`
     );
   }
 }
