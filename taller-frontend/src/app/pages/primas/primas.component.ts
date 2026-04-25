@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 
@@ -31,7 +31,9 @@ export class PrimasComponent implements OnInit {
 
   constructor(
     private sessionService: SessionService,
-    private primasService: PrimasService
+    private primasService: PrimasService,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -39,6 +41,8 @@ export class PrimasComponent implements OnInit {
 
     if (!this.empleado?.discordId) {
       this.error = 'No hay sesión activa.';
+      this.loading = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -76,37 +80,53 @@ export class PrimasComponent implements OnInit {
 
   private async refrescarVista(): Promise<void> {
     if (!this.empleado?.discordId) {
-      this.error = 'No hay sesión activa.';
-      this.loading = false;
+      this.zone.run(() => {
+        this.error = 'No hay sesión activa.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      });
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.zone.run(() => {
+      this.loading = true;
+      this.error = '';
+      this.cdr.detectChanges();
+    });
 
     try {
       const response = await firstValueFrom(
         this.primasService.getMisPrimas(this.empleado.discordId, this.weekOffset)
       );
 
-      this.data = {
-        ...this.getEmptyData(),
-        ...response,
-        actividadDiaria: response.actividadDiaria ?? [],
-        historico: response.historico ?? []
-      };
+      this.zone.run(() => {
+        this.data = {
+          ...this.getEmptyData(),
+          ...response,
+          actividadDiaria: response.actividadDiaria ?? [],
+          historico: response.historico ?? []
+        };
 
-      this.weekOffset = this.data.weekOffset ?? this.weekOffset;
+        this.weekOffset = this.data.weekOffset ?? this.weekOffset;
 
-      this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
-      this.rangoVisible = this.data.rango || this.rangoVisible;
+        this.nombreVisible = this.data.nombreEmpleado || this.nombreVisible;
+        this.rangoVisible = this.data.rango || this.rangoVisible;
 
-      this.recalcularMetricas();
+        this.recalcularMetricas();
+
+        this.loading = false;
+        this.error = '';
+
+        this.cdr.detectChanges();
+      });
     } catch (error) {
       console.error('Error cargando primas:', error);
-      this.error = 'No se pudieron cargar las primas.';
-    } finally {
-      this.loading = false;
+
+      this.zone.run(() => {
+        this.error = 'No se pudieron cargar las primas.';
+        this.loading = false;
+        this.cdr.detectChanges();
+      });
     }
   }
 
