@@ -1,0 +1,25 @@
+.input {
+  background: #1b2130;
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.btn {
+  background: #2a2f3a;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.btn-yellow {
+  background: #f4b400;
+  color: black;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.card {
+  background: #1d212b;
+  padding: 15px;
+  border-radius: 12px;
+}

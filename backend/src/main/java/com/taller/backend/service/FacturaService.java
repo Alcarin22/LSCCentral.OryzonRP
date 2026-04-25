@@ -1,29 +1,19 @@
 package com.taller.backend.service;
 
 import com.taller.backend.dto.CreateFacturaRequest;
-import com.taller.backend.entity.Empleado;
-import com.taller.backend.entity.Factura;
-import com.taller.backend.entity.FullTuning;
-import com.taller.backend.entity.Item;
-import com.taller.backend.entity.Reparacion;
-import com.taller.backend.entity.Tasacion;
-import com.taller.backend.entity.TasacionPrecio;
-import com.taller.backend.entity.Tuneo;
-import com.taller.backend.repository.EmpleadoRepository;
-import com.taller.backend.repository.FacturaRepository;
-import com.taller.backend.repository.FullTuningRepository;
-import com.taller.backend.repository.ItemRepository;
-import com.taller.backend.repository.ReparacionRepository;
-import com.taller.backend.repository.TasacionPrecioRepository;
-import com.taller.backend.repository.TasacionRepository;
-import com.taller.backend.repository.TuneoRepository;
+import com.taller.backend.dto.FacturaListadoResponse;
+import com.taller.backend.entity.*;
+import com.taller.backend.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Service
 public class FacturaService {
@@ -59,9 +49,13 @@ public class FacturaService {
         this.tuneoRepository = tuneoRepository;
     }
 
+    // ============================
+    // CREAR FACTURA
+    // ============================
+
     public Factura crearFactura(CreateFacturaRequest request) {
         Empleado empleado = empleadoRepository.findByDiscordId(request.getDiscordId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado para ese discordId"));
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
         int totalCalculado = calcularTotal(request);
 
@@ -83,239 +77,203 @@ public class FacturaService {
         factura.setGravedad(request.getGravedad());
         factura.setTuneoPlate(request.getTuneoPlate());
         factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
-        factura.setGrua(Boolean.TRUE.equals(request.getGrua()) && "Reparación".equals(request.getTipo()));
+        factura.setGrua(Boolean.TRUE.equals(request.getGrua()));
 
-        Factura facturaGuardada = facturaRepository.save(factura);
+        Factura guardada = facturaRepository.save(factura);
 
         if ("Tasación".equals(request.getTipo())) {
-            guardarDetalleTasacion(facturaGuardada, request);
+            guardarTasacion(guardada, request);
         }
 
-        return facturaGuardada;
+        return guardada;
     }
 
-    private void guardarDetalleTasacion(Factura facturaGuardada, CreateFacturaRequest request) {
-        if (request.getModelo() == null || request.getModelo().isBlank()) {
-            throw new RuntimeException("El modelo es obligatorio para una tasación");
-        }
-
-        if (request.getEstado() == null || request.getEstado().isBlank()) {
-            throw new RuntimeException("El estado es obligatorio para una tasación");
-        }
-
-        Tasacion tasacion = new Tasacion();
-        tasacion.setFacturaId(facturaGuardada.getId());
-        tasacion.setModelo(request.getModelo().trim());
-        tasacion.setEstado(request.getEstado().trim());
-        tasacion.setOtros(request.getOtros());
-
-        tasacionRepository.save(tasacion);
+    private void guardarTasacion(Factura factura, CreateFacturaRequest request) {
+        Tasacion t = new Tasacion();
+        t.setFacturaId(factura.getId());
+        t.setModelo(request.getModelo());
+        t.setEstado(request.getEstado());
+        t.setOtros(request.getOtros());
+        tasacionRepository.save(t);
     }
+
+    // ============================
+    // LISTADO FACTURAS
+    // ============================
+
+    public List<FacturaListadoResponse> listarFacturas(
+            String fechaInicio,
+            String fechaFin,
+            String tipo,
+            Long idEmpleado) {
+
+        LocalDateTime inicio = null;
+        LocalDateTime fin = null;
+
+        if (fechaInicio != null && !fechaInicio.isBlank()) {
+            inicio = LocalDate.parse(fechaInicio).atStartOfDay();
+        }
+
+        if (fechaFin != null && !fechaFin.isBlank()) {
+            fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
+        }
+
+        List<Factura> facturas = facturaRepository.buscarFacturasFiltradas(
+                idEmpleado,
+                tipo,
+                inicio,
+                fin
+        );
+
+        return facturas.stream()
+                .map(this::mapearFactura)
+                .toList();
+    }
+
+    private FacturaListadoResponse mapearFactura(Factura f) {
+        FacturaListadoResponse r = new FacturaListadoResponse();
+
+        r.setId(f.getId());
+        r.setIdEmpleado(f.getIdEmpleado());
+        r.setFecha(f.getFecha() != null ? f.getFecha().toString() : null);
+        r.setTipo(f.getTipo());
+        r.setTotal(f.getTotal());
+        r.setConvenio(f.getConvenio());
+        r.setMatricula(f.getMatricula());
+        r.setModelo(f.getModelo());
+        r.setEstado(f.getEstado());
+        r.setCantidad(f.getCantidad());
+        r.setItem(f.getItem());
+        r.setCategoria(f.getCategoria());
+        r.setGravedad(f.getGravedad());
+        r.setTuneoPlate(f.getTuneoPlate());
+        r.setTuneoSeleccionados(f.getTuneoSeleccionados());
+        r.setGrua(f.getGrua());
+
+        String nombre = empleadoRepository.findById(f.getIdEmpleado())
+                .map(Empleado::getNombre)
+                .orElse("Desconocido");
+
+        r.setNombreEmpleado(nombre);
+
+        return r;
+    }
+
+    // ============================
+    // CALCULO TOTAL
+    // ============================
 
     private int calcularTotal(CreateFacturaRequest request) {
-        if (request.getTipo() == null || request.getTipo().isBlank()) {
-            throw new RuntimeException("El tipo de factura es obligatorio");
-        }
-
-        int totalBase;
+        int total;
 
         switch (request.getTipo()) {
-            case "Reparación":
-                totalBase = calcularTotalReparacion(request);
-                break;
-
-            case "Items":
-                totalBase = calcularTotalItems(request);
-                break;
-
-            case "Tasación":
-                totalBase = calcularTotalTasacion(request);
-                break;
-
-            case "Full Tuning":
-                totalBase = calcularTotalFullTuning(request);
-                break;
-
-            case "Tuneo":
-                totalBase = calcularTotalTuneo(request);
-                break;
-
-            default:
-                if (request.getTotal() == null) {
-                    throw new RuntimeException("No se pudo calcular el total de la factura");
-                }
-                totalBase = request.getTotal();
-                break;
+            case "Reparación" -> total = calcularReparacion(request);
+            case "Items" -> total = calcularItems(request);
+            case "Tasación" -> total = calcularTasacion(request);
+            case "Full Tuning" -> total = calcularFullTuning(request);
+            case "Tuneo" -> total = calcularTuneo(request);
+            default -> throw new RuntimeException("Tipo inválido");
         }
 
         if (Boolean.TRUE.equals(request.getConvenio()) && !"Tasación".equals(request.getTipo())) {
-            totalBase = (int) Math.round(totalBase * 0.8);
+            total = (int) Math.round(total * 0.8);
         }
 
-        return totalBase;
+        return total;
     }
 
-    private int calcularTotalReparacion(CreateFacturaRequest request) {
-        if (request.getGravedad() == null || request.getGravedad().isBlank()) {
-            throw new RuntimeException("La gravedad de la reparación es obligatoria");
-        }
-
-        String gravedadNormalizada = normalizar(request.getGravedad());
-
-        Reparacion reparacion = reparacionRepository.findAll().stream()
-                .filter(r -> normalizar(r.getTipo()).equals(gravedadNormalizada))
+    private int calcularReparacion(CreateFacturaRequest r) {
+        Reparacion rep = reparacionRepository.findAll().stream()
+                .filter(x -> normalizar(x.getTipo()).equals(normalizar(r.getGravedad())))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "No existe una reparación configurada en BD para: " + request.getGravedad()));
+                .orElseThrow();
 
-        int total = reparacion.getPrecio();
+        int total = rep.getPrecio();
 
-        if (Boolean.TRUE.equals(request.getGrua())) {
+        if (Boolean.TRUE.equals(r.getGrua())) {
             total += PRECIO_GRUA;
         }
 
         return total;
     }
 
-    private int calcularTotalItems(CreateFacturaRequest request) {
-        if (request.getItem() == null || request.getItem().isBlank()) {
-            throw new RuntimeException("Debes seleccionar un item");
-        }
-
-        if (request.getCantidad() == null || request.getCantidad() <= 0) {
-            throw new RuntimeException("La cantidad debe ser mayor que 0");
-        }
-
-        String itemNormalizado = normalizar(request.getItem());
-
+    private int calcularItems(CreateFacturaRequest r) {
         Item item = itemRepository.findAll().stream()
-                .filter(i -> normalizar(i.getNombre()).equals(itemNormalizado))
+                .filter(x -> normalizar(x.getNombre()).equals(normalizar(r.getItem())))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "No existe un item configurado en BD para: " + request.getItem()));
+                .orElseThrow();
 
-        BigDecimal total = item.getPrecio()
-                .multiply(BigDecimal.valueOf(request.getCantidad()))
-                .setScale(0, RoundingMode.HALF_UP);
+        return item.getPrecio()
+                .multiply(BigDecimal.valueOf(r.getCantidad()))
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+    }
+
+    private int calcularTasacion(CreateFacturaRequest r) {
+        TasacionPrecio t = tasacionPrecioRepository.findAll().stream()
+                .filter(x -> normalizar(x.getEstado()).equals(normalizar(r.getEstado())))
+                .findFirst()
+                .orElseThrow();
+
+        return t.getPrecio().intValue();
+    }
+
+    private int calcularFullTuning(CreateFacturaRequest r) {
+        FullTuning ft = fullTuningRepository.findAll().stream()
+                .filter(x -> normalizar(x.getCategoria()).equals(normalizar(r.getCategoria())))
+                .findFirst()
+                .orElseThrow();
+
+        return ft.getPrecio().intValue();
+    }
+
+    private int calcularTuneo(CreateFacturaRequest r) {
+        FullTuning ft = fullTuningRepository.findAll().stream()
+                .filter(x -> normalizar(x.getCategoria()).equals(normalizar(r.getCategoria())))
+                .findFirst()
+                .orElseThrow();
+
+        String[] piezas = r.getTuneoSeleccionados().split(",");
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (String p : piezas) {
+            if (esRendimiento(p)) {
+                total = total.add(ft.getPrecio().multiply(PORCENTAJE_RENDIMIENTO));
+            } else {
+                Tuneo t = tuneoRepository.findAll().stream()
+                        .filter(x -> normalizar(x.getPieza()).equals(normalizar(getClave(p))))
+                        .findFirst()
+                        .orElseThrow();
+
+                total = total.add(t.getPrecio());
+            }
+        }
 
         return total.intValue();
     }
 
-    private int calcularTotalTasacion(CreateFacturaRequest request) {
-        if (request.getEstado() == null || request.getEstado().isBlank()) {
-            throw new RuntimeException("Debes seleccionar un estado para la tasación");
-        }
-
-        String estadoNormalizado = normalizar(request.getEstado());
-
-        TasacionPrecio tasacionPrecio = tasacionPrecioRepository.findAll().stream()
-                .filter(t -> normalizar(t.getEstado()).equals(estadoNormalizado))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "No existe un precio configurado para el estado de tasación: " + request.getEstado()));
-
-        return tasacionPrecio.getPrecio()
-                .setScale(0, RoundingMode.HALF_UP)
-                .intValue();
+    private boolean esRendimiento(String p) {
+        String x = normalizar(p);
+        return x.equals("motor") || x.equals("frenos") || x.equals("transmision")
+                || x.equals("suspension") || x.equals("blindaje") || x.equals("turbo");
     }
 
-    private int calcularTotalFullTuning(CreateFacturaRequest request) {
-        if (request.getCategoria() == null || request.getCategoria().isBlank()) {
-            throw new RuntimeException("Debes seleccionar una categoría para Full Tuning");
-        }
-
-        String categoriaNormalizada = normalizar(request.getCategoria());
-
-        FullTuning fullTuning = fullTuningRepository.findAll().stream()
-                .filter(ft -> normalizar(ft.getCategoria()).equals(categoriaNormalizada))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "No existe un precio configurado para la categoría: " + request.getCategoria()));
-
-        return fullTuning.getPrecio()
-                .setScale(0, RoundingMode.HALF_UP)
-                .intValue();
-    }
-
-    private int calcularTotalTuneo(CreateFacturaRequest request) {
-        if (request.getCategoria() == null || request.getCategoria().isBlank()) {
-            throw new RuntimeException("Debes seleccionar una categoría para el tuneo");
-        }
-
-        if (request.getTuneoSeleccionados() == null || request.getTuneoSeleccionados().isBlank()) {
-            throw new RuntimeException("Debes seleccionar al menos una pieza de tuneo");
-        }
-
-        String categoriaNormalizada = normalizar(request.getCategoria());
-
-        FullTuning fullTuning = fullTuningRepository.findAll().stream()
-                .filter(ft -> normalizar(ft.getCategoria()).equals(categoriaNormalizada))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "No existe un precio de Full Tuning para la categoría: " + request.getCategoria()));
-
-        String[] piezasSeleccionadas = request.getTuneoSeleccionados().split(",");
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (String piezaRaw : piezasSeleccionadas) {
-            String pieza = piezaRaw.trim();
-
-            if (esPiezaRendimiento(pieza)) {
-                total = total.add(fullTuning.getPrecio().multiply(PORCENTAJE_RENDIMIENTO));
-                continue;
-            }
-
-            String clavePrecio = getClavePrecioTuneo(pieza);
-
-            Tuneo tuneo = tuneoRepository.findAll().stream()
-                    .filter(t -> normalizar(t.getPieza()).equals(normalizar(clavePrecio)))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException(
-                            "No existe precio configurado en tuneo para: " + clavePrecio));
-
-            total = total.add(tuneo.getPrecio());
-        }
-
-        return total.setScale(0, RoundingMode.HALF_UP).intValue();
-    }
-
-    private boolean esPiezaRendimiento(String pieza) {
+    private String getClave(String pieza) {
         String p = normalizar(pieza);
 
-        return p.equals(normalizar("Motor"))
-                || p.equals(normalizar("Frenos"))
-                || p.equals(normalizar("Transmisión"))
-                || p.equals(normalizar("Suspensión"))
-                || p.equals(normalizar("Blindaje"))
-                || p.equals(normalizar("Turbo"));
-    }
-
-    private String getClavePrecioTuneo(String pieza) {
-        String p = normalizar(pieza);
-
-        if (p.equals(normalizar("Pintura"))) {
-            return "Pintura";
-        }
-
-        if (p.equals(normalizar("Livery"))) {
-            return "Vinilo";
-        }
-
-        if (p.equals(normalizar("Pintura Llantas"))) {
-            return "Pintura de ruedas";
-        }
+        if (p.equals("pintura")) return "Pintura";
+        if (p.equals("livery")) return "Vinilo";
+        if (p.equals("pintura llantas")) return "Pintura de ruedas";
 
         return "Parte estetica";
     }
 
-    private String normalizar(String valor) {
-        if (valor == null) {
-            return "";
-        }
-
-        String sinAcentos = Normalizer.normalize(valor, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
-
-        return sinAcentos.trim().toLowerCase(Locale.ROOT);
+    private String normalizar(String v) {
+        if (v == null) return "";
+        return Normalizer.normalize(v, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 }
