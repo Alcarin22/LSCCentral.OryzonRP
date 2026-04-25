@@ -7,6 +7,9 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { FacturaComponent } from './pages/factura/factura.component';
 import { PrimasComponent } from './pages/primas/primas.component';
 
+// 🔥 NUEVO IMPORT
+import { FacturacionComponent } from './pages/facturacion/facturacion.component';
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -23,6 +26,14 @@ export const routes: Routes = [
     component: FacturaComponent,
     canActivate: [authGuard]
   },
+
+  // 🔥 NUEVA RUTA FACTURACIÓN
+  {
+    path: 'facturacion',
+    component: FacturacionComponent,
+    canActivate: [authGuard]
+  },
+
   {
     path: 'primas',
     component: PrimasComponent,

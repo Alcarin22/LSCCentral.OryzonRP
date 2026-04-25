@@ -1,0 +1,96 @@
+<section class="p-6 text-white">
+
+  <h1 class="text-3xl font-bold mb-6">Facturación</h1>
+
+  <!-- FILTROS -->
+  <div class="bg-[#1d212b] p-4 rounded-xl mb-6 grid md:grid-cols-4 gap-4">
+
+    <input type="date" [(ngModel)]="filtros.fechaInicio" class="input" />
+    <input type="date" [(ngModel)]="filtros.fechaFin" class="input" />
+
+    <select [(ngModel)]="filtros.tipo" class="input">
+      <option value="">Todos</option>
+      <option *ngFor="let t of tiposFactura">{{ t }}</option>
+    </select>
+
+    <div class="flex gap-2">
+      <button class="btn-yellow" (click)="buscar()">Buscar</button>
+      <button class="btn" (click)="limpiar()">Reset</button>
+    </div>
+
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+
+    <div class="card bg-blue-600">
+      <span>Total</span>
+      <strong>{{ totalFacturado | currency }}</strong>
+    </div>
+
+    <div class="card">
+      <span>Facturas</span>
+      <strong>{{ facturas.length }}</strong>
+    </div>
+
+    <div class="card">
+      <span>Media</span>
+      <strong>{{ promedio | currency }}</strong>
+    </div>
+
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading">Cargando...</div>
+
+  <!-- ERROR -->
+  <div *ngIf="error" class="text-red-400">{{ error }}</div>
+
+  <!-- TABLA -->
+  <table *ngIf="!loading" class="w-full text-sm">
+
+    <thead>
+      <tr class="text-left text-gray-400">
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Empleado</th>
+        <th>Tipo</th>
+        <th>Detalle</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let f of facturas" (click)="seleccionarFactura(f)" class="hover:bg-[#2a2f3a] cursor-pointer">
+
+        <td>#{{ f.id }}</td>
+        <td>{{ f.fecha | date:'dd/MM HH:mm' }}</td>
+        <td>{{ f.nombreEmpleado }}</td>
+        <td>{{ f.tipo }}</td>
+        <td>{{ getDescripcion(f) }}</td>
+        <td class="text-yellow-400 font-bold">{{ f.total | currency }}</td>
+
+      </tr>
+    </tbody>
+
+  </table>
+
+  <!-- MODAL -->
+  <div *ngIf="facturaSeleccionada" class="fixed inset-0 bg-black/70 flex items-center justify-center">
+
+    <div class="bg-[#1d212b] p-6 rounded-xl w-[400px]">
+
+      <h2 class="text-xl font-bold mb-4">Factura #{{ facturaSeleccionada.id }}</h2>
+
+      <p><b>Empleado:</b> {{ facturaSeleccionada.nombreEmpleado }}</p>
+      <p><b>Tipo:</b> {{ facturaSeleccionada.tipo }}</p>
+      <p><b>Detalle:</b> {{ getDescripcion(facturaSeleccionada) }}</p>
+      <p><b>Total:</b> {{ facturaSeleccionada.total | currency }}</p>
+
+      <button class="btn mt-4" (click)="cerrarDetalle()">Cerrar</button>
+
+    </div>
+
+  </div>
+
+</section>
