@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
 import {
   FacturacionService,
@@ -25,7 +26,7 @@ interface SemanaFacturacion {
   templateUrl: './facturacion.component.html',
   styleUrls: ['./facturacion.component.css']
 })
-export class FacturacionComponent implements OnInit, OnDestroy {
+export class FacturacionComponent implements OnInit {
   facturas: FacturaListado[] = [];
   semanas: SemanaFacturacion[] = [];
 
@@ -48,20 +49,10 @@ export class FacturacionComponent implements OnInit, OnDestroy {
 
   facturaAbiertaId: number | null = null;
 
-  private readonly onFacturaCreada = () => {
-    this.buscar();
-  };
-
   constructor(private facturacionService: FacturacionService) {}
 
   ngOnInit(): void {
     this.cargarUltimasSemanas();
-
-    window.addEventListener('factura-creada', this.onFacturaCreada);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('factura-creada', this.onFacturaCreada);
   }
 
   cargarUltimasSemanas(): void {
@@ -89,27 +80,32 @@ export class FacturacionComponent implements OnInit, OnDestroy {
     this.buscar();
   }
 
-  buscar(): void {
+  async buscar(): Promise<void> {
     this.loading = true;
     this.error = '';
 
-    this.facturacionService.listarFacturas(this.filtros).subscribe({
-      next: (response) => {
-        this.facturas = (response ?? []).sort((a, b) =>
-          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-        );
+    try {
+      const response = await firstValueFrom(
+        this.facturacionService.listarFacturas(this.filtros)
+      );
 
-        this.semanas = this.generarSemanasDesdeFiltros();
-        this.calcularDatosSemanales();
+      console.log('FACTURAS RECIBIDAS:', response);
 
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error cargando facturación:', error);
-        this.error = 'No se pudo cargar la facturación.';
-        this.loading = false;
-      }
-    });
+      this.facturas = (response ?? []).sort((a, b) =>
+        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+      );
+
+      this.semanas = this.generarSemanasDesdeFiltros();
+      this.calcularDatosSemanales();
+    } catch (error) {
+      console.error('ERROR CARGANDO FACTURACIÓN:', error);
+      this.error = 'No se pudo cargar la facturación. Revisa Network y el endpoint /api/facturas.';
+      this.facturas = [];
+      this.semanas = this.generarSemanasDesdeFiltros();
+      this.calcularDatosSemanales();
+    } finally {
+      this.loading = false;
+    }
   }
 
   limpiar(): void {
@@ -191,10 +187,9 @@ export class FacturacionComponent implements OnInit, OnDestroy {
 
     const inicio = this.parseInputDate(this.filtros.fechaInicio);
     const fin = this.parseInputDate(this.filtros.fechaFin);
-
     const lunesInicial = this.getLunesSemana(inicio);
-    const semanas: SemanaFacturacion[] = [];
 
+    const semanas: SemanaFacturacion[] = [];
     let cursor = new Date(lunesInicial);
     let index = 1;
 
@@ -223,7 +218,6 @@ export class FacturacionComponent implements OnInit, OnDestroy {
   private generarUltimasSemanas(cantidad: number): SemanaFacturacion[] {
     const hoy = new Date();
     const lunesActual = this.getLunesSemana(hoy);
-
     const semanas: SemanaFacturacion[] = [];
 
     for (let i = cantidad - 1; i >= 0; i--) {

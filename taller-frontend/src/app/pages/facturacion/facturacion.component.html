@@ -1,15 +1,13 @@
-<section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8 lg:py-6">
-  <div class="grid gap-[18px]">
+<section class="facturacion-page">
+  <div class="billing-view">
 
-    <div class="billing-header">
-      <div>
-        <h1>Facturación</h1>
-        <p>Historial de ventas y registro de facturas emitidas por semana.</p>
-      </div>
-    </div>
+    <header class="billing-header">
+      <h1>Facturación</h1>
+      <p>Historial de ventas y registro de facturas emitidas por semana.</p>
+    </header>
 
     <div class="billing-stats-grid">
-      <article class="card billing-stat-card">
+      <article class="card billing-stat-card main-stat">
         <span>Total facturado</span>
         <strong>{{ totalFacturado | currency:'USD':'symbol':'1.0-0' }}</strong>
       </article>
@@ -25,8 +23,8 @@
       </article>
     </div>
 
-    <article class="card billing-table-card">
-      <div class="card-header simple-card-header">
+    <article class="card">
+      <div class="card-header">
         <div>
           <h3>Resumen semanal</h3>
           <p>Datos económicos agrupados por semanas como en el apartado de primas.</p>
@@ -64,27 +62,16 @@
       </div>
     </article>
 
-    <article class="card billing-filters-card">
-      <div class="mb-4 flex flex-wrap gap-2">
-        <button class="btn btn-secondary" type="button" (click)="setSemana(0)">
-          Semana actual
-        </button>
-
-        <button class="btn btn-secondary" type="button" (click)="setSemana(1)">
-          Semana anterior
-        </button>
-
-        <button class="btn btn-secondary" type="button" (click)="setSemana(2)">
-          Hace 2 semanas
-        </button>
-
-        <button class="btn btn-secondary" type="button" (click)="cargarUltimasSemanas()">
-          Últimas 5 semanas
-        </button>
+    <article class="card">
+      <div class="quick-actions">
+        <button class="btn btn-secondary" type="button" (click)="setSemana(0)">Semana actual</button>
+        <button class="btn btn-secondary" type="button" (click)="setSemana(1)">Semana anterior</button>
+        <button class="btn btn-secondary" type="button" (click)="setSemana(2)">Hace 2 semanas</button>
+        <button class="btn btn-secondary" type="button" (click)="cargarUltimasSemanas()">Últimas 5 semanas</button>
       </div>
 
-      <div class="billing-filters-grid billing-filters-grid-4">
-        <div class="form-group single-field">
+      <div class="billing-filters-grid">
+        <div class="form-group">
           <label>Tipo de factura</label>
           <select [(ngModel)]="filtros.tipo">
             <option value="">Todas</option>
@@ -92,12 +79,12 @@
           </select>
         </div>
 
-        <div class="form-group single-field">
+        <div class="form-group">
           <label>Desde</label>
           <input type="date" [(ngModel)]="filtros.fechaInicio" />
         </div>
 
-        <div class="form-group single-field">
+        <div class="form-group">
           <label>Hasta</label>
           <input type="date" [(ngModel)]="filtros.fechaFin" />
         </div>
@@ -109,20 +96,16 @@
       </div>
     </article>
 
-    <div
-      *ngIf="loading"
-      class="card text-center">
-      <p class="text-[#9aa4b2]">Cargando facturación...</p>
+    <div *ngIf="loading" class="card loading-card">
+      <p>Cargando facturación...</p>
     </div>
 
-    <div
-      *ngIf="error"
-      class="rounded-[18px] border border-[rgba(239,68,68,0.28)] bg-[rgba(239,68,68,0.15)] p-5 text-center text-[#ffb4b4]">
+    <div *ngIf="error" class="error-card">
       {{ error }}
     </div>
 
     <article class="card billing-table-card" *ngIf="!loading">
-      <div class="card-header simple-card-header">
+      <div class="card-header">
         <div>
           <h3>Historial de ventas</h3>
           <p>Últimas facturas emitidas por el taller.</p>
@@ -146,7 +129,7 @@
           <tbody>
             <ng-container *ngFor="let factura of facturas">
               <tr
-                class="billing-main-row hover:brightness-110 transition"
+                class="billing-main-row"
                 [class.is-open]="isFacturaAbierta(factura)"
                 (click)="toggleDetalle(factura)">
 
@@ -231,7 +214,7 @@
             </ng-container>
 
             <tr *ngIf="facturas.length === 0">
-              <td colspan="7" class="px-4 py-8 text-center text-[#9aa4b2]">
+              <td colspan="7" class="empty-row">
                 No hay facturas para los filtros seleccionados.
               </td>
             </tr>
