@@ -1,96 +1,244 @@
-<section class="p-6 text-white">
+<section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8 lg:py-6">
+  <div class="grid gap-[18px]">
 
-  <h1 class="text-3xl font-bold mb-6">Facturación</h1>
-
-  <!-- FILTROS -->
-  <div class="bg-[#1d212b] p-4 rounded-xl mb-6 grid md:grid-cols-4 gap-4">
-
-    <input type="date" [(ngModel)]="filtros.fechaInicio" class="input" />
-    <input type="date" [(ngModel)]="filtros.fechaFin" class="input" />
-
-    <select [(ngModel)]="filtros.tipo" class="input">
-      <option value="">Todos</option>
-      <option *ngFor="let t of tiposFactura">{{ t }}</option>
-    </select>
-
-    <div class="flex gap-2">
-      <button class="btn-yellow" (click)="buscar()">Buscar</button>
-      <button class="btn" (click)="limpiar()">Reset</button>
+    <div class="billing-header">
+      <div>
+        <h1>Facturación</h1>
+        <p>Historial de ventas y registro de facturas emitidas por semana.</p>
+      </div>
     </div>
+
+    <div class="billing-stats-grid">
+      <article class="card billing-stat-card">
+        <span>Total facturado</span>
+        <strong>{{ totalFacturado | currency:'USD':'symbol':'1.0-0' }}</strong>
+      </article>
+
+      <article class="card billing-stat-card">
+        <span>Facturas emitidas</span>
+        <strong>{{ totalFacturas }}</strong>
+      </article>
+
+      <article class="card billing-stat-card">
+        <span>Promedio por factura</span>
+        <strong>{{ promedioFactura | currency:'USD':'symbol':'1.0-0' }}</strong>
+      </article>
+    </div>
+
+    <article class="card billing-table-card">
+      <div class="card-header simple-card-header">
+        <div>
+          <h3>Resumen semanal</h3>
+          <p>Datos económicos agrupados por semanas como en el apartado de primas.</p>
+        </div>
+      </div>
+
+      <div class="billing-week-grid">
+        <article
+          class="billing-week-card"
+          *ngFor="let semana of semanas"
+          [class.is-best]="mejorSemana?.nombre === semana.nombre && semana.facturacionTotal > 0">
+
+          <div>
+            <span class="billing-week-title">{{ semana.nombre }}</span>
+            <span class="billing-week-range">{{ semana.rango }}</span>
+          </div>
+
+          <div class="billing-week-data">
+            <div>
+              <span>Facturación</span>
+              <strong>{{ semana.facturacionTotal | currency:'USD':'symbol':'1.0-0' }}</strong>
+            </div>
+
+            <div>
+              <span>Facturas</span>
+              <strong>{{ semana.facturasTotales }}</strong>
+            </div>
+
+            <div>
+              <span>Promedio</span>
+              <strong>{{ semana.promedio | currency:'USD':'symbol':'1.0-0' }}</strong>
+            </div>
+          </div>
+        </article>
+      </div>
+    </article>
+
+    <article class="card billing-filters-card">
+      <div class="mb-4 flex flex-wrap gap-2">
+        <button class="btn btn-secondary" type="button" (click)="setSemana(0)">
+          Semana actual
+        </button>
+
+        <button class="btn btn-secondary" type="button" (click)="setSemana(1)">
+          Semana anterior
+        </button>
+
+        <button class="btn btn-secondary" type="button" (click)="setSemana(2)">
+          Hace 2 semanas
+        </button>
+
+        <button class="btn btn-secondary" type="button" (click)="cargarUltimasSemanas()">
+          Últimas 5 semanas
+        </button>
+      </div>
+
+      <div class="billing-filters-grid billing-filters-grid-4">
+        <div class="form-group single-field">
+          <label>Tipo de factura</label>
+          <select [(ngModel)]="filtros.tipo">
+            <option value="">Todas</option>
+            <option *ngFor="let tipo of tiposFactura" [value]="tipo">{{ tipo }}</option>
+          </select>
+        </div>
+
+        <div class="form-group single-field">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="filtros.fechaInicio" />
+        </div>
+
+        <div class="form-group single-field">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="filtros.fechaFin" />
+        </div>
+
+        <div class="billing-filter-actions">
+          <button class="btn btn-primary" type="button" (click)="buscar()">Buscar</button>
+          <button class="btn btn-secondary" type="button" (click)="limpiar()">Reset</button>
+        </div>
+      </div>
+    </article>
+
+    <div
+      *ngIf="loading"
+      class="card text-center">
+      <p class="text-[#9aa4b2]">Cargando facturación...</p>
+    </div>
+
+    <div
+      *ngIf="error"
+      class="rounded-[18px] border border-[rgba(239,68,68,0.28)] bg-[rgba(239,68,68,0.15)] p-5 text-center text-[#ffb4b4]">
+      {{ error }}
+    </div>
+
+    <article class="card billing-table-card" *ngIf="!loading">
+      <div class="card-header simple-card-header">
+        <div>
+          <h3>Historial de ventas</h3>
+          <p>Últimas facturas emitidas por el taller.</p>
+        </div>
+      </div>
+
+      <div class="billing-table-wrapper">
+        <table class="billing-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Mecánico</th>
+              <th>Detalle</th>
+              <th>Fecha</th>
+              <th>Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <ng-container *ngFor="let factura of facturas">
+              <tr
+                class="billing-main-row hover:brightness-110 transition"
+                [class.is-open]="isFacturaAbierta(factura)"
+                (click)="toggleDetalle(factura)">
+
+                <td>#{{ factura.id }}</td>
+
+                <td>
+                  <span class="billing-badge">{{ factura.tipo }}</span>
+                </td>
+
+                <td>{{ factura.nombreEmpleado }}</td>
+                <td>{{ getDescripcion(factura) }}</td>
+
+                <td>
+                  {{ formatearFecha(factura.fecha) | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+
+                <td class="billing-money">
+                  {{ factura.total | currency:'USD':'symbol':'1.0-0' }}
+                </td>
+
+                <td>
+                  <span class="billing-status status-ok">Emitida</span>
+                </td>
+              </tr>
+
+              <tr class="billing-detail-row" [class.is-open]="isFacturaAbierta(factura)">
+                <td colspan="7" class="billing-detail-cell">
+                  <div class="billing-detail-box">
+                    <div class="billing-detail-grid">
+                      <div class="billing-detail-item">
+                        <span>ID factura</span>
+                        <strong>#{{ factura.id }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Tipo</span>
+                        <strong>{{ factura.tipo }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Mecánico</span>
+                        <strong>{{ factura.nombreEmpleado }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Matrícula</span>
+                        <strong>{{ getMatricula(factura) }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Modelo</span>
+                        <strong>{{ factura.modelo || '-' }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Categoría / Estado</span>
+                        <strong>{{ factura.categoria || factura.estado || '-' }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Convenio</span>
+                        <strong>{{ factura.convenio ? 'Sí' : 'No' }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Grúa</span>
+                        <strong>{{ factura.grua ? 'Sí' : 'No' }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Total</span>
+                        <strong>{{ factura.total | currency:'USD':'symbol':'1.0-0' }}</strong>
+                      </div>
+                    </div>
+
+                    <div class="billing-detail-notes">
+                      {{ getDescripcion(factura) }}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+
+            <tr *ngIf="facturas.length === 0">
+              <td colspan="7" class="px-4 py-8 text-center text-[#9aa4b2]">
+                No hay facturas para los filtros seleccionados.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
 
   </div>
-
-  <!-- RESUMEN -->
-  <div class="grid md:grid-cols-3 gap-4 mb-6">
-
-    <div class="card bg-blue-600">
-      <span>Total</span>
-      <strong>{{ totalFacturado | currency }}</strong>
-    </div>
-
-    <div class="card">
-      <span>Facturas</span>
-      <strong>{{ facturas.length }}</strong>
-    </div>
-
-    <div class="card">
-      <span>Media</span>
-      <strong>{{ promedio | currency }}</strong>
-    </div>
-
-  </div>
-
-  <!-- LOADING -->
-  <div *ngIf="loading">Cargando...</div>
-
-  <!-- ERROR -->
-  <div *ngIf="error" class="text-red-400">{{ error }}</div>
-
-  <!-- TABLA -->
-  <table *ngIf="!loading" class="w-full text-sm">
-
-    <thead>
-      <tr class="text-left text-gray-400">
-        <th>ID</th>
-        <th>Fecha</th>
-        <th>Empleado</th>
-        <th>Tipo</th>
-        <th>Detalle</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr *ngFor="let f of facturas" (click)="seleccionarFactura(f)" class="hover:bg-[#2a2f3a] cursor-pointer">
-
-        <td>#{{ f.id }}</td>
-        <td>{{ f.fecha | date:'dd/MM HH:mm' }}</td>
-        <td>{{ f.nombreEmpleado }}</td>
-        <td>{{ f.tipo }}</td>
-        <td>{{ getDescripcion(f) }}</td>
-        <td class="text-yellow-400 font-bold">{{ f.total | currency }}</td>
-
-      </tr>
-    </tbody>
-
-  </table>
-
-  <!-- MODAL -->
-  <div *ngIf="facturaSeleccionada" class="fixed inset-0 bg-black/70 flex items-center justify-center">
-
-    <div class="bg-[#1d212b] p-6 rounded-xl w-[400px]">
-
-      <h2 class="text-xl font-bold mb-4">Factura #{{ facturaSeleccionada.id }}</h2>
-
-      <p><b>Empleado:</b> {{ facturaSeleccionada.nombreEmpleado }}</p>
-      <p><b>Tipo:</b> {{ facturaSeleccionada.tipo }}</p>
-      <p><b>Detalle:</b> {{ getDescripcion(facturaSeleccionada) }}</p>
-      <p><b>Total:</b> {{ facturaSeleccionada.total | currency }}</p>
-
-      <button class="btn mt-4" (click)="cerrarDetalle()">Cerrar</button>
-
-    </div>
-
-  </div>
-
 </section>
