@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -49,7 +49,11 @@ export class FacturacionComponent implements OnInit {
 
   facturaAbiertaId: number | null = null;
 
-  constructor(private facturacionService: FacturacionService) {}
+  constructor(
+    private facturacionService: FacturacionService,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.cargarUltimasSemanas();
@@ -81,30 +85,43 @@ export class FacturacionComponent implements OnInit {
   }
 
   async buscar(): Promise<void> {
-    this.loading = true;
-    this.error = '';
+    this.zone.run(() => {
+      this.loading = true;
+      this.error = '';
+      this.cdr.detectChanges();
+    });
 
     try {
       const response = await firstValueFrom(
         this.facturacionService.listarFacturas(this.filtros)
       );
 
-      console.log('FACTURAS RECIBIDAS:', response);
+      this.zone.run(() => {
+        this.facturas = (response ?? []).sort((a, b) =>
+          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        );
 
-      this.facturas = (response ?? []).sort((a, b) =>
-        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-      );
+        this.semanas = this.generarSemanasDesdeFiltros();
+        this.calcularDatosSemanales();
 
-      this.semanas = this.generarSemanasDesdeFiltros();
-      this.calcularDatosSemanales();
+        this.loading = false;
+        this.error = '';
+
+        this.cdr.detectChanges();
+      });
     } catch (error) {
       console.error('ERROR CARGANDO FACTURACIÓN:', error);
-      this.error = 'No se pudo cargar la facturación. Revisa Network y el endpoint /api/facturas.';
-      this.facturas = [];
-      this.semanas = this.generarSemanasDesdeFiltros();
-      this.calcularDatosSemanales();
-    } finally {
-      this.loading = false;
+
+      this.zone.run(() => {
+        this.facturas = [];
+        this.semanas = this.generarSemanasDesdeFiltros();
+        this.calcularDatosSemanales();
+
+        this.error = 'No se pudo cargar la facturación.';
+        this.loading = false;
+
+        this.cdr.detectChanges();
+      });
     }
   }
 
@@ -129,17 +146,12 @@ export class FacturacionComponent implements OnInit {
   }
 
   get promedioFactura(): number {
-    if (!this.facturas.length) {
-      return 0;
-    }
-
+    if (!this.facturas.length) return 0;
     return Math.round(this.totalFacturado / this.facturas.length);
   }
 
   get mejorSemana(): SemanaFacturacion | null {
-    if (!this.semanas.length) {
-      return null;
-    }
+    if (!this.semanas.length) return null;
 
     return this.semanas.reduce((a, b) =>
       b.facturacionTotal > a.facturacionTotal ? b : a
@@ -173,10 +185,7 @@ export class FacturacionComponent implements OnInit {
   }
 
   formatearFecha(fecha: string): Date | null {
-    if (!fecha) {
-      return null;
-    }
-
+    if (!fecha) return null;
     return new Date(fecha);
   }
 
