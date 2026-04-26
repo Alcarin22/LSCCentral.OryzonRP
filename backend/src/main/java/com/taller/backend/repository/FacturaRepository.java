@@ -24,4 +24,17 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
             @Param("inicio") LocalDateTime inicio,
             @Param("fin") LocalDateTime fin
     );
+
+    long countByIdEmpleadoAndFechaBetween(Long idEmpleado, LocalDateTime fechaStart, LocalDateTime fechaEnd);
+
+    @Query("SELECT SUM(f.total) FROM Factura f WHERE f.idEmpleado = :idEmpleado AND f.fecha BETWEEN :fechaStart AND :fechaEnd")
+    Integer sumTotalByIdEmpleadoAndFechaBetween(
+            @Param("idEmpleado") Long idEmpleado,
+            @Param("fechaStart") LocalDateTime fechaStart,
+            @Param("fechaEnd") LocalDateTime fechaEnd
+    );
+
+    List<Factura> findByIdEmpleadoAndFechaBetweenOrderByFechaAsc(Long idEmpleado, LocalDateTime fechaStart, LocalDateTime fechaEnd);
+
+    List<Factura> findAllByIdEmpleado(Long idEmpleado);
 }
