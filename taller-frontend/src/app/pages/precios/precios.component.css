@@ -4,76 +4,73 @@
   color: #f5f7fb;
 }
 
+/* 🔥 CONTENEDOR CON MÁRGENES */
 .prices-view {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
+/* HEADER */
 .prices-header h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
-  color: #f5f7fb;
 }
 
 .prices-header p {
-  margin: 6px 0 0;
-  color: #9aa4b2;
-  font-size: 14px;
-}
-
-.prices-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.2fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.price-table-card {
-  overflow: hidden;
-}
-
-.price-table-large {
-  grid-row: span 3;
-}
-
-.price-table-small {
-  max-width: 260px;
-}
-
-.price-table-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.price-table-title h3 {
-  margin: 0;
-  color: #f5f7fb;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.price-table-title span {
+  margin: 4px 0 0;
   color: #9aa4b2;
   font-size: 13px;
 }
 
-.price-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid #2b3447;
-  border-radius: 16px;
+/* 🔥 GRID OPTIMIZADO PARA NO HACER SCROLL */
+.prices-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
+/* FULL TUNING ocupa más altura */
+.price-table-large {
+  grid-row: span 3;
+}
+
+/* tarjetas más compactas */
+.price-table-card {
+  padding: 14px;
+}
+
+/* títulos más pequeños */
+.price-table-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.price-table-title h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.price-table-wrapper {
+  border: 1px solid #2b3447;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 🔥 TABLAS MÁS COMPACTAS */
 .price-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 320px;
   background: #151b28;
+  font-size: 13px;
 }
 
 .price-table thead {
@@ -81,53 +78,34 @@
 }
 
 .price-table th {
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 800;
-  color: #f5f7fb;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
+.price-table td {
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* alineación precios */
 .price-table th:last-child,
 .price-table td:last-child {
   text-align: right;
 }
 
-.price-table td {
-  padding: 12px 14px;
-  color: #e8ecf5;
-  font-size: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.price-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.035);
-}
-
+/* hover ligero */
 .price-table tbody tr:hover {
-  background: rgba(244, 180, 0, 0.08);
+  background: rgba(244, 180, 0, 0.06);
 }
 
-.empty-row {
-  text-align: center !important;
-  color: #9aa4b2 !important;
-  padding: 22px 14px !important;
+/* convenios más pequeños */
+.price-table-small {
+  max-width: 200px;
 }
 
-.loading-card {
-  color: #9aa4b2;
-}
-
-.error-card {
-  border: 1px solid rgba(248, 113, 113, 0.35);
-  background: rgba(127, 29, 29, 0.2);
-  color: #fecaca;
-  border-radius: 18px;
-  padding: 16px;
-}
-
+/* 🔥 RESPONSIVE */
 @media (max-width: 1100px) {
   .prices-layout {
     grid-template-columns: 1fr;
@@ -135,9 +113,5 @@
 
   .price-table-large {
     grid-row: auto;
-  }
-
-  .price-table-small {
-    max-width: none;
   }
 }
