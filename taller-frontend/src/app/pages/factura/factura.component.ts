@@ -222,6 +222,14 @@ export class FacturaComponent implements OnInit {
     if (this.tipoSeleccionado !== 'Tasación') {
       this.estado = 'SERIE';
       this.otros = '';
+      this.modelo = '';
+    }
+
+    if (
+      this.tipoSeleccionado !== 'Tasación' &&
+      this.tipoSeleccionado !== 'Full Tuning'
+    ) {
+      this.matricula = '';
     }
 
     if (this.tipoSeleccionado !== 'Full Tuning' && this.tipoSeleccionado !== 'Tuneo') {
@@ -362,6 +370,11 @@ export class FacturaComponent implements OnInit {
     }
 
     if (this.tipoSeleccionado === 'Tasación') {
+      if (!this.matricula.trim()) {
+        alert('Debes indicar la matrícula del vehículo.');
+        return;
+      }
+
       if (!this.estado) {
         alert('Debes seleccionar un estado para la tasación.');
         return;
@@ -373,9 +386,16 @@ export class FacturaComponent implements OnInit {
       }
     }
 
-    if (this.tipoSeleccionado === 'Full Tuning' && !this.categoria) {
-      alert('Debes seleccionar una categoría de Full Tuning.');
-      return;
+    if (this.tipoSeleccionado === 'Full Tuning') {
+      if (!this.matricula.trim()) {
+        alert('Debes indicar la matrícula del vehículo.');
+        return;
+      }
+
+      if (!this.categoria) {
+        alert('Debes seleccionar una categoría de Full Tuning.');
+        return;
+      }
     }
 
     if (this.tipoSeleccionado === 'Tuneo') {
