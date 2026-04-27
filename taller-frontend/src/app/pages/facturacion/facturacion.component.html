@@ -96,87 +96,151 @@
       </div>
     </article>
 
+    <div *ngIf="loading" class="card loading-card">
+      <p>Cargando facturación...</p>
+    </div>
+
+    <div *ngIf="error" class="error-card">
+      {{ error }}
+    </div>
+
     <article class="card billing-table-card" *ngIf="!loading">
       <div class="card-header">
         <div>
           <h3>Historial de ventas</h3>
+          <p>Últimas facturas emitidas por el taller.</p>
         </div>
       </div>
 
       <div class="billing-table-wrapper">
         <table class="billing-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Mecánico</th>
+              <th>Detalle</th>
+              <th>Fecha</th>
+              <th>Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+
           <tbody>
             <ng-container *ngFor="let factura of facturas">
+              <tr
+                class="billing-main-row"
+                [class.is-open]="isFacturaAbierta(factura)"
+                (click)="toggleDetalle(factura)">
 
-              <tr (click)="toggleDetalle(factura)">
                 <td>#{{ factura.id }}</td>
-                <td>{{ factura.tipo }}</td>
+
+                <td>
+                  <span class="billing-badge">{{ factura.tipo }}</span>
+                </td>
+
                 <td>{{ factura.nombreEmpleado }}</td>
-                <td>{{ factura.total }}</td>
+                <td>{{ getDescripcion(factura) }}</td>
+
+                <td>
+                  {{ formatearFecha(factura.fecha) | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+
+                <td class="billing-money">
+                  {{ factura.total | currency:'USD':'symbol':'1.0-0' }}
+                </td>
+
+                <td>
+                  <span class="billing-status status-ok">Emitida</span>
+                </td>
               </tr>
 
-              <tr *ngIf="isFacturaAbierta(factura)">
-                <td colspan="4">
+              <tr class="billing-detail-row" [class.is-open]="isFacturaAbierta(factura)">
+                <td colspan="7" class="billing-detail-cell">
+                  <div class="billing-detail-box">
+                    <div class="billing-detail-grid">
 
-                  <div class="billing-detail-grid">
-
-                    <div class="billing-detail-item">
-                      <span>Tipo</span>
-                      <strong>{{ factura.tipo }}</strong>
-                    </div>
-
-                    <div class="billing-detail-item">
-                      <span>Mecánico</span>
-                      <strong>{{ factura.nombreEmpleado }}</strong>
-                    </div>
-
-                    <div class="billing-detail-item">
-                      <span>Matrícula</span>
-                      <strong>{{ getMatricula(factura) }}</strong>
-                    </div>
-
-                    <div class="billing-detail-item">
-                      <span>Total</span>
-                      <strong>{{ factura.total }}</strong>
-                    </div>
-
-                    <!-- 🔥 SOLO SI NO ES TASACIÓN -->
-                    @if (factura.tipo !== 'Tasación') {
                       <div class="billing-detail-item">
-                        <span>Convenio</span>
-                        <strong>{{ factura.convenio ? 'Sí' : 'No' }}</strong>
+                        <span>ID factura</span>
+                        <strong>#{{ factura.id }}</strong>
                       </div>
 
                       <div class="billing-detail-item">
-                        <span>Grúa</span>
-                        <strong>{{ factura.grua ? 'Sí' : 'No' }}</strong>
+                        <span>Tipo</span>
+                        <strong>{{ factura.tipo }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Mecánico</span>
+                        <strong>{{ factura.nombreEmpleado }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Matrícula</span>
+                        <strong>{{ getMatricula(factura) }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Modelo</span>
+                        <strong>{{ factura.modelo || '-' }}</strong>
+                      </div>
+
+                      <div class="billing-detail-item">
+                        <span>Categoría / Estado</span>
+                        <strong>{{ factura.categoria || factura.estado || '-' }}</strong>
+                      </div>
+
+                      <!-- 🔥 SOLO SI NO ES TASACIÓN -->
+                      @if (factura.tipo !== 'Tasación') {
+                        <div class="billing-detail-item">
+                          <span>Convenio</span>
+                          <strong>{{ factura.convenio ? 'Sí' : 'No' }}</strong>
+                        </div>
+
+                        <div class="billing-detail-item">
+                          <span>Grúa</span>
+                          <strong>{{ factura.grua ? 'Sí' : 'No' }}</strong>
+                        </div>
+                      }
+
+                      <div class="billing-detail-item">
+                        <span>Total</span>
+                        <strong>{{ factura.total | currency:'USD':'symbol':'1.0-0' }}</strong>
+                      </div>
+                    </div>
+
+                    <div class="billing-detail-notes">
+                      {{ getDescripcion(factura) }}
+                    </div>
+
+                    <!-- 🔥 INFORME TASACIÓN -->
+                    @if (factura.tipo === 'Tasación') {
+                      <div class="billing-copy-box">
+                        <div class="billing-copy-header">
+                          <span>Informe</span>
+                          <button
+                            type="button"
+                            class="billing-copy-button"
+                            (click)="copiarInformeTasacion(factura); $event.stopPropagation()"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+
+                        <pre>{{ getInformeTasacion(factura) }}</pre>
                       </div>
                     }
 
                   </div>
-
-                  <!-- 🔥 INFORME TASACIÓN -->
-                  @if (factura.tipo === 'Tasación') {
-                    <div class="billing-copy-box">
-                      <div class="billing-copy-header">
-                        <span>Informe</span>
-                        <button
-                          type="button"
-                          class="billing-copy-button"
-                          (click)="copiarInformeTasacion(factura); $event.stopPropagation()"
-                        >
-                          Copiar
-                        </button>
-                      </div>
-
-                      <pre>{{ getInformeTasacion(factura) }}</pre>
-                    </div>
-                  }
-
                 </td>
               </tr>
-
             </ng-container>
+
+            <tr *ngIf="facturas.length === 0">
+              <td colspan="7" class="empty-row">
+                No hay facturas para los filtros seleccionados.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
