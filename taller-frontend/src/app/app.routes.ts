@@ -47,5 +47,10 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'dashboard'
-  }
+  },
+  {
+  path: 'precios',
+  loadComponent: () =>
+    import('./pages/precios/precios.component').then(m => m.PreciosComponent)
+}
 ];
