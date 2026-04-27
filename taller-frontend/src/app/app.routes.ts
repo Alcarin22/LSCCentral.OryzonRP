@@ -6,8 +6,6 @@ import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { FacturaComponent } from './pages/factura/factura.component';
 import { PrimasComponent } from './pages/primas/primas.component';
-
-// 🔥 NUEVO IMPORT
 import { FacturacionComponent } from './pages/facturacion/facturacion.component';
 
 export const routes: Routes = [
@@ -26,31 +24,34 @@ export const routes: Routes = [
     component: FacturaComponent,
     canActivate: [authGuard]
   },
-
-  // 🔥 NUEVA RUTA FACTURACIÓN
   {
     path: 'facturacion',
     component: FacturacionComponent,
     canActivate: [authGuard]
   },
-
   {
     path: 'primas',
     component: PrimasComponent,
     canActivate: [authGuard]
   },
+
+  // 🔥 AÑADE PRECIOS AQUÍ (ANTES DE LOS REDIRECTS)
+  {
+    path: 'precios',
+    loadComponent: () =>
+      import('./pages/precios/precios.component').then(m => m.PreciosComponent),
+    canActivate: [authGuard]
+  },
+
   {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
   },
+
+  // ⚠️ SIEMPRE EL ÚLTIMO
   {
     path: '**',
     redirectTo: 'dashboard'
-  },
-  {
-  path: 'precios',
-  loadComponent: () =>
-    import('./pages/precios/precios.component').then(m => m.PreciosComponent)
-}
+  }
 ];
