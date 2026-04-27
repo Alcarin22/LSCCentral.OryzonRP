@@ -369,6 +369,25 @@
   color: #9aa4b2;
 }
 
+.billing-report-item {
+  cursor: pointer;
+  user-select: text;
+}
+
+.billing-report-item:hover {
+  border-color: #f4b400;
+}
+
+.billing-report-item pre {
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
 @media (max-width: 1200px) {
   .billing-stats-grid,
   .billing-week-grid {
