@@ -1,13 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FacturaService,
-  ReparacionDto,
-  ItemDto,
-  TasacionPrecioDto,
-  FullTuningDto,
-  TuneoDto
-} from '../../../app/services/factura.service';
+
+interface PrecioFila {
+  tipo: string;
+  precio: string;
+}
 
 @Component({
   selector: 'app-precios',
@@ -17,113 +14,54 @@ import {
   styleUrls: ['./precios.component.css']
 })
 export class PreciosComponent implements OnInit {
-  reparaciones: ReparacionDto[] = [];
-  items: ItemDto[] = [];
-  tasaciones: TasacionPrecioDto[] = [];
-  fullTuning: FullTuningDto[] = [];
-  tuneos: TuneoDto[] = [];
+  fullTuning: PrecioFila[] = [];
+  reparaciones: PrecioFila[] = [];
+  tuneos: PrecioFila[] = [];
+  kits: PrecioFila[] = [];
 
-  convenios = [10, 15, 20];
+  convenios = ['10%', '15%', '20%'];
 
   loading = false;
   error = '';
 
-  constructor(private facturaService: FacturaService) {}
-
   ngOnInit(): void {
-    this.cargarPrecios();
+    this.cargarPreciosLocales();
   }
 
-  cargarPrecios(): void {
-    this.loading = true;
-    this.error = '';
+  cargarPreciosLocales(): void {
+    this.fullTuning = [
+      { tipo: 'Compacto', precio: '$5.500' },
+      { tipo: 'Coupe', precio: '$6.500' },
+      { tipo: 'Moto', precio: '$5.500' },
+      { tipo: 'Muscle', precio: '$6.500' },
+      { tipo: 'Offroad', precio: '$10.500' },
+      { tipo: 'Sedan', precio: '$6.500' },
+      { tipo: 'SUV', precio: '$9.000' },
+      { tipo: 'Deportivo', precio: '$13.000' },
+      { tipo: 'Deportivo Clasico', precio: '$13.000' },
+      { tipo: 'Van', precio: '$5.500' },
+      { tipo: 'Super', precio: '$21.000' },
+      { tipo: 'VIP', precio: '$10.000' }
+    ];
 
-    let peticionesPendientes = 5;
+    this.reparaciones = [
+      { tipo: 'Basica (1-2)', precio: '$600' },
+      { tipo: 'Media (3-4)', precio: '$700' },
+      { tipo: 'Avanzada (5-6)', precio: '$800' },
+      { tipo: 'LSPD', precio: '$200' },
+      { tipo: 'Grua', precio: '$600' }
+    ];
 
-    const finalizar = (): void => {
-      peticionesPendientes--;
+    this.tuneos = [
+      { tipo: 'Pieza Rendimiento', precio: '30%' },
+      { tipo: 'Pieza Estetica', precio: '$1.000' },
+      { tipo: 'Livery/P.Ruedas', precio: '$500' },
+      { tipo: 'Pintura', precio: '$2.000' }
+    ];
 
-      if (peticionesPendientes === 0) {
-        this.loading = false;
-      }
-    };
-
-    this.facturaService.getFullTuning().subscribe({
-      next: data => {
-        this.fullTuning = data ?? [];
-        finalizar();
-      },
-      error: error => {
-        console.error('Error cargando full tuning:', error);
-        this.error = 'No se pudieron cargar todos los precios.';
-        finalizar();
-      }
-    });
-
-    this.facturaService.getReparaciones().subscribe({
-      next: data => {
-        this.reparaciones = data ?? [];
-        finalizar();
-      },
-      error: error => {
-        console.error('Error cargando reparaciones:', error);
-        this.error = 'No se pudieron cargar todos los precios.';
-        finalizar();
-      }
-    });
-
-    this.facturaService.getTuneo().subscribe({
-      next: data => {
-        this.tuneos = data ?? [];
-        finalizar();
-      },
-      error: error => {
-        console.error('Error cargando tuneo:', error);
-        this.error = 'No se pudieron cargar todos los precios.';
-        finalizar();
-      }
-    });
-
-    this.facturaService.getItems().subscribe({
-      next: data => {
-        this.items = data ?? [];
-        finalizar();
-      },
-      error: error => {
-        console.error('Error cargando items:', error);
-        this.error = 'No se pudieron cargar todos los precios.';
-        finalizar();
-      }
-    });
-
-    this.facturaService.getTasacionPrecios().subscribe({
-      next: data => {
-        this.tasaciones = data ?? [];
-        finalizar();
-      },
-      error: error => {
-        console.error('Error cargando tasaciones:', error);
-        this.error = 'No se pudieron cargar todos los precios.';
-        finalizar();
-      }
-    });
-  }
-
-  formatearDinero(valor: number | null | undefined): string {
-    const precio = valor ?? 0;
-
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(precio);
-  }
-
-  getPrecioTuneo(tuneo: TuneoDto): string {
-    if (tuneo.rendimiento) {
-      return `${tuneo.rendimiento}%`;
-    }
-
-    return this.formatearDinero(tuneo.precio);
+    this.kits = [
+      { tipo: 'Kit Reparación', precio: '$1.000' },
+      { tipo: 'Kit Reparación Avanz', precio: '$1.400' }
+    ];
   }
 }

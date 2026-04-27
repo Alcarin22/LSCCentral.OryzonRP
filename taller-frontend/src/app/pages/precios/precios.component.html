@@ -3,23 +3,15 @@
 
     <header class="prices-header">
       <h1>Precios</h1>
-      <p>Consulta rápida de precios del taller cargados desde la base de datos.</p>
+      <p>Consulta rápida de precios del taller.</p>
     </header>
 
-    <div *ngIf="loading" class="card loading-card">
-      <p>Cargando precios...</p>
-    </div>
+    <div class="prices-layout">
 
-    <div *ngIf="error" class="error-card">
-      {{ error }}
-    </div>
-
-    <div class="prices-layout" *ngIf="!loading">
-
+      <!-- 🔥 FULL TUNING (IZQUIERDA GRANDE) -->
       <article class="card price-table-card price-table-large">
         <div class="price-table-title">
           <h3>Full Tuning</h3>
-          <span>{{ fullTuning.length }} registros</span>
         </div>
 
         <div class="price-table-wrapper">
@@ -33,22 +25,18 @@
 
             <tbody>
               <tr *ngFor="let ft of fullTuning">
-                <td>{{ ft.categoria }}</td>
-                <td>{{ formatearDinero(ft.precio) }}</td>
-              </tr>
-
-              <tr *ngIf="fullTuning.length === 0">
-                <td colspan="2" class="empty-row">No hay precios de Full Tuning.</td>
+                <td>{{ ft.tipo }}</td>
+                <td>{{ ft.precio }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </article>
 
+      <!-- 🔥 REPARACIONES -->
       <article class="card price-table-card">
         <div class="price-table-title">
           <h3>Reparaciones</h3>
-          <span>{{ reparaciones.length }} registros</span>
         </div>
 
         <div class="price-table-wrapper">
@@ -63,21 +51,17 @@
             <tbody>
               <tr *ngFor="let r of reparaciones">
                 <td>{{ r.tipo }}</td>
-                <td>{{ formatearDinero(r.precio) }}</td>
-              </tr>
-
-              <tr *ngIf="reparaciones.length === 0">
-                <td colspan="2" class="empty-row">No hay reparaciones.</td>
+                <td>{{ r.precio }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </article>
 
+      <!-- 🔥 TUNEO -->
       <article class="card price-table-card">
         <div class="price-table-title">
           <h3>Tuneo</h3>
-          <span>{{ tuneos.length }} registros</span>
         </div>
 
         <div class="price-table-wrapper">
@@ -91,22 +75,18 @@
 
             <tbody>
               <tr *ngFor="let t of tuneos">
-                <td>{{ t.pieza }}</td>
-                <td>{{ getPrecioTuneo(t) }}</td>
-              </tr>
-
-              <tr *ngIf="tuneos.length === 0">
-                <td colspan="2" class="empty-row">No hay piezas de tuneo.</td>
+                <td>{{ t.tipo }}</td>
+                <td>{{ t.precio }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </article>
 
+      <!-- 🔥 KITS -->
       <article class="card price-table-card">
         <div class="price-table-title">
-          <h3>Items</h3>
-          <span>{{ items.length }} registros</span>
+          <h3>Kits</h3>
         </div>
 
         <div class="price-table-wrapper">
@@ -119,65 +99,32 @@
             </thead>
 
             <tbody>
-              <tr *ngFor="let item of items">
-                <td>{{ item.nombre }}</td>
-                <td>{{ formatearDinero(item.precio) }}</td>
-              </tr>
-
-              <tr *ngIf="items.length === 0">
-                <td colspan="2" class="empty-row">No hay items.</td>
+              <tr *ngFor="let k of kits">
+                <td>{{ k.tipo }}</td>
+                <td>{{ k.precio }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </article>
 
-      <article class="card price-table-card">
-        <div class="price-table-title">
-          <h3>Tasaciones</h3>
-          <span>{{ tasaciones.length }} registros</span>
-        </div>
-
-        <div class="price-table-wrapper">
-          <table class="price-table">
-            <thead>
-              <tr>
-                <th>Estado</th>
-                <th>Precio</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr *ngFor="let t of tasaciones">
-                <td>{{ t.estado }}</td>
-                <td>{{ formatearDinero(t.precio) }}</td>
-              </tr>
-
-              <tr *ngIf="tasaciones.length === 0">
-                <td colspan="2" class="empty-row">No hay precios de tasación.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
+      <!-- 🔥 CONVENIOS -->
       <article class="card price-table-card price-table-small">
         <div class="price-table-title">
           <h3>Convenios</h3>
-          <span>Descuentos</span>
         </div>
 
         <div class="price-table-wrapper">
           <table class="price-table">
             <thead>
               <tr>
-                <th>Porcentaje</th>
+                <th>Descuento</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr *ngFor="let convenio of convenios">
-                <td>{{ convenio }}%</td>
+              <tr *ngFor="let c of convenios">
+                <td>{{ c }}</td>
               </tr>
             </tbody>
           </table>
