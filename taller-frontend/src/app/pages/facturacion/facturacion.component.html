@@ -159,7 +159,6 @@
                 <td colspan="7" class="billing-detail-cell">
                   <div class="billing-detail-box">
                     <div class="billing-detail-grid">
-
                       <div class="billing-detail-item">
                         <span>ID factura</span>
                         <strong>#{{ factura.id }}</strong>
@@ -190,7 +189,6 @@
                         <strong>{{ factura.categoria || factura.estado || '-' }}</strong>
                       </div>
 
-                      <!-- 🔥 SOLO SI NO ES TASACIÓN -->
                       @if (factura.tipo !== 'Tasación') {
                         <div class="billing-detail-item">
                           <span>Convenio</span>
@@ -207,30 +205,26 @@
                         <span>Total</span>
                         <strong>{{ factura.total | currency:'USD':'symbol':'1.0-0' }}</strong>
                       </div>
+
+                      @if (factura.tipo === 'Tasación') {
+                        <div
+                          class="billing-detail-item billing-report-item"
+                          role="button"
+                          tabindex="0"
+                          title="Pulsa para copiar el informe"
+                          (click)="copiarInformeTasacion(factura); $event.stopPropagation()"
+                          (keydown.enter)="copiarInformeTasacion(factura); $event.stopPropagation()"
+                          (keydown.space)="copiarInformeTasacion(factura); $event.preventDefault(); $event.stopPropagation()"
+                        >
+                          <span>Informe</span>
+                          <pre>{{ getInformeTasacion(factura) }}</pre>
+                        </div>
+                      }
                     </div>
 
                     <div class="billing-detail-notes">
                       {{ getDescripcion(factura) }}
                     </div>
-
-                    <!-- 🔥 INFORME TASACIÓN -->
-                    @if (factura.tipo === 'Tasación') {
-                      <div class="billing-copy-box">
-                        <div class="billing-copy-header">
-                          <span>Informe</span>
-                          <button
-                            type="button"
-                            class="billing-copy-button"
-                            (click)="copiarInformeTasacion(factura); $event.stopPropagation()"
-                          >
-                            Copiar
-                          </button>
-                        </div>
-
-                        <pre>{{ getInformeTasacion(factura) }}</pre>
-                      </div>
-                    }
-
                   </div>
                 </td>
               </tr>

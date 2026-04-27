@@ -184,22 +184,26 @@ export class FacturacionComponent implements OnInit {
     return f.matricula || f.tuneoPlate || '-';
   }
 
-  // 🔥 NUEVO: INFORME TASACIÓN
-getInformeTasacion(f: FacturaListado): string {
-  return [
-    `Modelo: ${f.modelo || '-'}`,
-    `Estado: ${f.estado || '-'}`,
-    `Matricula: ${this.getMatricula(f)}`
-  ].join('\n');
-}
+  getInformeTasacion(f: FacturaListado): string {
+    return [
+      `Modelo: ${f.modelo || '-'}`,
+      `Estado: ${f.estado || '-'}`,
+      `Matricula: ${this.getMatricula(f)}`
+    ].join('\n');
+  }
 
-copiarInformeTasacion(f: FacturaListado): void {
-  const texto = this.getInformeTasacion(f);
+  copiarInformeTasacion(f: FacturaListado): void {
+    const texto = this.getInformeTasacion(f);
 
-  navigator.clipboard.writeText(texto)
-    .then(() => alert('Informe copiado'))
-    .catch(() => alert('Error al copiar'));
-}
+    navigator.clipboard.writeText(texto)
+      .then(() => {
+        alert('Informe copiado al portapapeles.');
+      })
+      .catch(error => {
+        console.error('Error copiando informe:', error);
+        alert('No se pudo copiar el informe.');
+      });
+  }
 
   formatearFecha(fecha: string): Date | null {
     if (!fecha) return null;
@@ -317,4 +321,3 @@ copiarInformeTasacion(f: FacturaListado): void {
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 }
-
