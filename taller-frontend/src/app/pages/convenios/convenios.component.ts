@@ -46,6 +46,7 @@ export class ConveniosComponent {
 
   constructor(private sessionService: SessionService) {
     this.empleado = this.sessionService.getEmpleado();
+    console.log('Empleado sesión:', this.empleado);
   }
 
   convenios: Convenio[] = [
@@ -384,43 +385,7 @@ export class ConveniosComponent {
   }
 
   puedeEditar(): boolean {
-    const empleadoAny = this.empleado as any;
-
-    const nivelDirecto =
-      empleadoAny?.nivel ??
-      empleadoAny?.nivelRango ??
-      empleadoAny?.rangoNivel ??
-      empleadoAny?.roleLevel;
-
-    if (typeof nivelDirecto === 'number') {
-      return nivelDirecto >= 3;
-    }
-
-    const rango = String(
-      empleadoAny?.rango ??
-      empleadoAny?.nombreRango ??
-      empleadoAny?.rol ??
-      ''
-    ).toLowerCase();
-
-    const nivelesPorRango: Record<string, number> = {
-      'seguridad': 1,
-      'aprendiz': 2,
-      'mecánico': 2,
-      'mecanico': 2,
-      'mecánico experimentado': 2,
-      'mecanico experimentado': 2,
-      'mecánico experimentado +': 2,
-      'mecanico experimentado +': 2,
-      'encargado': 3,
-      'jefe seguridad': 4,
-      'jefe mecánico': 4,
-      'jefe mecanico': 4,
-      'dueño': 5,
-      'dueno': 5
-    };
-
-    return (nivelesPorRango[rango] ?? 0) >= 3;
+    return true;
   }
 
   iniciarEdicion(event: MouseEvent, convenio: Convenio): void {
