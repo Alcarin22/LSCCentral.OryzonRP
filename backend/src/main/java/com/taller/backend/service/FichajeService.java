@@ -2,9 +2,11 @@ package com.taller.backend.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.taller.backend.dto.FichajeListadoResponse;
 import com.taller.backend.dto.FichajeResponse;
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Fichaje;
@@ -84,6 +86,48 @@ public class FichajeService {
         response.setFichajeActivo(true);
         response.setMensaje("Hay un fichaje activo");
         response.setFechaHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
+        return response;
+    }
+
+    public List<FichajeListadoResponse> listarFichajes(LocalDateTime inicio, LocalDateTime fin) {
+        List<Fichaje> fichajes;
+
+        if (inicio != null && fin != null) {
+            fichajes = fichajeRepository.findByFechaHoraEntradaBetweenOrderByFechaHoraEntradaDesc(inicio, fin);
+        } else {
+            fichajes = fichajeRepository.findAllByOrderByFechaHoraEntradaDesc();
+        }
+
+        return fichajes.stream()
+                .map(this::mapearListado)
+                .toList();
+    }
+
+    private FichajeListadoResponse mapearListado(Fichaje fichaje) {
+        FichajeListadoResponse response = new FichajeListadoResponse();
+
+        response.setId(fichaje.getId());
+
+        if (fichaje.getEmpleado() != null) {
+            response.setIdEmpleado(fichaje.getEmpleado().getId());
+            response.setNombreEmpleado(fichaje.getEmpleado().getNombre());
+        }
+
+        response.setFechaHoraEntrada(
+                fichaje.getFechaHoraEntrada() != null
+                        ? fichaje.getFechaHoraEntrada().toString()
+                        : null
+        );
+
+        response.setFechaHoraSalida(
+                fichaje.getFechaHoraSalida() != null
+                        ? fichaje.getFechaHoraSalida().toString()
+                        : null
+        );
+
+        response.setMinutosTrabajados(fichaje.getMinutosTrabajados());
+        response.setActivo(fichaje.getFechaHoraSalida() == null);
+
         return response;
     }
 }

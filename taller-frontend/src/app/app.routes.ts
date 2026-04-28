@@ -7,6 +7,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { FacturaComponent } from './pages/factura/factura.component';
 import { PrimasComponent } from './pages/primas/primas.component';
 import { FacturacionComponent } from './pages/facturacion/facturacion.component';
+import { FichajesComponent } from './pages/fichajes/fichajes.component';
 
 export const routes: Routes = [
   {
@@ -35,7 +36,14 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  // 🔥 AÑADE PRECIOS AQUÍ (ANTES DE LOS REDIRECTS)
+  // 🔥 NUEVA RUTA FICHAJES
+  {
+    path: 'fichajes',
+    component: FichajesComponent,
+    canActivate: [authGuard]
+  },
+
+  // 🔥 PRECIOS (lazy load standalone)
   {
     path: 'precios',
     loadComponent: () =>
@@ -43,13 +51,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // 🔁 REDIRECCIONES (SIEMPRE AL FINAL)
   {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full'
   },
-
-  // ⚠️ SIEMPRE EL ÚLTIMO
   {
     path: '**',
     redirectTo: 'dashboard'

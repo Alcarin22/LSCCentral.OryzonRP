@@ -1,0 +1,169 @@
+<section class="fichajes-page">
+  <div class="fichajes-view">
+
+    <header class="fichajes-header">
+      <h1>Fichajes</h1>
+      <p>Relación de entradas y salidas registradas por los empleados.</p>
+    </header>
+
+    <div class="fichajes-stats-grid">
+      <article class="card fichaje-stat-card main-stat">
+        <span>Horas trabajadas</span>
+        <strong>{{ horasTotales }}</strong>
+      </article>
+
+      <article class="card fichaje-stat-card">
+        <span>Fichajes</span>
+        <strong>{{ totalFichajes }}</strong>
+      </article>
+
+      <article class="card fichaje-stat-card">
+        <span>Promedio</span>
+        <strong>{{ promedioFichaje }}</strong>
+      </article>
+
+      <article class="card fichaje-stat-card">
+        <span>Activos</span>
+        <strong>{{ fichajesActivos }}</strong>
+      </article>
+    </div>
+
+    <article class="card">
+      <div class="quick-actions">
+        <button class="btn btn-secondary" type="button" (click)="setSemanaActual()">Semana actual</button>
+        <button class="btn btn-secondary" type="button" (click)="setSemanaAnterior()">Semana anterior</button>
+      </div>
+
+      <div class="fichajes-filters-grid">
+        <div class="form-group">
+          <label>Desde</label>
+          <input type="date" [(ngModel)]="filtros.fechaInicio" />
+        </div>
+
+        <div class="form-group">
+          <label>Hasta</label>
+          <input type="date" [(ngModel)]="filtros.fechaFin" />
+        </div>
+
+        <div class="fichajes-filter-actions">
+          <button class="btn btn-primary" type="button" (click)="buscar()">Buscar</button>
+          <button class="btn btn-secondary" type="button" (click)="limpiar()">Reset</button>
+        </div>
+      </div>
+    </article>
+
+    <div *ngIf="loading" class="card loading-card">
+      <p>Cargando fichajes...</p>
+    </div>
+
+    <div *ngIf="error" class="error-card">
+      {{ error }}
+    </div>
+
+    <article class="card fichajes-table-card" *ngIf="!loading">
+      <div class="card-header">
+        <div>
+          <h3>Historial de fichajes</h3>
+          <p>Últimos registros de jornada del taller.</p>
+        </div>
+      </div>
+
+      <div class="fichajes-table-wrapper">
+        <table class="fichajes-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empleado</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th>Tiempo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <ng-container *ngFor="let fichaje of fichajes">
+              <tr
+                class="fichaje-main-row"
+                [class.is-open]="isFichajeAbierto(fichaje)"
+                (click)="toggleDetalle(fichaje)">
+
+                <td>#{{ fichaje.id }}</td>
+
+                <td>{{ fichaje.nombreEmpleado || '-' }}</td>
+
+                <td>
+                  {{ formatearFecha(fichaje.fechaHoraEntrada) | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+
+                <td>
+                  {{ fichaje.fechaHoraSalida ? (formatearFecha(fichaje.fechaHoraSalida) | date:'dd/MM/yyyy HH:mm') : '-' }}
+                </td>
+
+                <td class="fichaje-time">
+                  {{ fichaje.activo ? 'En curso' : formatearDuracion(fichaje.minutosTrabajados) }}
+                </td>
+
+                <td>
+                  <span
+                    class="fichaje-status"
+                    [class.status-active]="fichaje.activo"
+                    [class.status-ok]="!fichaje.activo">
+                    {{ getEstadoTexto(fichaje) }}
+                  </span>
+                </td>
+              </tr>
+
+              <tr class="fichaje-detail-row" [class.is-open]="isFichajeAbierto(fichaje)">
+                <td colspan="6" class="fichaje-detail-cell">
+                  <div class="fichaje-detail-box">
+                    <div class="fichaje-detail-grid">
+                      <div class="fichaje-detail-item">
+                        <span>ID fichaje</span>
+                        <strong>#{{ fichaje.id }}</strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>Empleado</span>
+                        <strong>{{ fichaje.nombreEmpleado || '-' }}</strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>ID empleado</span>
+                        <strong>{{ fichaje.idEmpleado || '-' }}</strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>Entrada</span>
+                        <strong>{{ formatearFecha(fichaje.fechaHoraEntrada) | date:'dd/MM/yyyy HH:mm:ss' }}</strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>Salida</span>
+                        <strong>
+                          {{ fichaje.fechaHoraSalida ? (formatearFecha(fichaje.fechaHoraSalida) | date:'dd/MM/yyyy HH:mm:ss') : 'Fichaje activo' }}
+                        </strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>Tiempo trabajado</span>
+                        <strong>{{ fichaje.activo ? 'En curso' : formatearDuracion(fichaje.minutosTrabajados) }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+
+            <tr *ngIf="fichajes.length === 0">
+              <td colspan="6" class="empty-row">
+                No hay fichajes para los filtros seleccionados.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+  </div>
+</section>

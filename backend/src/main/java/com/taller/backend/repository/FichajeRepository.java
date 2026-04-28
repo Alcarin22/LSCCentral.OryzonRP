@@ -15,4 +15,11 @@ public interface FichajeRepository extends JpaRepository<Fichaje, Long> {
     List<Fichaje> findByEmpleadoIdAndFechaHoraEntradaBetween(Long empleadoId, LocalDateTime inicio, LocalDateTime fin);
 
     List<Fichaje> findAllByEmpleadoId(Long empleadoId);
+
+    List<Fichaje> findAllByOrderByFechaHoraEntradaDesc();
+
+    List<Fichaje> findByFechaHoraEntradaBetweenOrderByFechaHoraEntradaDesc(
+            LocalDateTime inicio,
+            LocalDateTime fin
+    );
 }
