@@ -3,6 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface FichajeResponse {
+  fichajeActivo: boolean;
+  mensaje: string;
+  fechaHoraEntrada?: string | null;
+  fechaHoraSalida?: string | null;
+  minutosTrabajados?: number | null;
+}
+
 export interface FichajeListado {
   id: number;
   idEmpleado: number;
@@ -25,6 +33,14 @@ export class FichajeService {
   private readonly baseUrl = `${environment.backendUrl}/api/fichajes`;
 
   constructor(private http: HttpClient) {}
+
+  toggleFichaje(discordId: string): Observable<FichajeResponse> {
+    return this.http.post<FichajeResponse>(`${this.baseUrl}/toggle/${discordId}`, {});
+  }
+
+  obtenerEstadoFichaje(discordId: string): Observable<FichajeResponse> {
+    return this.http.get<FichajeResponse>(`${this.baseUrl}/estado/${discordId}`);
+  }
 
   listarFichajes(filtros: FichajeFiltros): Observable<FichajeListado[]> {
     let params = new HttpParams();
