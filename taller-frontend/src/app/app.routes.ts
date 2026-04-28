@@ -35,23 +35,23 @@ export const routes: Routes = [
     component: PrimasComponent,
     canActivate: [authGuard]
   },
-
-  // 🔥 NUEVA RUTA FICHAJES
   {
     path: 'fichajes',
     component: FichajesComponent,
     canActivate: [authGuard]
   },
-
-  // 🔥 PRECIOS (lazy load standalone)
   {
     path: 'precios',
     loadComponent: () =>
       import('./pages/precios/precios.component').then(m => m.PreciosComponent),
     canActivate: [authGuard]
   },
-
-  // 🔁 REDIRECCIONES (SIEMPRE AL FINAL)
+  {
+    path: 'convenios',
+    loadComponent: () =>
+      import('./pages/convenios/convenios.component').then(m => m.ConveniosComponent),
+    canActivate: [authGuard]
+  },
   {
     path: '',
     redirectTo: 'dashboard',

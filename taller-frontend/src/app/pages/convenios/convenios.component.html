@@ -1,0 +1,133 @@
+<section class="convenios-page">
+  <div class="convenios-view">
+
+    <header class="convenios-header">
+      <h1>Convenios</h1>
+      <p>Consulta categorizada de acuerdos activos e inactivos del taller.</p>
+    </header>
+
+    <div class="convenios-stats-grid">
+      <article class="card convenio-stat-card main-stat">
+        <span>Total convenios</span>
+        <strong>{{ totalConvenios }}</strong>
+      </article>
+
+      <article class="card convenio-stat-card">
+        <span>Activos</span>
+        <strong>{{ totalActivos }}</strong>
+      </article>
+
+      <article class="card convenio-stat-card">
+        <span>Inactivos</span>
+        <strong>{{ totalInactivos }}</strong>
+      </article>
+
+      <article class="card convenio-stat-card">
+        <span>Categorías</span>
+        <strong>{{ categorias.length }}</strong>
+      </article>
+    </div>
+
+    <div class="convenios-categories-grid">
+      <article class="card convenio-category-card" *ngFor="let categoria of categorias">
+        <div class="card-header">
+          <div>
+            <h3>{{ categoria }}</h3>
+            <p>
+              {{ getConveniosPorCategoria(categoria).length }} locales ·
+              {{ getActivosPorCategoria(categoria) }} activos
+            </p>
+          </div>
+        </div>
+
+        <div class="convenio-list">
+          <div
+            class="convenio-item"
+            *ngFor="let convenio of getConveniosPorCategoria(categoria)"
+            [class.is-open]="isConvenioAbierto(convenio)"
+            (click)="toggleConvenio(convenio)"
+          >
+            <div class="convenio-summary">
+              <div>
+                <h4>{{ convenio.nombre }}</h4>
+                <span>{{ convenio.descuento !== '-' ? 'Descuento ' + convenio.descuento : 'Sin descuento activo' }}</span>
+              </div>
+
+              <div class="convenio-summary-actions">
+                <span
+                  class="convenio-status"
+                  [class.status-active]="convenio.estado === 'Activo'"
+                  [class.status-inactive]="convenio.estado === 'Inactivo'"
+                >
+                  {{ convenio.estado }}
+                </span>
+
+                <span class="convenio-arrow">
+                  {{ isConvenioAbierto(convenio) ? '▲' : '▼' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="convenio-details" *ngIf="isConvenioAbierto(convenio)">
+              <div class="convenio-detail-grid">
+                <div class="convenio-detail-item">
+                  <span>Local</span>
+                  <strong>{{ convenio.nombre }}</strong>
+                </div>
+
+                <div class="convenio-detail-item">
+                  <span>Categoría</span>
+                  <strong>{{ convenio.categoria }}</strong>
+                </div>
+
+                <div class="convenio-detail-item">
+                  <span>Estado</span>
+                  <strong>{{ convenio.estado }}</strong>
+                </div>
+
+                <div class="convenio-detail-item">
+                  <span>Descuento</span>
+                  <strong>{{ convenio.descuento }}</strong>
+                </div>
+
+                <div class="convenio-detail-item">
+                  <span>Contacto</span>
+                  <strong>{{ convenio.contacto }}</strong>
+                </div>
+              </div>
+
+              <div class="convenio-description">
+                {{ convenio.descripcion }}
+              </div>
+
+              <div class="convenio-conditions">
+                <span>Condiciones</span>
+
+                <ul>
+                  <li *ngFor="let condicion of convenio.condiciones">
+                    {{ condicion }}
+                  </li>
+                </ul>
+              </div>
+
+              <div class="convenio-actions">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="abrirDocumento($event, convenio)"
+                >
+                  Ver documento
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-category" *ngIf="getConveniosPorCategoria(categoria).length === 0">
+            No hay convenios en esta categoría.
+          </div>
+        </div>
+      </article>
+    </div>
+
+  </div>
+</section>
