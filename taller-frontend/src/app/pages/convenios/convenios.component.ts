@@ -30,6 +30,7 @@ interface Convenio {
   styleUrls: ['./convenios.component.css']
 })
 export class ConveniosComponent {
+
   empleado: SessionEmpleado | null = null;
 
   categorias: CategoriaConvenio[] = ['Estado', 'Talleres', 'Ocio', 'Alimentación'];
@@ -48,14 +49,31 @@ export class ConveniosComponent {
     this.empleado = this.sessionService.getEmpleado();
   }
 
-  // 🔥 CONTROL APERTURA / CIERRE
+  // 🔥 GETTERS (SOLUCIÓN AL ERROR DE VERCEL)
+  get totalConvenios(): number {
+    return this.convenios.length;
+  }
+
+  get totalActivos(): number {
+    return this.convenios.filter(c => c.estado === 'Activo').length;
+  }
+
+  get totalInactivos(): number {
+    return this.convenios.filter(c => c.estado === 'Inactivo').length;
+  }
+
+  getActivosPorCategoria(categoria: CategoriaConvenio): number {
+    return this.getConveniosPorCategoria(categoria).filter(c => c.estado === 'Activo').length;
+  }
+
+  // 🔥 CONTROL ACORDEÓN
   toggleConvenio(convenio: Convenio): void {
-    // ❌ NO permitir cerrar si está en edición
     if (this.convenioEditandoId === convenio.id) {
       return;
     }
 
-    this.convenioAbiertoId = this.convenioAbiertoId === convenio.id ? null : convenio.id;
+    this.convenioAbiertoId =
+      this.convenioAbiertoId === convenio.id ? null : convenio.id;
 
     if (this.convenioAbiertoId !== convenio.id) {
       this.cancelarEdicion();
@@ -70,7 +88,7 @@ export class ConveniosComponent {
     return this.convenioEditandoId === convenio.id;
   }
 
-  // 🔥 TEMPORAL (luego volvemos a roles)
+  // 🔥 TEMPORAL
   puedeEditar(): boolean {
     return true;
   }
@@ -105,7 +123,6 @@ export class ConveniosComponent {
 
   cancelarEdicion(event?: MouseEvent): void {
     event?.stopPropagation();
-
     this.convenioEditandoId = null;
   }
 
@@ -120,7 +137,7 @@ export class ConveniosComponent {
     window.open(convenio.documentoUrl, '_blank');
   }
 
-  // 🔥 DATOS (igual que antes, no los repito para no hacer esto enorme)
+  // 🔥 DATA
   convenios: Convenio[] = [
     {
       id: 1,
@@ -128,9 +145,9 @@ export class ConveniosComponent {
       categoria: 'Estado',
       estado: 'Activo',
       descuento: '20%',
-      contacto: 'Pendiente',
+      contacto: '',
       descripcion: '',
-      condiciones: ['Aplicable a reparaciones autorizadas.'],
+      condiciones: ['Aplicable a reparaciones oficiales'],
       documentoUrl: '#'
     },
     {
@@ -139,9 +156,20 @@ export class ConveniosComponent {
       categoria: 'Estado',
       estado: 'Activo',
       descuento: '20%',
-      contacto: 'Pendiente',
+      contacto: '',
       descripcion: '',
-      condiciones: ['Aplicable a servicios médicos.'],
+      condiciones: ['Servicios médicos'],
+      documentoUrl: '#'
+    },
+    {
+      id: 3,
+      nombre: 'RaceLand Circuit',
+      categoria: 'Talleres',
+      estado: 'Activo',
+      descuento: '15%',
+      contacto: '',
+      descripcion: '',
+      condiciones: ['Convenio activo'],
       documentoUrl: '#'
     }
   ];

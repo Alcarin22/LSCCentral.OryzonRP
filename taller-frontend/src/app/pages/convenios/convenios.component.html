@@ -3,73 +3,44 @@
 
     <header class="convenios-header">
       <h1>Convenios</h1>
-      <p>Consulta categorizada de acuerdos activos e inactivos del taller.</p>
+      <p>Consulta categorizada de acuerdos del taller.</p>
     </header>
-
-    <div class="convenios-stats-grid">
-      <article class="card convenio-stat-card main-stat">
-        <span>Total convenios</span>
-        <strong>{{ totalConvenios }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Activos</span>
-        <strong>{{ totalActivos }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Inactivos</span>
-        <strong>{{ totalInactivos }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Categorías</span>
-        <strong>{{ categorias.length }}</strong>
-      </article>
-    </div>
 
     <div class="convenios-categories-grid">
       <article class="card convenio-category-card" *ngFor="let categoria of categorias">
+
         <div class="card-header">
-          <div>
-            <h3>{{ categoria }}</h3>
-            <p>
-              {{ getConveniosPorCategoria(categoria).length }} locales ·
-              {{ getActivosPorCategoria(categoria) }} activos
-            </p>
-          </div>
+          <h3>{{ categoria }}</h3>
         </div>
 
         <div class="convenio-list">
+
           <div
             class="convenio-item"
             *ngFor="let convenio of getConveniosPorCategoria(categoria)"
             [class.is-open]="isConvenioAbierto(convenio)"
             (click)="toggleConvenio(convenio)"
           >
+
+            <!-- HEADER -->
             <div class="convenio-summary">
-              <div>
-                <h4>{{ convenio.nombre }}</h4>
-                <span>{{ convenio.descuento !== '-' ? 'Descuento ' + convenio.descuento : 'Sin descuento activo' }}</span>
-              </div>
+              <h4>{{ convenio.nombre }}</h4>
 
-              <div class="convenio-summary-actions">
-                <span
-                  class="convenio-status"
-                  [class.status-active]="convenio.estado === 'Activo'"
-                  [class.status-inactive]="convenio.estado === 'Inactivo'"
-                >
-                  {{ convenio.estado }}
-                </span>
-
-                <span class="convenio-arrow">
-                  {{ isConvenioAbierto(convenio) ? '▲' : '▼' }}
-                </span>
-              </div>
+              <span
+                class="convenio-status"
+                [class.status-active]="convenio.estado === 'Activo'"
+                [class.status-inactive]="convenio.estado === 'Inactivo'"
+              >
+                {{ convenio.estado }}
+              </span>
             </div>
 
+            <!-- DETALLE -->
             <div class="convenio-details" *ngIf="isConvenioAbierto(convenio)">
+
+              <!-- 🔥 MODO NORMAL -->
               <ng-container *ngIf="!isEditando(convenio); else modoEdicion">
+
                 <div class="convenio-detail-grid">
                   <div class="convenio-detail-item">
                     <span>Local</span>
@@ -84,18 +55,15 @@
 
                 <div class="convenio-conditions">
                   <span>Condiciones</span>
-
                   <ul>
-                    <li *ngFor="let condicion of convenio.condiciones">
-                      {{ condicion }}
-                    </li>
+                    <li *ngFor="let c of convenio.condiciones">{{ c }}</li>
                   </ul>
                 </div>
 
                 <div class="convenio-actions">
+
                   <button
                     *ngIf="puedeEditar()"
-                    type="button"
                     class="btn btn-secondary"
                     (click)="iniciarEdicion($event, convenio)"
                   >
@@ -103,64 +71,54 @@
                   </button>
 
                   <button
-                    type="button"
                     class="btn btn-primary"
                     (click)="abrirDocumento($event, convenio)"
                   >
                     Ver documento
                   </button>
+
                 </div>
+
               </ng-container>
 
+              <!-- 🔥 MODO EDICIÓN -->
               <ng-template #modoEdicion>
-                <div class="convenio-edit-grid">
+
+                <div
+                  class="convenio-edit-grid"
+                  (click)="$event.stopPropagation()"
+                  (keydown)="$event.stopPropagation()"
+                >
+
                   <div class="form-group">
                     <label>Local</label>
-                    <input
-                      type="text"
-                      [(ngModel)]="editNombre"
-                    />
+                    <input [(ngModel)]="editNombre" />
                   </div>
 
                   <div class="form-group">
                     <label>Categoría</label>
                     <select [(ngModel)]="editCategoria">
-                      <option *ngFor="let categoriaOption of categorias" [value]="categoriaOption">
-                        {{ categoriaOption }}
-                      </option>
+                      <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label>Estado</label>
                     <select [(ngModel)]="editEstado">
-                      <option *ngFor="let estado of estados" [value]="estado">
-                        {{ estado }}
-                      </option>
+                      <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
                     </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>URL documento</label>
-                    <input
-                      type="text"
-                      [(ngModel)]="editDocumentoUrl"
-                    />
                   </div>
 
                   <div class="form-group form-group-full">
                     <label>Condiciones</label>
-                    <textarea
-                      rows="5"
-                      [(ngModel)]="editCondiciones"
-                      placeholder="Una condición por línea"
-                    ></textarea>
+                    <textarea [(ngModel)]="editCondiciones"></textarea>
                   </div>
+
                 </div>
 
-                <div class="convenio-actions">
+                <div class="convenio-actions" (click)="$event.stopPropagation()">
+
                   <button
-                    type="button"
                     class="btn btn-secondary"
                     (click)="cancelarEdicion($event)"
                   >
@@ -168,20 +126,19 @@
                   </button>
 
                   <button
-                    type="button"
                     class="btn btn-primary"
                     (click)="guardarEdicion($event, convenio)"
                   >
                     Guardar
                   </button>
+
                 </div>
+
               </ng-template>
+
             </div>
           </div>
 
-          <div class="empty-category" *ngIf="getConveniosPorCategoria(categoria).length === 0">
-            No hay convenios en esta categoría.
-          </div>
         </div>
       </article>
     </div>
