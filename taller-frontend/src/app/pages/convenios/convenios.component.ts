@@ -56,6 +56,51 @@ export class ConveniosComponent {
     this.empleado = this.sessionService.getEmpleado();
   }
 
+  convenios: Convenio[] = [
+    {
+      id: 1,
+      nombre: 'LSPD',
+      categoria: 'Estado',
+      estado: 'Activo',
+      descuento: '20%',
+      contacto: '',
+      descripcion: '',
+      condiciones: [
+        'Aplicable a reparaciones oficiales',
+        'Identificación obligatoria'
+      ],
+      documentoUrl: '#'
+    },
+    {
+      id: 2,
+      nombre: 'EMS',
+      categoria: 'Estado',
+      estado: 'Activo',
+      descuento: '20%',
+      contacto: '',
+      descripcion: '',
+      condiciones: [
+        'Servicios médicos',
+        'Uso exclusivo emergencias'
+      ],
+      documentoUrl: '#'
+    },
+    {
+      id: 3,
+      nombre: 'RaceLand Circuit',
+      categoria: 'Talleres',
+      estado: 'Activo',
+      descuento: '15%',
+      contacto: '',
+      descripcion: '',
+      condiciones: [
+        'Convenio activo',
+        'Aplicable a clientes asociados'
+      ],
+      documentoUrl: '#'
+    }
+  ];
+
   get totalConvenios(): number {
     return this.convenios.length;
   }
@@ -70,6 +115,10 @@ export class ConveniosComponent {
 
   puedeEditar(): boolean {
     return (this.empleado?.rango?.nivel ?? 0) >= 3;
+  }
+
+  getConveniosPorCategoria(categoria: CategoriaConvenio): Convenio[] {
+    return this.convenios.filter(c => c.categoria === categoria);
   }
 
   getActivosPorCategoria(categoria: CategoriaConvenio): number {
@@ -129,6 +178,26 @@ export class ConveniosComponent {
     this.convenioEditandoId = null;
   }
 
+  eliminarConvenio(event: MouseEvent, convenio: Convenio): void {
+    event.stopPropagation();
+
+    if (!this.puedeEditar()) return;
+
+    const confirmar = confirm(`¿Eliminar el convenio "${convenio.nombre}"?`);
+
+    if (!confirmar) return;
+
+    this.convenios = this.convenios.filter(c => c.id !== convenio.id);
+
+    if (this.convenioAbiertoId === convenio.id) {
+      this.convenioAbiertoId = null;
+    }
+
+    if (this.convenioEditandoId === convenio.id) {
+      this.convenioEditandoId = null;
+    }
+  }
+
   abrirModalNuevo(): void {
     if (!this.puedeEditar()) return;
 
@@ -181,10 +250,6 @@ export class ConveniosComponent {
     window.open(convenio.documentoUrl, '_blank');
   }
 
-  getConveniosPorCategoria(categoria: CategoriaConvenio): Convenio[] {
-    return this.convenios.filter(c => c.categoria === categoria);
-  }
-
   private convertirTextoACondiciones(texto: string): string[] {
     const condiciones = texto
       .split('\n')
@@ -199,49 +264,4 @@ export class ConveniosComponent {
       ? Math.max(...this.convenios.map(c => c.id)) + 1
       : 1;
   }
-
-  convenios: Convenio[] = [
-    {
-      id: 1,
-      nombre: 'LSPD',
-      categoria: 'Estado',
-      estado: 'Activo',
-      descuento: '20%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Aplicable a reparaciones oficiales',
-        'Identificación obligatoria'
-      ],
-      documentoUrl: '#'
-    },
-    {
-      id: 2,
-      nombre: 'EMS',
-      categoria: 'Estado',
-      estado: 'Activo',
-      descuento: '20%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Servicios médicos',
-        'Uso exclusivo emergencias'
-      ],
-      documentoUrl: '#'
-    },
-    {
-      id: 3,
-      nombre: 'RaceLand Circuit',
-      categoria: 'Talleres',
-      estado: 'Activo',
-      descuento: '15%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Convenio activo',
-        'Aplicable a clientes asociados'
-      ],
-      documentoUrl: '#'
-    }
-  ];
 }

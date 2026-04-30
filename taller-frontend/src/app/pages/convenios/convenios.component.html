@@ -64,6 +64,16 @@
               </div>
 
               <div class="convenio-summary-actions">
+                <button
+                  *ngIf="puedeEditar()"
+                  type="button"
+                  class="btn-delete"
+                  title="Eliminar convenio"
+                  (click)="eliminarConvenio($event, convenio)"
+                >
+                  ✖
+                </button>
+
                 <span
                   class="convenio-status"
                   [class.status-active]="convenio.estado === 'Activo'"
