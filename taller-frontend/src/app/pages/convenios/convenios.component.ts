@@ -49,7 +49,7 @@ export class ConveniosComponent {
     this.empleado = this.sessionService.getEmpleado();
   }
 
-  // 🔥 GETTERS (SOLUCIÓN AL ERROR DE VERCEL)
+  // 🔥 GETTERS
   get totalConvenios(): number {
     return this.convenios.length;
   }
@@ -66,7 +66,7 @@ export class ConveniosComponent {
     return this.getConveniosPorCategoria(categoria).filter(c => c.estado === 'Activo').length;
   }
 
-  // 🔥 CONTROL ACORDEÓN
+  // 🔥 ACORDEÓN
   toggleConvenio(convenio: Convenio): void {
     if (this.convenioEditandoId === convenio.id) {
       return;
@@ -88,13 +88,16 @@ export class ConveniosComponent {
     return this.convenioEditandoId === convenio.id;
   }
 
-  // 🔥 TEMPORAL
+  // 🔥 PERMISOS REALES (USANDO TU SESSION)
   puedeEditar(): boolean {
-    return true;
+    return (this.empleado?.rango?.nivel ?? 0) >= 3;
   }
 
+  // 🔥 EDICIÓN
   iniciarEdicion(event: MouseEvent, convenio: Convenio): void {
     event.stopPropagation();
+
+    if (!this.puedeEditar()) return;
 
     this.convenioAbiertoId = convenio.id;
     this.convenioEditandoId = convenio.id;
@@ -137,7 +140,7 @@ export class ConveniosComponent {
     window.open(convenio.documentoUrl, '_blank');
   }
 
-  // 🔥 DATA
+  // 🔥 DATA (puedes ampliar luego)
   convenios: Convenio[] = [
     {
       id: 1,
@@ -147,7 +150,10 @@ export class ConveniosComponent {
       descuento: '20%',
       contacto: '',
       descripcion: '',
-      condiciones: ['Aplicable a reparaciones oficiales'],
+      condiciones: [
+        'Aplicable a reparaciones oficiales',
+        'Identificación obligatoria'
+      ],
       documentoUrl: '#'
     },
     {
@@ -158,7 +164,10 @@ export class ConveniosComponent {
       descuento: '20%',
       contacto: '',
       descripcion: '',
-      condiciones: ['Servicios médicos'],
+      condiciones: [
+        'Servicios médicos',
+        'Uso exclusivo emergencias'
+      ],
       documentoUrl: '#'
     },
     {
@@ -169,7 +178,10 @@ export class ConveniosComponent {
       descuento: '15%',
       contacto: '',
       descripcion: '',
-      condiciones: ['Convenio activo'],
+      condiciones: [
+        'Convenio activo',
+        'Aplicable a clientes asociados'
+      ],
       documentoUrl: '#'
     }
   ];
