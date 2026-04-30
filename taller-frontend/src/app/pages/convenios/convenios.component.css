@@ -14,6 +14,8 @@
   width: 100%;
 }
 
+/* HEADER */
+
 .convenios-header {
   text-align: center;
 }
@@ -29,6 +31,8 @@
   margin: 0;
 }
 
+/* CARDS BASE */
+
 .card {
   background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
   border: 1px solid #2f3748;
@@ -36,6 +40,8 @@
   padding: 18px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
+
+/* STATS */
 
 .convenios-stats-grid {
   display: grid;
@@ -48,9 +54,7 @@
   gap: 8px;
 }
 
-.convenio-stat-card span,
-.card-header p,
-.form-group label {
+.convenio-stat-card span {
   color: #9aa4b2;
   font-size: 0.84rem;
 }
@@ -65,185 +69,30 @@
 }
 
 .convenio-stat-card.main-stat span {
-  color: rgba(255,255,255,0.78);
+  color: rgba(255,255,255,0.8);
 }
 
-.card-header {
+/* TOOLBAR */
+
+.convenios-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  margin-bottom: 18px;
 }
 
-.card-header h3 {
+.convenios-toolbar h3 {
+  margin: 0;
   font-size: 1.05rem;
-  color: #f5f7fb;
-  margin: 0;
 }
 
-.card-header p {
+.convenios-toolbar p {
   margin: 4px 0 0;
-}
-
-.convenios-categories-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px;
-  align-items: start;
-}
-
-.convenio-category-card {
-  display: grid;
-  gap: 14px;
-}
-
-.convenio-list {
-  display: grid;
-  gap: 12px;
-}
-
-.convenio-item {
-  border-radius: 16px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-  overflow: hidden;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.convenio-item:hover {
-  background: rgba(255,255,255,0.035);
-  filter: brightness(1.08);
-}
-
-.convenio-item.is-open {
-  border-color: rgba(244,180,0,0.22);
-  background: rgba(244,180,0,0.05);
-}
-
-.convenio-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-}
-
-.convenio-summary h4 {
-  margin: 0;
-  color: #f5f7fb;
-  font-size: 0.98rem;
-  font-weight: 800;
-}
-
-.convenio-summary span {
-  display: block;
-  margin-top: 4px;
   color: #9aa4b2;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
-.convenio-summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.convenio-status {
-  display: inline-flex !important;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  margin-top: 0 !important;
-  font-size: 0.82rem !important;
-  font-weight: 800;
-}
-
-.status-active {
-  background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.22);
-  color: #9ff3cf !important;
-}
-
-.status-inactive {
-  background: rgba(239,68,68,0.12);
-  border: 1px solid rgba(239,68,68,0.24);
-  color: #ffb4b4 !important;
-}
-
-.convenio-arrow {
-  color: #f4b400 !important;
-  font-size: 0.78rem !important;
-  font-weight: 800;
-  margin-top: 0 !important;
-}
-
-.convenio-details {
-  padding: 0 16px 16px;
-  display: grid;
-  gap: 14px;
-}
-
-.convenio-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.convenio-detail-item {
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-  display: grid;
-  gap: 6px;
-}
-
-.convenio-detail-item span {
-  color: #9aa4b2;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.convenio-detail-item strong {
-  color: #f5f7fb;
-  font-size: 0.95rem;
-  font-weight: 700;
-  word-break: break-word;
-}
-
-.convenio-conditions {
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(244,180,0,0.06);
-  border: 1px solid rgba(244,180,0,0.14);
-  color: #f5f7fb;
-  line-height: 1.5;
-}
-
-.convenio-conditions span {
-  display: block;
-  color: #9aa4b2;
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.convenio-conditions ul {
-  margin: 0;
-  padding-left: 18px;
-}
-
-.convenio-conditions li {
-  margin: 4px 0;
-}
-
-.convenio-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+/* BOTONES */
 
 .btn {
   border: 0;
@@ -252,7 +101,6 @@
   cursor: pointer;
   font-weight: 700;
   transition: 0.2s ease;
-  white-space: nowrap;
 }
 
 .btn-primary {
@@ -270,19 +118,179 @@
   transform: translateY(-1px);
 }
 
-.convenio-edit-grid {
+/* CATEGORÍAS */
+
+.convenios-categories-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.convenio-category-card {
+  display: grid;
   gap: 14px;
 }
 
-.form-group {
-  display: grid;
-  gap: 8px;
+/* HEADER CARD */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
 }
 
-.form-group-full {
-  grid-column: 1 / -1;
+.card-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.card-header p {
+  margin: 4px 0 0;
+  color: #9aa4b2;
+  font-size: 0.84rem;
+}
+
+/* LISTA */
+
+.convenio-list {
+  display: grid;
+  gap: 10px;
+}
+
+/* ITEM */
+
+.convenio-item {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.convenio-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.02);
+}
+
+.convenio-summary:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.convenio-summary h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.convenio-summary span {
+  font-size: 0.75rem;
+  color: #9aa4b2;
+}
+
+.convenio-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* STATUS */
+
+.convenio-status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-active {
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.25);
+  color: #9ff3cf;
+}
+
+.status-inactive {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #ffb4b4;
+}
+
+.convenio-arrow {
+  font-size: 0.7rem;
+  color: #9aa4b2;
+}
+
+/* DETALLE */
+
+.convenio-details {
+  padding: 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: grid;
+  gap: 12px;
+}
+
+/* GRID INFO */
+
+.convenio-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.convenio-detail-item {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.convenio-detail-item span {
+  font-size: 0.75rem;
+  color: #9aa4b2;
+}
+
+.convenio-detail-item strong {
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* CONDICIONES */
+
+.convenio-conditions {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(244,180,0,0.06);
+  border: 1px solid rgba(244,180,0,0.12);
+}
+
+.convenio-conditions span {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.convenio-conditions ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.convenio-conditions li {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* ACCIONES */
+
+.convenio-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* FORMULARIOS */
+
+.form-group {
+  display: grid;
+  gap: 6px;
 }
 
 .form-group input,
@@ -292,57 +300,85 @@
   border: 1px solid #2f3748;
   background: rgba(255,255,255,0.03);
   color: #f5f7fb;
-  border-radius: 14px;
-  padding: 12px 14px;
-  outline: none;
+  border-radius: 12px;
+  padding: 10px;
 }
 
-.form-group select option {
-  color: #111;
-  background: #fff;
+.form-group-full {
+  grid-column: 1 / -1;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 120px;
-}
+/* EMPTY */
 
 .empty-category {
-  padding: 18px;
   text-align: center;
   color: #9aa4b2;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
+  padding: 10px;
 }
 
-@media (max-width: 1200px) {
+/* MODAL */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 700px;
+  max-width: 95%;
+  background: #1d212b;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #2f3748;
+  display: grid;
+  gap: 14px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #f5f7fb;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
   .convenios-stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 860px) {
-  .convenios-page {
-    padding: 18px;
-  }
-
-  .convenios-stats-grid,
-  .convenio-detail-grid,
-  .convenio-edit-grid {
     grid-template-columns: 1fr;
   }
 
-  .convenio-summary {
-    align-items: flex-start;
+  .convenio-detail-grid {
+    grid-template-columns: 1fr;
   }
 
-  .convenio-summary-actions {
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  .convenio-actions {
-    flex-direction: column;
+  .modal-form-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -30,7 +30,6 @@ interface Convenio {
   styleUrls: ['./convenios.component.css']
 })
 export class ConveniosComponent {
-
   empleado: SessionEmpleado | null = null;
 
   categorias: CategoriaConvenio[] = ['Estado', 'Talleres', 'Ocio', 'Alimentación'];
@@ -39,17 +38,24 @@ export class ConveniosComponent {
   convenioAbiertoId: number | null = null;
   convenioEditandoId: number | null = null;
 
+  modalNuevoAbierto = false;
+
   editNombre = '';
   editCategoria: CategoriaConvenio = 'Estado';
   editEstado: EstadoConvenio = 'Activo';
   editCondiciones = '';
   editDocumentoUrl = '';
 
+  nuevoNombre = '';
+  nuevoCategoria: CategoriaConvenio = 'Estado';
+  nuevoEstado: EstadoConvenio = 'Activo';
+  nuevoCondiciones = '';
+  nuevoDocumentoUrl = '';
+
   constructor(private sessionService: SessionService) {
     this.empleado = this.sessionService.getEmpleado();
   }
 
-  // 🔥 GETTERS
   get totalConvenios(): number {
     return this.convenios.length;
   }
@@ -62,11 +68,14 @@ export class ConveniosComponent {
     return this.convenios.filter(c => c.estado === 'Inactivo').length;
   }
 
+  puedeEditar(): boolean {
+    return (this.empleado?.rango?.nivel ?? 0) >= 3;
+  }
+
   getActivosPorCategoria(categoria: CategoriaConvenio): number {
     return this.getConveniosPorCategoria(categoria).filter(c => c.estado === 'Activo').length;
   }
 
-  // 🔥 ACORDEÓN
   toggleConvenio(convenio: Convenio): void {
     if (this.convenioEditandoId === convenio.id) {
       return;
@@ -88,12 +97,6 @@ export class ConveniosComponent {
     return this.convenioEditandoId === convenio.id;
   }
 
-  // 🔥 PERMISOS REALES (USANDO TU SESSION)
-  puedeEditar(): boolean {
-    return (this.empleado?.rango?.nivel ?? 0) >= 3;
-  }
-
-  // 🔥 EDICIÓN
   iniciarEdicion(event: MouseEvent, convenio: Convenio): void {
     event.stopPropagation();
 
@@ -115,10 +118,7 @@ export class ConveniosComponent {
     convenio.nombre = this.editNombre.trim() || convenio.nombre;
     convenio.categoria = this.editCategoria;
     convenio.estado = this.editEstado;
-    convenio.condiciones = this.editCondiciones
-      .split('\n')
-      .map(c => c.trim())
-      .filter(Boolean);
+    convenio.condiciones = this.convertirTextoACondiciones(this.editCondiciones);
     convenio.documentoUrl = this.editDocumentoUrl.trim() || '#';
 
     this.cancelarEdicion();
@@ -127,6 +127,47 @@ export class ConveniosComponent {
   cancelarEdicion(event?: MouseEvent): void {
     event?.stopPropagation();
     this.convenioEditandoId = null;
+  }
+
+  abrirModalNuevo(): void {
+    if (!this.puedeEditar()) return;
+
+    this.modalNuevoAbierto = true;
+    this.nuevoNombre = '';
+    this.nuevoCategoria = 'Estado';
+    this.nuevoEstado = 'Activo';
+    this.nuevoCondiciones = '';
+    this.nuevoDocumentoUrl = '';
+  }
+
+  cerrarModalNuevo(): void {
+    this.modalNuevoAbierto = false;
+  }
+
+  crearConvenio(): void {
+    const nombre = this.nuevoNombre.trim();
+
+    if (!nombre) {
+      alert('Debes indicar el nombre del local.');
+      return;
+    }
+
+    const nuevoConvenio: Convenio = {
+      id: this.generarNuevoId(),
+      nombre,
+      categoria: this.nuevoCategoria,
+      estado: this.nuevoEstado,
+      descuento: this.nuevoEstado === 'Activo' ? 'Pendiente' : '-',
+      contacto: '',
+      descripcion: '',
+      condiciones: this.convertirTextoACondiciones(this.nuevoCondiciones),
+      documentoUrl: this.nuevoDocumentoUrl.trim() || '#'
+    };
+
+    this.convenios = [...this.convenios, nuevoConvenio];
+
+    this.convenioAbiertoId = nuevoConvenio.id;
+    this.cerrarModalNuevo();
   }
 
   abrirDocumento(event: MouseEvent, convenio: Convenio): void {
@@ -140,7 +181,25 @@ export class ConveniosComponent {
     window.open(convenio.documentoUrl, '_blank');
   }
 
-  // 🔥 DATA (puedes ampliar luego)
+  getConveniosPorCategoria(categoria: CategoriaConvenio): Convenio[] {
+    return this.convenios.filter(c => c.categoria === categoria);
+  }
+
+  private convertirTextoACondiciones(texto: string): string[] {
+    const condiciones = texto
+      .split('\n')
+      .map(c => c.trim())
+      .filter(Boolean);
+
+    return condiciones.length ? condiciones : ['Pendiente de definir condiciones.'];
+  }
+
+  private generarNuevoId(): number {
+    return this.convenios.length
+      ? Math.max(...this.convenios.map(c => c.id)) + 1
+      : 1;
+  }
+
   convenios: Convenio[] = [
     {
       id: 1,
@@ -185,8 +244,4 @@ export class ConveniosComponent {
       documentoUrl: '#'
     }
   ];
-
-  getConveniosPorCategoria(categoria: CategoriaConvenio): Convenio[] {
-    return this.convenios.filter(c => c.categoria === categoria);
-  }
 }
