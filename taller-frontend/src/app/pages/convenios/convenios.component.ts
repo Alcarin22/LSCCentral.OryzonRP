@@ -1,4 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnInit
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -54,7 +60,9 @@ export class ConveniosComponent implements OnInit {
 
   constructor(
     private sessionService: SessionService,
-    private convenioService: ConvenioService
+    private convenioService: ConvenioService,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {
     this.empleado = this.sessionService.getEmpleado();
   }
@@ -64,19 +72,30 @@ export class ConveniosComponent implements OnInit {
   }
 
   cargarConvenios(): void {
-    this.loading = true;
-    this.error = '';
+    this.zone.run(() => {
+      this.loading = true;
+      this.error = '';
+      this.cdr.detectChanges();
+    });
 
     this.convenioService.listar().subscribe({
       next: (data) => {
-        this.convenios = data ?? [];
-        this.loading = false;
+        this.zone.run(() => {
+          this.convenios = data ?? [];
+          this.loading = false;
+          this.error = '';
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('Error cargando convenios:', error);
-        this.convenios = [];
-        this.error = 'No se pudieron cargar los convenios.';
-        this.loading = false;
+
+        this.zone.run(() => {
+          this.convenios = [];
+          this.error = 'No se pudieron cargar los convenios.';
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -147,36 +166,23 @@ export class ConveniosComponent implements OnInit {
 
     if (!this.puedeEditar()) return;
 
-    const nombre = this.editNombre.trim();
-
-    if (!nombre) {
-      alert('Debes indicar el nombre del local.');
-      return;
-    }
-
     const payload: ConvenioRequest = {
-      nombre,
+      nombre: this.editNombre,
       categoria: this.editCategoria,
       estado: this.editEstado,
       descuento: this.normalizarTexto(this.editDescuento),
-      contacto: convenio.contacto ?? '',
-      descripcion: convenio.descripcion ?? '',
+      contacto: '',
+      descripcion: '',
       documentoUrl: this.normalizarTexto(this.editDocumentoUrl),
       condiciones: this.convertirTextoACondiciones(this.editCondiciones)
     };
 
     this.convenioService.actualizar(convenio.id, payload).subscribe({
-      next: (actualizado) => {
-        this.convenios = this.convenios.map(c =>
-          c.id === actualizado.id ? actualizado : c
-        );
-
+      next: () => {
+        this.cargarConvenios();
         this.cancelarEdicion();
       },
-      error: (error) => {
-        console.error('Error actualizando convenio:', error);
-        alert('No se pudo actualizar el convenio.');
-      }
+      error: () => alert('Error actualizando')
     });
   }
 
@@ -190,26 +196,11 @@ export class ConveniosComponent implements OnInit {
 
     if (!this.puedeEditar()) return;
 
-    const confirmar = confirm(`¿Eliminar el convenio "${convenio.nombre}"?`);
-
-    if (!confirmar) return;
+    if (!confirm(`¿Eliminar "${convenio.nombre}"?`)) return;
 
     this.convenioService.eliminar(convenio.id).subscribe({
-      next: () => {
-        this.convenios = this.convenios.filter(c => c.id !== convenio.id);
-
-        if (this.convenioAbiertoId === convenio.id) {
-          this.convenioAbiertoId = null;
-        }
-
-        if (this.convenioEditandoId === convenio.id) {
-          this.convenioEditandoId = null;
-        }
-      },
-      error: (error) => {
-        console.error('Error eliminando convenio:', error);
-        alert('No se pudo eliminar el convenio.');
-      }
+      next: () => this.cargarConvenios(),
+      error: () => alert('Error eliminando')
     });
   }
 
@@ -217,12 +208,6 @@ export class ConveniosComponent implements OnInit {
     if (!this.puedeEditar()) return;
 
     this.modalNuevoAbierto = true;
-    this.nuevoNombre = '';
-    this.nuevoCategoria = 'Estado';
-    this.nuevoEstado = 'Activo';
-    this.nuevoCondiciones = '';
-    this.nuevoDocumentoUrl = '';
-    this.nuevoDescuento = '';
   }
 
   cerrarModalNuevo(): void {
@@ -230,44 +215,31 @@ export class ConveniosComponent implements OnInit {
   }
 
   crearConvenio(): void {
-    if (!this.puedeEditar()) return;
-
-    const nombre = this.nuevoNombre.trim();
-
-    if (!nombre) {
-      alert('Debes indicar el nombre del local.');
-      return;
-    }
-
     const payload: ConvenioRequest = {
-      nombre,
+      nombre: this.nuevoNombre,
       categoria: this.nuevoCategoria,
       estado: this.nuevoEstado,
-      descuento: this.normalizarTexto(this.nuevoDescuento) ?? (this.nuevoEstado === 'Activo' ? 'Pendiente' : '-'),
+      descuento: this.normalizarTexto(this.nuevoDescuento) ?? 'Pendiente',
       contacto: '',
       descripcion: '',
-      condiciones: this.convertirTextoACondiciones(this.nuevoCondiciones),
-      documentoUrl: this.normalizarTexto(this.nuevoDocumentoUrl)
+      documentoUrl: this.normalizarTexto(this.nuevoDocumentoUrl),
+      condiciones: this.convertirTextoACondiciones(this.nuevoCondiciones)
     };
 
     this.convenioService.crear(payload).subscribe({
-      next: (creado) => {
-        this.convenios = [...this.convenios, creado];
-        this.convenioAbiertoId = creado.id;
+      next: () => {
+        this.cargarConvenios();
         this.cerrarModalNuevo();
       },
-      error: (error) => {
-        console.error('Error creando convenio:', error);
-        alert('No se pudo crear el convenio.');
-      }
+      error: () => alert('Error creando convenio')
     });
   }
 
   abrirDocumento(event: MouseEvent, convenio: Convenio): void {
     event.stopPropagation();
 
-    if (!convenio.documentoUrl || convenio.documentoUrl === '#') {
-      alert('Este convenio todavía no tiene documento asociado.');
+    if (!convenio.documentoUrl) {
+      alert('Sin documento');
       return;
     }
 
@@ -275,17 +247,14 @@ export class ConveniosComponent implements OnInit {
   }
 
   private convertirTextoACondiciones(texto: string): string[] {
-    const condiciones = texto
+    return texto
       .split('\n')
       .map(c => c.trim())
       .filter(Boolean);
-
-    return condiciones.length ? condiciones : ['Pendiente de definir condiciones.'];
   }
 
   private normalizarTexto(valor: string | null | undefined): string | null {
     if (!valor) return null;
-
     const limpio = valor.trim();
     return limpio.length ? limpio : null;
   }
