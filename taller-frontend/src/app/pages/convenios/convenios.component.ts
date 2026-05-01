@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,20 +7,13 @@ import {
   SessionService
 } from '../../core/services/session.service';
 
-type EstadoConvenio = 'Activo' | 'Inactivo';
-type CategoriaConvenio = 'Estado' | 'Talleres' | 'Ocio' | 'Alimentación';
-
-interface Convenio {
-  id: number;
-  nombre: string;
-  categoria: CategoriaConvenio;
-  estado: EstadoConvenio;
-  descuento: string;
-  contacto: string;
-  descripcion: string;
-  condiciones: string[];
-  documentoUrl: string;
-}
+import {
+  Convenio,
+  ConvenioRequest,
+  ConvenioService,
+  CategoriaConvenio,
+  EstadoConvenio
+} from '../../core/services/convenio.service';
 
 @Component({
   selector: 'app-convenios',
@@ -29,11 +22,16 @@ interface Convenio {
   templateUrl: './convenios.component.html',
   styleUrls: ['./convenios.component.css']
 })
-export class ConveniosComponent {
+export class ConveniosComponent implements OnInit {
   empleado: SessionEmpleado | null = null;
 
   categorias: CategoriaConvenio[] = ['Estado', 'Talleres', 'Ocio', 'Alimentación'];
   estados: EstadoConvenio[] = ['Activo', 'Inactivo'];
+
+  convenios: Convenio[] = [];
+
+  loading = false;
+  error = '';
 
   convenioAbiertoId: number | null = null;
   convenioEditandoId: number | null = null;
@@ -45,61 +43,43 @@ export class ConveniosComponent {
   editEstado: EstadoConvenio = 'Activo';
   editCondiciones = '';
   editDocumentoUrl = '';
+  editDescuento = '';
 
   nuevoNombre = '';
   nuevoCategoria: CategoriaConvenio = 'Estado';
   nuevoEstado: EstadoConvenio = 'Activo';
   nuevoCondiciones = '';
   nuevoDocumentoUrl = '';
+  nuevoDescuento = '';
 
-  constructor(private sessionService: SessionService) {
+  constructor(
+    private sessionService: SessionService,
+    private convenioService: ConvenioService
+  ) {
     this.empleado = this.sessionService.getEmpleado();
   }
 
-  convenios: Convenio[] = [
-    {
-      id: 1,
-      nombre: 'LSPD',
-      categoria: 'Estado',
-      estado: 'Activo',
-      descuento: '20%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Aplicable a reparaciones oficiales',
-        'Identificación obligatoria'
-      ],
-      documentoUrl: '#'
-    },
-    {
-      id: 2,
-      nombre: 'EMS',
-      categoria: 'Estado',
-      estado: 'Activo',
-      descuento: '20%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Servicios médicos',
-        'Uso exclusivo emergencias'
-      ],
-      documentoUrl: '#'
-    },
-    {
-      id: 3,
-      nombre: 'RaceLand Circuit',
-      categoria: 'Talleres',
-      estado: 'Activo',
-      descuento: '15%',
-      contacto: '',
-      descripcion: '',
-      condiciones: [
-        'Convenio activo',
-        'Aplicable a clientes asociados'
-      ],
-      documentoUrl: '#'
-    }
-  ];
+  ngOnInit(): void {
+    this.cargarConvenios();
+  }
+
+  cargarConvenios(): void {
+    this.loading = true;
+    this.error = '';
+
+    this.convenioService.listar().subscribe({
+      next: (data) => {
+        this.convenios = data ?? [];
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error cargando convenios:', error);
+        this.convenios = [];
+        this.error = 'No se pudieron cargar los convenios.';
+        this.loading = false;
+      }
+    });
+  }
 
   get totalConvenios(): number {
     return this.convenios.length;
@@ -157,20 +137,47 @@ export class ConveniosComponent {
     this.editNombre = convenio.nombre;
     this.editCategoria = convenio.categoria;
     this.editEstado = convenio.estado;
-    this.editCondiciones = convenio.condiciones.join('\n');
-    this.editDocumentoUrl = convenio.documentoUrl;
+    this.editCondiciones = (convenio.condiciones ?? []).join('\n');
+    this.editDocumentoUrl = convenio.documentoUrl ?? '';
+    this.editDescuento = convenio.descuento ?? '';
   }
 
   guardarEdicion(event: MouseEvent, convenio: Convenio): void {
     event.stopPropagation();
 
-    convenio.nombre = this.editNombre.trim() || convenio.nombre;
-    convenio.categoria = this.editCategoria;
-    convenio.estado = this.editEstado;
-    convenio.condiciones = this.convertirTextoACondiciones(this.editCondiciones);
-    convenio.documentoUrl = this.editDocumentoUrl.trim() || '#';
+    if (!this.puedeEditar()) return;
 
-    this.cancelarEdicion();
+    const nombre = this.editNombre.trim();
+
+    if (!nombre) {
+      alert('Debes indicar el nombre del local.');
+      return;
+    }
+
+    const payload: ConvenioRequest = {
+      nombre,
+      categoria: this.editCategoria,
+      estado: this.editEstado,
+      descuento: this.normalizarTexto(this.editDescuento),
+      contacto: convenio.contacto ?? '',
+      descripcion: convenio.descripcion ?? '',
+      documentoUrl: this.normalizarTexto(this.editDocumentoUrl),
+      condiciones: this.convertirTextoACondiciones(this.editCondiciones)
+    };
+
+    this.convenioService.actualizar(convenio.id, payload).subscribe({
+      next: (actualizado) => {
+        this.convenios = this.convenios.map(c =>
+          c.id === actualizado.id ? actualizado : c
+        );
+
+        this.cancelarEdicion();
+      },
+      error: (error) => {
+        console.error('Error actualizando convenio:', error);
+        alert('No se pudo actualizar el convenio.');
+      }
+    });
   }
 
   cancelarEdicion(event?: MouseEvent): void {
@@ -187,15 +194,23 @@ export class ConveniosComponent {
 
     if (!confirmar) return;
 
-    this.convenios = this.convenios.filter(c => c.id !== convenio.id);
+    this.convenioService.eliminar(convenio.id).subscribe({
+      next: () => {
+        this.convenios = this.convenios.filter(c => c.id !== convenio.id);
 
-    if (this.convenioAbiertoId === convenio.id) {
-      this.convenioAbiertoId = null;
-    }
+        if (this.convenioAbiertoId === convenio.id) {
+          this.convenioAbiertoId = null;
+        }
 
-    if (this.convenioEditandoId === convenio.id) {
-      this.convenioEditandoId = null;
-    }
+        if (this.convenioEditandoId === convenio.id) {
+          this.convenioEditandoId = null;
+        }
+      },
+      error: (error) => {
+        console.error('Error eliminando convenio:', error);
+        alert('No se pudo eliminar el convenio.');
+      }
+    });
   }
 
   abrirModalNuevo(): void {
@@ -207,6 +222,7 @@ export class ConveniosComponent {
     this.nuevoEstado = 'Activo';
     this.nuevoCondiciones = '';
     this.nuevoDocumentoUrl = '';
+    this.nuevoDescuento = '';
   }
 
   cerrarModalNuevo(): void {
@@ -214,6 +230,8 @@ export class ConveniosComponent {
   }
 
   crearConvenio(): void {
+    if (!this.puedeEditar()) return;
+
     const nombre = this.nuevoNombre.trim();
 
     if (!nombre) {
@@ -221,22 +239,28 @@ export class ConveniosComponent {
       return;
     }
 
-    const nuevoConvenio: Convenio = {
-      id: this.generarNuevoId(),
+    const payload: ConvenioRequest = {
       nombre,
       categoria: this.nuevoCategoria,
       estado: this.nuevoEstado,
-      descuento: this.nuevoEstado === 'Activo' ? 'Pendiente' : '-',
+      descuento: this.normalizarTexto(this.nuevoDescuento) ?? (this.nuevoEstado === 'Activo' ? 'Pendiente' : '-'),
       contacto: '',
       descripcion: '',
       condiciones: this.convertirTextoACondiciones(this.nuevoCondiciones),
-      documentoUrl: this.nuevoDocumentoUrl.trim() || '#'
+      documentoUrl: this.normalizarTexto(this.nuevoDocumentoUrl)
     };
 
-    this.convenios = [...this.convenios, nuevoConvenio];
-
-    this.convenioAbiertoId = nuevoConvenio.id;
-    this.cerrarModalNuevo();
+    this.convenioService.crear(payload).subscribe({
+      next: (creado) => {
+        this.convenios = [...this.convenios, creado];
+        this.convenioAbiertoId = creado.id;
+        this.cerrarModalNuevo();
+      },
+      error: (error) => {
+        console.error('Error creando convenio:', error);
+        alert('No se pudo crear el convenio.');
+      }
+    });
   }
 
   abrirDocumento(event: MouseEvent, convenio: Convenio): void {
@@ -259,9 +283,10 @@ export class ConveniosComponent {
     return condiciones.length ? condiciones : ['Pendiente de definir condiciones.'];
   }
 
-  private generarNuevoId(): number {
-    return this.convenios.length
-      ? Math.max(...this.convenios.map(c => c.id)) + 1
-      : 1;
+  private normalizarTexto(valor: string | null | undefined): string | null {
+    if (!valor) return null;
+
+    const limpio = valor.trim();
+    return limpio.length ? limpio : null;
   }
 }
