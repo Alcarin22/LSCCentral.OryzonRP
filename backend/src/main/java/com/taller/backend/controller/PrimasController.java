@@ -1,10 +1,11 @@
 package com.taller.backend.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
+import org.springframework.web.bind.annotation.*;
+
+import com.taller.backend.dto.AdminPrimaPagadaRequest;
+import com.taller.backend.dto.AdminPrimaResponse;
 import com.taller.backend.dto.MisPrimasResponse;
 import com.taller.backend.service.PrimasService;
 
@@ -20,7 +21,23 @@ public class PrimasController {
     @GetMapping("/api/primas/{discordId}")
     public MisPrimasResponse getMisPrimas(
             @PathVariable String discordId,
-            @RequestParam(defaultValue = "0") Integer weekOffset) {
+            @RequestParam(defaultValue = "0") Integer weekOffset
+    ) {
         return primasService.getMisPrimas(discordId, weekOffset);
+    }
+
+    @GetMapping("/api/admin/primas")
+    public List<AdminPrimaResponse> listarPrimasAdmin(
+            @RequestParam(required = false) Integer semana
+    ) {
+        return primasService.listarPrimasAdmin(semana);
+    }
+
+    @PatchMapping("/api/admin/primas/{primaId}/pagada")
+    public AdminPrimaResponse actualizarPagada(
+            @PathVariable Long primaId,
+            @RequestBody AdminPrimaPagadaRequest request
+    ) {
+        return primasService.actualizarPagada(primaId, request);
     }
 }
