@@ -19,14 +19,19 @@ import {
   RangoAdmin
 } from '../../core/services/admin.service';
 
+import {
+  AdminPrima,
+  AdminPrimasService
+} from '../../core/services/admin-primas.service';
+
 type AdminTab = 'empleados' | 'primas' | 'precios';
 
 @Component({
   selector: 'app-administracion',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: 'administracion.component.html',
-  styleUrls: ['administracion.component.css']
+  templateUrl: './administracion.component.html',
+  styleUrls: ['./administracion.component.css']
 })
 export class AdministracionComponent implements OnInit {
   empleadoSesion: SessionEmpleado | null = null;
@@ -36,14 +41,20 @@ export class AdministracionComponent implements OnInit {
   empleados: EmpleadoAdmin[] = [];
   rangos: RangoAdmin[] = [];
 
+  primas: AdminPrima[] = [];
+  semanaFiltro: number | null = null;
+
   loading = false;
+  loadingPrimas = false;
   error = '';
+  errorPrimas = '';
 
   empleadoAbiertoId: number | null = null;
 
   constructor(
     private sessionService: SessionService,
     private adminService: AdminService,
+    private adminPrimasService: AdminPrimasService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {
@@ -65,6 +76,10 @@ export class AdministracionComponent implements OnInit {
 
   setTab(tab: AdminTab): void {
     this.activeTab = tab;
+
+    if (tab === 'primas' && this.primas.length === 0) {
+      this.cargarPrimas();
+    }
   }
 
   cargarDatos(): void {
@@ -106,6 +121,73 @@ export class AdministracionComponent implements OnInit {
           this.loading = false;
           this.cdr.detectChanges();
         });
+      }
+    });
+  }
+
+  cargarPrimas(): void {
+    this.zone.run(() => {
+      this.loadingPrimas = true;
+      this.errorPrimas = '';
+      this.cdr.detectChanges();
+    });
+
+    this.adminPrimasService.listarPrimas(this.semanaFiltro).subscribe({
+      next: (data) => {
+        this.zone.run(() => {
+          this.primas = data ?? [];
+          this.loadingPrimas = false;
+          this.errorPrimas = '';
+          this.cdr.detectChanges();
+        });
+      },
+      error: (error) => {
+        console.error('Error cargando primas:', error);
+
+        this.zone.run(() => {
+          this.primas = [];
+          this.errorPrimas = 'No se pudieron cargar las primas.';
+          this.loadingPrimas = false;
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  buscarPrimasPorSemana(): void {
+    this.cargarPrimas();
+  }
+
+  limpiarFiltroPrimas(): void {
+    this.semanaFiltro = null;
+    this.cargarPrimas();
+  }
+
+  togglePagada(prima: AdminPrima): void {
+    const nuevaPagada = !prima.pagada;
+    const accion = nuevaPagada ? 'marcar como pagada' : 'marcar como pendiente';
+
+    const confirmar = confirm(
+      `¿Quieres ${accion} la prima de "${prima.nombreEmpleado}"?`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.adminPrimasService.actualizarPagada(prima.id, nuevaPagada).subscribe({
+      next: (actualizada) => {
+        this.zone.run(() => {
+          this.primas = this.primas.map(p =>
+            p.id === actualizada.id ? actualizada : p
+          );
+
+          this.cdr.detectChanges();
+        });
+      },
+      error: (error) => {
+        console.error('Error actualizando estado de prima:', error);
+        alert('No se pudo actualizar el estado de la prima.');
       }
     });
   }
@@ -191,6 +273,35 @@ export class AdministracionComponent implements OnInit {
     return this.empleados.length
       ? Math.max(...this.empleados.map(e => e.rangoNivel ?? 0))
       : 0;
+  }
+
+  get totalPrimas(): number {
+    return this.primas.length;
+  }
+
+  get primasPagadas(): number {
+    return this.primas.filter(p => p.pagada).length;
+  }
+
+  get primasPendientes(): number {
+    return this.primas.filter(p => !p.pagada).length;
+  }
+
+  get totalAPagar(): number {
+    return this.primas
+      .filter(p => !p.pagada)
+      .reduce((acc, p) => acc + Number(p.total || 0), 0);
+  }
+
+  get totalPagado(): number {
+    return this.primas
+      .filter(p => p.pagada)
+      .reduce((acc, p) => acc + Number(p.total || 0), 0);
+  }
+
+  formatearFecha(value: string | null): Date | null {
+    if (!value) return null;
+    return new Date(value);
   }
 
   private actualizarEmpleadoEnLista(actualizado: EmpleadoAdmin): void {

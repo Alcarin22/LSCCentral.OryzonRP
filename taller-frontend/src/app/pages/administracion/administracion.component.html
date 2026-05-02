@@ -209,18 +209,162 @@
         </div>
       </article>
 
-      <article class="card admin-placeholder-card" *ngIf="!loading && activeTab === 'primas'">
-        <div class="card-header">
-          <div>
-            <h3>Primas</h3>
-            <p>Próximo apartado: resumen global de primas por empleado y semana.</p>
-          </div>
+      <ng-container *ngIf="!loading && activeTab === 'primas'">
+        <div class="admin-primas-stats-grid">
+          <article class="card admin-stat-card main-stat">
+            <span>Pendiente de pagar</span>
+            <strong>{{ totalAPagar | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Pagado</span>
+            <strong>{{ totalPagado | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Primas pagadas</span>
+            <strong>{{ primasPagadas }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Primas pendientes</span>
+            <strong>{{ primasPendientes }}</strong>
+          </article>
         </div>
 
-        <p class="placeholder-text">
-          Esta pestaña queda preparada para conectar el resumen de primas de todos los empleados.
-        </p>
-      </article>
+        <article class="card admin-primas-filters">
+          <div class="form-group">
+            <label>Semana</label>
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="semanaFiltro"
+              placeholder="Todas"
+            />
+          </div>
+
+          <div class="primas-filter-actions">
+            <button type="button" class="btn btn-primary" (click)="buscarPrimasPorSemana()">
+              Buscar
+            </button>
+
+            <button type="button" class="btn btn-secondary" (click)="limpiarFiltroPrimas()">
+              Todas
+            </button>
+
+            <button type="button" class="btn btn-secondary" (click)="cargarPrimas()">
+              Recargar
+            </button>
+          </div>
+        </article>
+
+        <div *ngIf="loadingPrimas" class="card loading-card">
+          <p>Cargando primas...</p>
+        </div>
+
+        <div *ngIf="errorPrimas && !loadingPrimas" class="error-card">
+          {{ errorPrimas }}
+        </div>
+
+        <article class="card admin-table-card" *ngIf="!loadingPrimas">
+          <div class="card-header">
+            <div>
+              <h3>Primas del taller</h3>
+              <p>Control de primas generadas y estado de pago por empleado.</p>
+            </div>
+          </div>
+
+          <div class="admin-table-wrapper">
+            <table class="admin-table primas-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Rango</th>
+                  <th>Semana</th>
+                  <th>Fechas</th>
+                  <th>Facturado</th>
+                  <th>Horas</th>
+                  <th>Servicios</th>
+                  <th>Base</th>
+                  <th>Extra</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr
+                  *ngFor="let prima of primas"
+                  [class.is-paid]="prima.pagada"
+                >
+                  <td>
+                    <strong>{{ prima.nombreEmpleado }}</strong>
+                  </td>
+
+                  <td>{{ prima.rango }}</td>
+
+                  <td>Semana {{ prima.semana }}</td>
+
+                  <td>
+                    {{ formatearFecha(prima.fechaInicio) | date:'dd/MM/yyyy' }}
+                    -
+                    {{ formatearFecha(prima.fechaFin) | date:'dd/MM/yyyy' }}
+                  </td>
+
+                  <td class="admin-money">
+                    {{ prima.facturado | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+
+                  <td>{{ prima.horas }}h</td>
+
+                  <td>{{ prima.servicios }}</td>
+
+                  <td>
+                    {{ prima.primaBase | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+
+                  <td>
+                    {{ prima.extraHoras | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+
+                  <td class="admin-money">
+                    {{ prima.total | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="admin-status"
+                      [class.status-ok]="prima.pagada"
+                      [class.status-pending]="!prima.pagada"
+                    >
+                      {{ prima.pagada ? 'Pagada' : 'Pendiente' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="btn"
+                      [class.btn-primary]="!prima.pagada"
+                      [class.btn-danger]="prima.pagada"
+                      (click)="togglePagada(prima)"
+                    >
+                      {{ prima.pagada ? 'Desmarcar' : 'Pagar' }}
+                    </button>
+                  </td>
+                </tr>
+
+                <tr *ngIf="primas.length === 0">
+                  <td colspan="12" class="empty-row">
+                    No hay primas registradas.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </ng-container>
 
       <article class="card admin-placeholder-card" *ngIf="!loading && activeTab === 'precios'">
         <div class="card-header">
