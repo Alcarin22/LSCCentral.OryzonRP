@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 @Service
 public class FacturaService {
@@ -29,6 +28,7 @@ public class FacturaService {
     private final TasacionRepository tasacionRepository;
     private final FullTuningRepository fullTuningRepository;
     private final TuneoRepository tuneoRepository;
+    private final PrimasService primasService;
 
     public FacturaService(
             FacturaRepository facturaRepository,
@@ -38,7 +38,8 @@ public class FacturaService {
             TasacionPrecioRepository tasacionPrecioRepository,
             TasacionRepository tasacionRepository,
             FullTuningRepository fullTuningRepository,
-            TuneoRepository tuneoRepository) {
+            TuneoRepository tuneoRepository,
+            PrimasService primasService) {
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
@@ -47,11 +48,8 @@ public class FacturaService {
         this.tasacionRepository = tasacionRepository;
         this.fullTuningRepository = fullTuningRepository;
         this.tuneoRepository = tuneoRepository;
+        this.primasService = primasService;
     }
-
-    // ============================
-    // CREAR FACTURA
-    // ============================
 
     public Factura crearFactura(CreateFacturaRequest request) {
         Empleado empleado = empleadoRepository.findByDiscordId(request.getDiscordId())
@@ -85,6 +83,8 @@ public class FacturaService {
             guardarTasacion(guardada, request);
         }
 
+        primasService.recalcularPrimaEmpleadoSemana(empleado.getId(), guardada.getFecha());
+
         return guardada;
     }
 
@@ -96,10 +96,6 @@ public class FacturaService {
         t.setOtros(request.getOtros());
         tasacionRepository.save(t);
     }
-
-    // ============================
-    // LISTADO FACTURAS
-    // ============================
 
     public List<FacturaListadoResponse> listarFacturas(
             String fechaInicio,
@@ -158,10 +154,6 @@ public class FacturaService {
 
         return r;
     }
-
-    // ============================
-    // CALCULO TOTAL
-    // ============================
 
     private int calcularTotal(CreateFacturaRequest request) {
         int total;

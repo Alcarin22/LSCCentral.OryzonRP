@@ -18,10 +18,15 @@ public class FichajeService {
 
     private final FichajeRepository fichajeRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final PrimasService primasService;
 
-    public FichajeService(FichajeRepository fichajeRepository, EmpleadoRepository empleadoRepository) {
+    public FichajeService(
+            FichajeRepository fichajeRepository,
+            EmpleadoRepository empleadoRepository,
+            PrimasService primasService) {
         this.fichajeRepository = fichajeRepository;
         this.empleadoRepository = empleadoRepository;
+        this.primasService = primasService;
     }
 
     public FichajeResponse toggleFichaje(String discordId) {
@@ -57,6 +62,11 @@ public class FichajeService {
         fichajeAbierto.setMinutosTrabajados(minutos);
 
         fichajeRepository.save(fichajeAbierto);
+
+        primasService.recalcularPrimaEmpleadoSemana(
+                empleado.getId(),
+                fichajeAbierto.getFechaHoraEntrada()
+        );
 
         FichajeResponse response = new FichajeResponse();
         response.setFichajeActivo(false);
