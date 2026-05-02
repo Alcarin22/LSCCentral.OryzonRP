@@ -1,0 +1,240 @@
+<section class="administracion-page">
+  <div class="admin-view">
+
+    <header class="admin-header">
+      <h1>Administración</h1>
+      <p>Gestión interna del taller: empleados, primas y precios.</p>
+    </header>
+
+    <div *ngIf="!puedeAcceder()" class="error-card">
+      No tienes permisos para acceder a esta sección.
+    </div>
+
+    <ng-container *ngIf="puedeAcceder()">
+      <div class="admin-stats-grid">
+        <article class="card admin-stat-card main-stat">
+          <span>Empleados</span>
+          <strong>{{ totalEmpleados }}</strong>
+        </article>
+
+        <article class="card admin-stat-card">
+          <span>Activos</span>
+          <strong>{{ empleadosActivos }}</strong>
+        </article>
+
+        <article class="card admin-stat-card">
+          <span>Inactivos</span>
+          <strong>{{ empleadosInactivos }}</strong>
+        </article>
+
+        <article class="card admin-stat-card">
+          <span>Nivel máximo</span>
+          <strong>{{ rangoMaximo }}</strong>
+        </article>
+      </div>
+
+      <article class="card admin-tabs-card">
+        <button
+          type="button"
+          class="admin-tab"
+          [class.active]="activeTab === 'empleados'"
+          (click)="setTab('empleados')"
+        >
+          Empleados
+        </button>
+
+        <button
+          type="button"
+          class="admin-tab"
+          [class.active]="activeTab === 'primas'"
+          (click)="setTab('primas')"
+        >
+          Primas
+        </button>
+
+        <button
+          type="button"
+          class="admin-tab"
+          [class.active]="activeTab === 'precios'"
+          (click)="setTab('precios')"
+        >
+          Precios
+        </button>
+      </article>
+
+      <div *ngIf="loading" class="card loading-card">
+        <p>Cargando administración...</p>
+      </div>
+
+      <div *ngIf="error && !loading" class="error-card">
+        {{ error }}
+      </div>
+
+      <article class="card admin-table-card" *ngIf="!loading && activeTab === 'empleados'">
+        <div class="card-header">
+          <div>
+            <h3>Gestión de empleados</h3>
+            <p>Cambia rangos, asciende, degrada o desactiva empleados.</p>
+          </div>
+
+          <button type="button" class="btn btn-secondary" (click)="cargarDatos()">
+            Recargar
+          </button>
+        </div>
+
+        <div class="admin-table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Empleado</th>
+                <th>Discord ID</th>
+                <th>Rango</th>
+                <th>Nivel</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <ng-container *ngFor="let empleado of empleados">
+                <tr
+                  class="admin-main-row"
+                  [class.is-open]="isEmpleadoAbierto(empleado)"
+                  [class.is-inactive]="!empleado.activo"
+                  (click)="toggleEmpleado(empleado)"
+                >
+                  <td>#{{ empleado.id }}</td>
+
+                  <td>
+                    <strong>{{ empleado.nombre }}</strong>
+                  </td>
+
+                  <td>{{ empleado.discordId }}</td>
+
+                  <td>
+                    <span class="admin-badge">{{ empleado.rangoNombre }}</span>
+                  </td>
+
+                  <td>{{ empleado.rangoNivel }}</td>
+
+                  <td>
+                    <span
+                      class="admin-status"
+                      [class.status-ok]="empleado.activo"
+                      [class.status-inactive]="!empleado.activo"
+                    >
+                      {{ empleado.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="table-actions" (click)="$event.stopPropagation()">
+                      <button
+                        type="button"
+                        class="btn btn-danger"
+                        *ngIf="empleado.activo"
+                        (click)="toggleActivo(empleado)"
+                      >
+                        Despedir
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        *ngIf="!empleado.activo"
+                        (click)="toggleActivo(empleado)"
+                      >
+                        Reactivar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr class="admin-detail-row" [class.is-open]="isEmpleadoAbierto(empleado)">
+                  <td colspan="7" class="admin-detail-cell">
+                    <div class="admin-detail-box">
+                      <div class="admin-detail-grid">
+                        <div class="admin-detail-item">
+                          <span>Empleado</span>
+                          <strong>{{ empleado.nombre }}</strong>
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Discord ID</span>
+                          <strong>{{ empleado.discordId }}</strong>
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Estado</span>
+                          <strong>{{ empleado.activo ? 'Activo' : 'Inactivo' }}</strong>
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Rango actual</span>
+                          <strong>{{ empleado.rangoNombre }}</strong>
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Nivel actual</span>
+                          <strong>{{ empleado.rangoNivel }}</strong>
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Cambiar rango</span>
+
+                          <select
+                            [ngModel]="empleado.rangoId"
+                            (ngModelChange)="cambiarRango(empleado, $event)"
+                            (click)="$event.stopPropagation()"
+                          >
+                            <option *ngFor="let rango of rangos" [value]="rango.id">
+                              {{ rango.nombre }} · Nivel {{ rango.nivel }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+
+              <tr *ngIf="empleados.length === 0">
+                <td colspan="7" class="empty-row">
+                  No hay empleados registrados.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card admin-placeholder-card" *ngIf="!loading && activeTab === 'primas'">
+        <div class="card-header">
+          <div>
+            <h3>Primas</h3>
+            <p>Próximo apartado: resumen global de primas por empleado y semana.</p>
+          </div>
+        </div>
+
+        <p class="placeholder-text">
+          Esta pestaña queda preparada para conectar el resumen de primas de todos los empleados.
+        </p>
+      </article>
+
+      <article class="card admin-placeholder-card" *ngIf="!loading && activeTab === 'precios'">
+        <div class="card-header">
+          <div>
+            <h3>Precios</h3>
+            <p>Próximo apartado: edición de precios de reparaciones, items, tasaciones, full tuning y tuneo.</p>
+          </div>
+        </div>
+
+        <p class="placeholder-text">
+          Esta pestaña queda preparada para modificar todos los catálogos de precios.
+        </p>
+      </article>
+    </ng-container>
+
+  </div>
+</section>
