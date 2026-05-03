@@ -233,23 +233,22 @@
         </div>
 
         <article class="card admin-primas-filters">
-          <div class="form-group">
-            <label>Semana</label>
-            <input
-              type="number"
-              min="0"
-              [(ngModel)]="semanaFiltro"
-              placeholder="Todas"
-            />
+          <div>
+            <h3>Semana {{ semanaSeleccionada ?? '-' }}</h3>
+            <p>Usa los botones para cambiar la semana de primas.</p>
           </div>
 
           <div class="primas-filter-actions">
-            <button type="button" class="btn btn-primary" (click)="buscarPrimasPorSemana()">
-              Buscar
+            <button type="button" class="btn btn-secondary" (click)="setSemanaAnteriorPrimas()">
+              Semana anterior
             </button>
 
-            <button type="button" class="btn btn-secondary" (click)="limpiarFiltroPrimas()">
-              Todas
+            <button type="button" class="btn btn-primary" (click)="setSemanaActualPrimas()">
+              Semana actual
+            </button>
+
+            <button type="button" class="btn btn-secondary" (click)="setSemanaSiguientePrimas()">
+              Semana siguiente
             </button>
 
             <button type="button" class="btn btn-secondary" (click)="cargarPrimas()">

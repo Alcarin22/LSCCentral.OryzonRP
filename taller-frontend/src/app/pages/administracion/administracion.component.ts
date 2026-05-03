@@ -42,7 +42,7 @@ export class AdministracionComponent implements OnInit {
   rangos: RangoAdmin[] = [];
 
   primas: AdminPrima[] = [];
-  semanaFiltro: number | null = null;
+  semanaSeleccionada: number | null = null;
 
   loading = false;
   loadingPrimas = false;
@@ -77,7 +77,7 @@ export class AdministracionComponent implements OnInit {
   setTab(tab: AdminTab): void {
     this.activeTab = tab;
 
-    if (tab === 'primas' && this.primas.length === 0) {
+    if (tab === 'primas') {
       this.cargarPrimas();
     }
   }
@@ -132,10 +132,15 @@ export class AdministracionComponent implements OnInit {
       this.cdr.detectChanges();
     });
 
-    this.adminPrimasService.listarPrimas(this.semanaFiltro).subscribe({
+    this.adminPrimasService.listarPrimas(this.semanaSeleccionada).subscribe({
       next: (data) => {
         this.zone.run(() => {
           this.primas = data ?? [];
+
+          if (this.primas.length > 0) {
+            this.semanaSeleccionada = this.primas[0].semana;
+          }
+
           this.loadingPrimas = false;
           this.errorPrimas = '';
           this.cdr.detectChanges();
@@ -154,12 +159,20 @@ export class AdministracionComponent implements OnInit {
     });
   }
 
-  buscarPrimasPorSemana(): void {
+  setSemanaActualPrimas(): void {
+    this.semanaSeleccionada = null;
     this.cargarPrimas();
   }
 
-  limpiarFiltroPrimas(): void {
-    this.semanaFiltro = null;
+  setSemanaAnteriorPrimas(): void {
+    const semanaBase = this.semanaSeleccionada ?? 0;
+    this.semanaSeleccionada = Math.max(0, semanaBase - 1);
+    this.cargarPrimas();
+  }
+
+  setSemanaSiguientePrimas(): void {
+    const semanaBase = this.semanaSeleccionada ?? 0;
+    this.semanaSeleccionada = semanaBase + 1;
     this.cargarPrimas();
   }
 

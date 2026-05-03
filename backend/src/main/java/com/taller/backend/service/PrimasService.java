@@ -112,6 +112,7 @@ public class PrimasService {
                 .findByIdEmpleadoAndFechaBetweenOrderByFechaAsc(empleadoId, inicioDT, finDT);
 
         int minutos = sumarMinutos(fichajes);
+
         BigDecimal horas = BigDecimal.valueOf(minutos)
                 .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
 
@@ -156,17 +157,22 @@ public class PrimasService {
         return primaRepository.save(prima);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AdminPrimaResponse> listarPrimasAdmin(Integer semana) {
-        List<Prima> primas;
+        int semanaSeleccionada = semana != null ? semana : getCurrentWeek();
 
-        if (semana != null) {
-            primas = primaRepository.findBySemanaOrderByEmpleadoNombreAsc(semana);
-        } else {
-            primas = primaRepository.findAllByOrderBySemanaDescEmpleadoNombreAsc();
+        if (semanaSeleccionada < 0) {
+            return List.of();
         }
 
-        return primas.stream()
+        List<Empleado> empleados = empleadoRepository.findAllByOrderByActivoDescNombreAsc();
+
+        empleados.forEach(empleado ->
+                recalcularPrimaEmpleadoSemana(empleado.getId(), semanaSeleccionada)
+        );
+
+        return primaRepository.findBySemanaOrderByEmpleadoNombreAsc(semanaSeleccionada)
+                .stream()
                 .map(this::mapearAdminPrima)
                 .toList();
     }
@@ -290,8 +296,8 @@ public class PrimasService {
         return switch (r) {
             case "aprendiz" -> 50;
             case "mecánico", "mecanico" -> 55;
-            case "mecánico experimentado" -> 60;
-            case "mecánico experimentado +" -> 65;
+            case "mecánico experimentado", "mecanico experimentado" -> 60;
+            case "mecánico experimentado +", "mecanico experimentado +" -> 65;
             case "encargado" -> 70;
             default -> 80;
         };
