@@ -17,7 +17,7 @@ import {
   TuneoDto
 } from '../../../app/services/factura.service';
 
-import { ToastService } from '../../services/toast.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-factura',
@@ -455,7 +455,6 @@ export class FacturaComponent implements OnInit {
 
     this.facturaService.crearFactura(payload).subscribe({
       next: (response) => {
-        console.log('Factura guardada en backend:', response);
         this.toastService.success(`Factura guardada correctamente. Total final: $${response.total ?? this.total}`);
         this.resetFormulario();
         this.enviando = false;

@@ -7,7 +7,7 @@ import { finalize } from 'rxjs/operators';
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
 import { FichajeService, FichajeResponse } from '../../core/services/fichaje.service';
-import { ToastService } from '../../services/toast.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface DashboardHoyResponse {
   horaEntrada: string | null;

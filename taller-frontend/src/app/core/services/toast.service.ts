@@ -50,7 +50,7 @@ export class ToastService {
 
   remove(id: number): void {
     this.toastsSubject.next(
-      this.toastsSubject.value.filter(toast => toast.id !== id)
+      this.toastsSubject.value.filter(t => t.id !== id)
     );
   }
 }

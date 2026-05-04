@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import { ToastService } from '../../../services/toast.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-toast',
@@ -11,7 +10,7 @@ import { ToastService } from '../../../services/toast.service';
   styleUrls: ['./toast.component.css']
 })
 export class ToastComponent {
-  private readonly toastService = inject(ToastService);
+  private toastService = inject(ToastService);
 
   toasts$ = this.toastService.toasts$;
 
