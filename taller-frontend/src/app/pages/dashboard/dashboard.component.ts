@@ -7,6 +7,7 @@ import { finalize } from 'rxjs/operators';
 import { SessionEmpleado, SessionService } from '../../core/services/session.service';
 import { environment } from '../../../environments/environment';
 import { FichajeService, FichajeResponse } from '../../core/services/fichaje.service';
+import { ToastService } from '../../services/toast.service';
 
 interface DashboardHoyResponse {
   horaEntrada: string | null;
@@ -76,7 +77,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private sessionService: SessionService,
     private http: HttpClient,
     private fichajeService: FichajeService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -112,6 +114,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: FichajeResponse) => {
         this.aplicarEstadoDesdeToggle(response);
+        this.mostrarToastFichaje(response);
         this.cdr.detectChanges();
 
         if (this.empleado?.discordId) {
@@ -122,9 +125,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error al hacer toggle de fichaje:', error);
-        alert('No se pudo actualizar el fichaje.');
+        this.toastService.error('No se pudo actualizar el fichaje.');
       }
     });
+  }
+
+  private mostrarToastFichaje(response: FichajeResponse): void {
+    if (response.fichajeActivo) {
+      this.toastService.success('Has entrado en servicio.');
+      return;
+    }
+
+    this.toastService.info('Has salido de servicio.');
   }
 
   private cargarDashboardCompleto(discordId: string): void {
@@ -162,6 +174,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error cargando dashboard:', error);
+        this.toastService.error('No se pudo cargar el resumen del panel.');
       }
     });
   }

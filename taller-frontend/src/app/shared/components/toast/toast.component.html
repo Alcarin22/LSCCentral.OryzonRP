@@ -1,0 +1,22 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts$ | async"
+    class="toast"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-info]="toast.type === 'info'"
+    [class.toast-warning]="toast.type === 'warning'"
+    (click)="remove(toast.id)"
+  >
+    <div class="toast-icon">
+      <span *ngIf="toast.type === 'success'">✓</span>
+      <span *ngIf="toast.type === 'error'">!</span>
+      <span *ngIf="toast.type === 'info'">i</span>
+      <span *ngIf="toast.type === 'warning'">⚠</span>
+    </div>
+
+    <span class="toast-message">
+      {{ toast.message }}
+    </span>
+  </div>
+</div>

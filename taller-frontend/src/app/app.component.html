@@ -1,5 +1,10 @@
-<app-sidebar></app-sidebar>
+<!-- Sidebar SOLO si no estás en login -->
+<app-sidebar *ngIf="showSidebar"></app-sidebar>
 
-<div class="main-content">
+<!-- Contenido -->
+<div [class.main-content]="showSidebar">
   <router-outlet></router-outlet>
 </div>
+
+<!-- Toast GLOBAL -->
+<app-toast></app-toast>
