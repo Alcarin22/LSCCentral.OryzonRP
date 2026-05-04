@@ -17,6 +17,8 @@ import {
   TuneoDto
 } from '../../../app/services/factura.service';
 
+import { ToastService } from '../../services/toast.service';
+
 @Component({
   selector: 'app-factura',
   standalone: true,
@@ -111,7 +113,8 @@ export class FacturaComponent implements OnInit {
 
   constructor(
     private sessionService: SessionService,
-    private facturaService: FacturaService
+    private facturaService: FacturaService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -138,6 +141,7 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando reparaciones:', error);
         this.cargandoReparaciones = false;
+        this.toastService.error('No se pudieron cargar las reparaciones.');
       }
     });
   }
@@ -154,6 +158,7 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando items:', error);
         this.cargandoItems = false;
+        this.toastService.error('No se pudieron cargar los items.');
       }
     });
   }
@@ -170,6 +175,7 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando precios de tasación:', error);
         this.cargandoTasacionPrecios = false;
+        this.toastService.error('No se pudieron cargar los precios de tasación.');
       }
     });
   }
@@ -186,6 +192,7 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando full tuning:', error);
         this.cargandoFullTuning = false;
+        this.toastService.error('No se pudieron cargar los precios de Full Tuning.');
       }
     });
   }
@@ -202,6 +209,7 @@ export class FacturaComponent implements OnInit {
       error: (error) => {
         console.error('Error cargando tuneo:', error);
         this.cargandoTuneo = false;
+        this.toastService.error('No se pudieron cargar los precios de tuneo.');
       }
     });
   }
@@ -350,67 +358,67 @@ export class FacturaComponent implements OnInit {
 
   enviarFactura(): void {
     if (!this.empleado?.discordId) {
-      alert('No hay sesión de empleado activa.');
+      this.toastService.error('No hay sesión de empleado activa.');
       return;
     }
 
     if (!this.tipoSeleccionado) {
-      alert('Debes seleccionar un tipo de factura.');
+      this.toastService.warning('Debes seleccionar un tipo de factura.');
       return;
     }
 
     if (this.tipoSeleccionado === 'Reparación' && !this.gravedad) {
-      alert('Debes seleccionar un tipo de reparación.');
+      this.toastService.warning('Debes seleccionar un tipo de reparación.');
       return;
     }
 
     if (this.tipoSeleccionado === 'Items' && !this.item) {
-      alert('Debes seleccionar un item.');
+      this.toastService.warning('Debes seleccionar un item.');
       return;
     }
 
     if (this.tipoSeleccionado === 'Tasación') {
       if (!this.matricula.trim()) {
-        alert('Debes indicar la matrícula del vehículo.');
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
         return;
       }
 
       if (!this.estado) {
-        alert('Debes seleccionar un estado para la tasación.');
+        this.toastService.warning('Debes seleccionar un estado para la tasación.');
         return;
       }
 
       if (!this.modelo.trim()) {
-        alert('Debes indicar el modelo del vehículo en la tasación.');
+        this.toastService.warning('Debes indicar el modelo del vehículo en la tasación.');
         return;
       }
     }
 
     if (this.tipoSeleccionado === 'Full Tuning') {
       if (!this.matricula.trim()) {
-        alert('Debes indicar la matrícula del vehículo.');
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
         return;
       }
 
       if (!this.categoria) {
-        alert('Debes seleccionar una categoría de Full Tuning.');
+        this.toastService.warning('Debes seleccionar una categoría de Full Tuning.');
         return;
       }
     }
 
     if (this.tipoSeleccionado === 'Tuneo') {
       if (!this.tuneoPlate.trim()) {
-        alert('Debes indicar la matrícula del vehículo.');
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
         return;
       }
 
       if (!this.categoria) {
-        alert('Debes seleccionar la categoría del vehículo.');
+        this.toastService.warning('Debes seleccionar la categoría del vehículo.');
         return;
       }
 
       if (this.tuneoSeleccionados.length === 0) {
-        alert('Debes seleccionar al menos una pieza de tuneo.');
+        this.toastService.warning('Debes seleccionar al menos una pieza de tuneo.');
         return;
       }
     }
@@ -448,13 +456,13 @@ export class FacturaComponent implements OnInit {
     this.facturaService.crearFactura(payload).subscribe({
       next: (response) => {
         console.log('Factura guardada en backend:', response);
-        alert(`Factura guardada correctamente. Total final: $${response.total ?? this.total}`);
+        this.toastService.success(`Factura guardada correctamente. Total final: $${response.total ?? this.total}`);
         this.resetFormulario();
         this.enviando = false;
       },
       error: (error) => {
         console.error('Error guardando factura:', error);
-        alert('No se pudo guardar la factura.');
+        this.toastService.error('No se pudo guardar la factura.');
         this.enviando = false;
       }
     });

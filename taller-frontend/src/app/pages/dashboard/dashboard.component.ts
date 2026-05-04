@@ -114,7 +114,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: FichajeResponse) => {
         this.aplicarEstadoDesdeToggle(response);
-        this.mostrarToastFichaje(response);
+
+        if (response.fichajeActivo) {
+          this.toastService.success('Has entrado en servicio.');
+        } else {
+          this.toastService.info('Has salido de servicio.');
+        }
+
         this.cdr.detectChanges();
 
         if (this.empleado?.discordId) {
@@ -128,15 +134,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.toastService.error('No se pudo actualizar el fichaje.');
       }
     });
-  }
-
-  private mostrarToastFichaje(response: FichajeResponse): void {
-    if (response.fichajeActivo) {
-      this.toastService.success('Has entrado en servicio.');
-      return;
-    }
-
-    this.toastService.info('Has salido de servicio.');
   }
 
   private cargarDashboardCompleto(discordId: string): void {
