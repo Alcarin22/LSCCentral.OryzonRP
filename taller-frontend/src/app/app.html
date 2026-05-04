@@ -1,7 +1,7 @@
-<div class="app-layout" [class.with-sidebar]="showSidebar" [class.without-sidebar]="!showSidebar">
-  <app-sidebar *ngIf="showSidebar"></app-sidebar>
+<app-sidebar *ngIf="showSidebar"></app-sidebar>
 
-  <main class="app-main">
-    <router-outlet></router-outlet>
-  </main>
+<div [class.main-content]="showSidebar">
+  <router-outlet></router-outlet>
 </div>
+
+<app-toast></app-toast>
