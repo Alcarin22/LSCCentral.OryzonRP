@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { environment } from '../../../environments/environment';
 import { SessionService } from '../../core/services/session.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +18,8 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private toastService: ToastService
   ) {}
 
   loginWithDiscord(): void {
@@ -35,7 +38,7 @@ export class LoginComponent {
 
     if (!popup) {
       this.loading = false;
-      alert('El navegador ha bloqueado la ventana emergente.');
+      this.toastService.error('El navegador ha bloqueado la ventana emergente.');
       return;
     }
 
@@ -50,6 +53,15 @@ export class LoginComponent {
 
       if (!user) {
         this.loading = false;
+        this.toastService.error('No se pudo iniciar sesión.');
+        return;
+      }
+
+      if (user.activo === false) {
+        this.loading = false;
+        this.sessionService.logout();
+        this.toastService.error('Tu acceso está desactivado.');
+        window.removeEventListener('message', messageListener);
         return;
       }
 
@@ -58,6 +70,7 @@ export class LoginComponent {
       window.removeEventListener('message', messageListener);
       this.loading = false;
 
+      this.toastService.success('Sesión iniciada correctamente.');
       this.router.navigate(['/dashboard']);
     };
 
