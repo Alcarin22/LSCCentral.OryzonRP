@@ -53,12 +53,11 @@ export class FacturacionService {
       params = params.set('tipo', filtros.tipo);
     }
 
-    if (filtros.idEmpleado) {
-      params = params.set('idEmpleado', filtros.idEmpleado);
+    if (filtros.idEmpleado !== null && filtros.idEmpleado !== undefined) {
+      params = params.set('idEmpleado', String(filtros.idEmpleado));
     }
 
-    // Anti-cache (clave)
-    params = params.set('t', Date.now());
+    params = params.set('t', String(Date.now()));
 
     return this.http.get<FacturaListado[]>(this.baseUrl, { params });
   }

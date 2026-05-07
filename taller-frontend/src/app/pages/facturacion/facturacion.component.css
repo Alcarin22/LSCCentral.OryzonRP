@@ -49,7 +49,6 @@
 }
 
 .billing-stat-card span,
-.billing-week-data span,
 .card-header p,
 .form-group label {
   color: #9aa4b2;
@@ -87,68 +86,11 @@
   margin: 4px 0 0;
 }
 
-.billing-week-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(170px, 1fr));
-  gap: 14px;
-}
-
-.billing-week-card {
-  display: grid;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.billing-week-card.is-best {
-  background: rgba(244,180,0,0.08);
-  border-color: rgba(244,180,0,0.26);
-}
-
-.billing-week-title {
-  display: block;
-  font-weight: 800;
-  color: #f5f7fb;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.billing-week-range {
-  display: block;
-  margin-top: 4px;
-  color: #9aa4b2;
-  font-size: 0.82rem;
-}
-
-.billing-week-data {
-  display: grid;
-  gap: 10px;
-}
-
-.billing-week-data div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.billing-week-data strong {
-  color: #f5f7fb;
-}
-
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
 .billing-filters-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 14px;
+  align-items: end;
 }
 
 .billing-filter-actions {
@@ -188,6 +130,12 @@
   white-space: nowrap;
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn-primary {
   background: #f4b400;
   color: #111;
@@ -199,7 +147,7 @@
   border: 1px solid #2f3748;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
@@ -388,9 +336,53 @@
   line-height: 1.6;
 }
 
+.billing-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pagination-page {
+  min-width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #2f3748;
+  background: #1d212b;
+  color: #f5f7fb;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.pagination-page.active {
+  background: #f4b400;
+  color: #111;
+  border-color: #f4b400;
+}
+
+.pagination-info {
+  color: #9aa4b2;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1300px) {
+  .billing-filters-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1200px) {
-  .billing-stats-grid,
-  .billing-week-grid {
+  .billing-stats-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -411,5 +403,9 @@
 
   .billing-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .billing-pagination {
+    justify-content: center;
   }
 }

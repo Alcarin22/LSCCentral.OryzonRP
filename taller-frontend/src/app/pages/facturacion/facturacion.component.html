@@ -3,7 +3,7 @@
 
     <header class="billing-header">
       <h1>Facturación</h1>
-      <p>Historial de ventas y registro de facturas emitidas por semana.</p>
+      <p>Historial de ventas y registro de facturas emitidas por el taller.</p>
     </header>
 
     <div class="billing-stats-grid">
@@ -24,58 +24,22 @@
     </div>
 
     <article class="card">
-      <div class="card-header">
-        <div>
-          <h3>Resumen semanal</h3>
-          <p>Datos económicos agrupados por semanas como en el apartado de primas.</p>
-        </div>
-      </div>
-
-      <div class="billing-week-grid">
-        <article
-          class="billing-week-card"
-          *ngFor="let semana of semanas"
-          [class.is-best]="mejorSemana?.nombre === semana.nombre && semana.facturacionTotal > 0">
-
-          <div>
-            <span class="billing-week-title">{{ semana.nombre }}</span>
-            <span class="billing-week-range">{{ semana.rango }}</span>
-          </div>
-
-          <div class="billing-week-data">
-            <div>
-              <span>Facturación</span>
-              <strong>{{ semana.facturacionTotal | currency:'USD':'symbol':'1.0-0' }}</strong>
-            </div>
-
-            <div>
-              <span>Facturas</span>
-              <strong>{{ semana.facturasTotales }}</strong>
-            </div>
-
-            <div>
-              <span>Promedio</span>
-              <strong>{{ semana.promedio | currency:'USD':'symbol':'1.0-0' }}</strong>
-            </div>
-          </div>
-        </article>
-      </div>
-    </article>
-
-    <article class="card">
-      <div class="quick-actions">
-        <button class="btn btn-secondary" type="button" (click)="setSemana(0)">Semana actual</button>
-        <button class="btn btn-secondary" type="button" (click)="setSemana(1)">Semana anterior</button>
-        <button class="btn btn-secondary" type="button" (click)="setSemana(2)">Hace 2 semanas</button>
-        <button class="btn btn-secondary" type="button" (click)="cargarUltimasSemanas()">Últimas 5 semanas</button>
-      </div>
-
       <div class="billing-filters-grid">
         <div class="form-group">
           <label>Tipo de factura</label>
           <select [(ngModel)]="filtros.tipo">
             <option value="">Todas</option>
             <option *ngFor="let tipo of tiposFactura" [value]="tipo">{{ tipo }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Empleado</label>
+          <select [(ngModel)]="filtros.idEmpleado">
+            <option [ngValue]="null">Todos los activos</option>
+            <option *ngFor="let empleado of empleadosActivos" [ngValue]="empleado.id">
+              {{ empleado.nombre }}
+            </option>
           </select>
         </div>
 
@@ -87,6 +51,15 @@
         <div class="form-group">
           <label>Hasta</label>
           <input type="date" [(ngModel)]="filtros.fechaFin" />
+        </div>
+
+        <div class="form-group">
+          <label>Facturas por página</label>
+          <select [(ngModel)]="facturasPorPagina" (ngModelChange)="cambiarTamanoPagina()">
+            <option *ngFor="let opcion of opcionesPaginacion" [ngValue]="opcion">
+              {{ opcion }}
+            </option>
+          </select>
         </div>
 
         <div class="billing-filter-actions">
@@ -108,7 +81,10 @@
       <div class="card-header">
         <div>
           <h3>Historial de ventas</h3>
-          <p>Últimas facturas emitidas por el taller.</p>
+          <p>
+            Mostrando {{ inicioMostrado }} - {{ finMostrado }}
+            de {{ totalFacturas }} facturas.
+          </p>
         </div>
       </div>
 
@@ -127,7 +103,7 @@
           </thead>
 
           <tbody>
-            <ng-container *ngFor="let factura of facturas">
+            <ng-container *ngFor="let factura of facturasPaginadas">
               <tr
                 class="billing-main-row"
                 [class.is-open]="isFacturaAbierta(factura)"
@@ -237,6 +213,39 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="billing-pagination" *ngIf="facturas.length > 0">
+        <button
+          class="btn btn-secondary"
+          type="button"
+          [disabled]="paginaActual === 1"
+          (click)="paginaAnterior()">
+          Anterior
+        </button>
+
+        <div class="pagination-pages">
+          <button
+            *ngFor="let pagina of paginasVisibles"
+            type="button"
+            class="pagination-page"
+            [class.active]="paginaActual === pagina"
+            (click)="irAPagina(pagina)">
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button
+          class="btn btn-secondary"
+          type="button"
+          [disabled]="paginaActual === totalPaginas"
+          (click)="paginaSiguiente()">
+          Siguiente
+        </button>
+
+        <span class="pagination-info">
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </span>
       </div>
     </article>
 

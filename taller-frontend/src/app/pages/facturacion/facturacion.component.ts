@@ -9,15 +9,12 @@ import {
   FacturacionFiltros
 } from '../../core/services/facturacion.service';
 
-interface SemanaFacturacion {
-  nombre: string;
-  rango: string;
-  fechaInicio: string;
-  fechaFin: string;
-  facturacionTotal: number;
-  facturasTotales: number;
-  promedio: number;
-}
+import {
+  AdminService,
+  EmpleadoAdmin
+} from '../../core/services/admin.service';
+
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-facturacion',
@@ -28,15 +25,17 @@ interface SemanaFacturacion {
 })
 export class FacturacionComponent implements OnInit {
   facturas: FacturaListado[] = [];
-  semanas: SemanaFacturacion[] = [];
+  empleadosActivos: EmpleadoAdmin[] = [];
 
   loading = false;
+  loadingEmpleados = false;
   error = '';
 
   filtros: FacturacionFiltros = {
     fechaInicio: '',
     fechaFin: '',
-    tipo: ''
+    tipo: '',
+    idEmpleado: null
   };
 
   tiposFactura = [
@@ -49,45 +48,54 @@ export class FacturacionComponent implements OnInit {
 
   facturaAbiertaId: number | null = null;
 
+  paginaActual = 1;
+  facturasPorPagina = 10;
+  opcionesPaginacion = [10, 20, 50];
+
   constructor(
     private facturacionService: FacturacionService,
+    private adminService: AdminService,
+    private toastService: ToastService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.cargarUltimasSemanas();
-  }
-
-  cargarUltimasSemanas(): void {
-    const semanas = this.generarUltimasSemanas(5);
-
-    this.filtros.fechaInicio = semanas[0].fechaInicio;
-    this.filtros.fechaFin = semanas[semanas.length - 1].fechaFin;
-    this.filtros.tipo = '';
-
+    this.cargarEmpleadosActivos();
     this.buscar();
   }
 
-  setSemana(offset: number): void {
-    const hoy = new Date();
-    const lunes = this.getLunesSemana(hoy);
+  async cargarEmpleadosActivos(): Promise<void> {
+    this.loadingEmpleados = true;
 
-    lunes.setDate(lunes.getDate() - offset * 7);
+    try {
+      const empleados = await firstValueFrom(this.adminService.listarEmpleados());
 
-    const domingo = new Date(lunes);
-    domingo.setDate(lunes.getDate() + 6);
+      this.zone.run(() => {
+        this.empleadosActivos = (empleados ?? [])
+          .filter(e => e.activo)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-    this.filtros.fechaInicio = this.toInputDate(lunes);
-    this.filtros.fechaFin = this.toInputDate(domingo);
+        this.loadingEmpleados = false;
+        this.cdr.detectChanges();
+      });
+    } catch (error) {
+      console.error('ERROR CARGANDO EMPLEADOS ACTIVOS:', error);
 
-    this.buscar();
+      this.zone.run(() => {
+        this.empleadosActivos = [];
+        this.loadingEmpleados = false;
+        this.toastService.error('No se pudieron cargar los empleados activos.');
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   async buscar(): Promise<void> {
     this.zone.run(() => {
       this.loading = true;
       this.error = '';
+      this.facturaAbiertaId = null;
       this.cdr.detectChanges();
     });
 
@@ -101,9 +109,7 @@ export class FacturacionComponent implements OnInit {
           new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
         );
 
-        this.semanas = this.generarSemanasDesdeFiltros();
-        this.calcularDatosSemanales();
-
+        this.paginaActual = 1;
         this.loading = false;
         this.error = '';
 
@@ -114,9 +120,7 @@ export class FacturacionComponent implements OnInit {
 
       this.zone.run(() => {
         this.facturas = [];
-        this.semanas = this.generarSemanasDesdeFiltros();
-        this.calcularDatosSemanales();
-
+        this.paginaActual = 1;
         this.error = 'No se pudo cargar la facturación.';
         this.loading = false;
 
@@ -126,7 +130,38 @@ export class FacturacionComponent implements OnInit {
   }
 
   limpiar(): void {
-    this.cargarUltimasSemanas();
+    this.filtros = {
+      fechaInicio: '',
+      fechaFin: '',
+      tipo: '',
+      idEmpleado: null
+    };
+
+    this.facturasPorPagina = 10;
+    this.paginaActual = 1;
+    this.buscar();
+  }
+
+  cambiarTamanoPagina(): void {
+    this.paginaActual = 1;
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaActual > 1) {
+      this.paginaActual--;
+    }
+  }
+
+  paginaSiguiente(): void {
+    if (this.paginaActual < this.totalPaginas) {
+      this.paginaActual++;
+    }
+  }
+
+  irAPagina(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+    }
   }
 
   toggleDetalle(factura: FacturaListado): void {
@@ -135,6 +170,41 @@ export class FacturacionComponent implements OnInit {
 
   isFacturaAbierta(factura: FacturaListado): boolean {
     return this.facturaAbiertaId === factura.id;
+  }
+
+  get facturasPaginadas(): FacturaListado[] {
+    const inicio = (this.paginaActual - 1) * this.facturasPorPagina;
+    const fin = inicio + this.facturasPorPagina;
+
+    return this.facturas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.facturas.length / this.facturasPorPagina));
+  }
+
+  get paginasVisibles(): number[] {
+    const total = this.totalPaginas;
+    const actual = this.paginaActual;
+    const paginas: number[] = [];
+
+    const inicio = Math.max(1, actual - 2);
+    const fin = Math.min(total, actual + 2);
+
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+
+    return paginas;
+  }
+
+  get inicioMostrado(): number {
+    if (!this.facturas.length) return 0;
+    return (this.paginaActual - 1) * this.facturasPorPagina + 1;
+  }
+
+  get finMostrado(): number {
+    return Math.min(this.paginaActual * this.facturasPorPagina, this.facturas.length);
   }
 
   get totalFacturado(): number {
@@ -148,14 +218,6 @@ export class FacturacionComponent implements OnInit {
   get promedioFactura(): number {
     if (!this.facturas.length) return 0;
     return Math.round(this.totalFacturado / this.facturas.length);
-  }
-
-  get mejorSemana(): SemanaFacturacion | null {
-    if (!this.semanas.length) return null;
-
-    return this.semanas.reduce((a, b) =>
-      b.facturacionTotal > a.facturacionTotal ? b : a
-    );
   }
 
   getDescripcion(f: FacturaListado): string {
@@ -197,127 +259,16 @@ export class FacturacionComponent implements OnInit {
 
     navigator.clipboard.writeText(texto)
       .then(() => {
-        alert('Informe copiado al portapapeles.');
+        this.toastService.success('Informe copiado al portapapeles.');
       })
       .catch(error => {
         console.error('Error copiando informe:', error);
-        alert('No se pudo copiar el informe.');
+        this.toastService.error('No se pudo copiar el informe.');
       });
   }
 
   formatearFecha(fecha: string): Date | null {
     if (!fecha) return null;
     return new Date(fecha);
-  }
-
-  private generarSemanasDesdeFiltros(): SemanaFacturacion[] {
-    if (!this.filtros.fechaInicio || !this.filtros.fechaFin) {
-      return this.generarUltimasSemanas(5);
-    }
-
-    const inicio = this.parseInputDate(this.filtros.fechaInicio);
-    const fin = this.parseInputDate(this.filtros.fechaFin);
-    const lunesInicial = this.getLunesSemana(inicio);
-
-    const semanas: SemanaFacturacion[] = [];
-    let cursor = new Date(lunesInicial);
-    let index = 1;
-
-    while (cursor <= fin) {
-      const lunes = new Date(cursor);
-      const domingo = new Date(cursor);
-      domingo.setDate(lunes.getDate() + 6);
-
-      semanas.push({
-        nombre: `Semana ${index}`,
-        rango: `${this.formatearDiaMes(lunes)} - ${this.formatearDiaMes(domingo)}`,
-        fechaInicio: this.toInputDate(lunes),
-        fechaFin: this.toInputDate(domingo),
-        facturacionTotal: 0,
-        facturasTotales: 0,
-        promedio: 0
-      });
-
-      cursor.setDate(cursor.getDate() + 7);
-      index++;
-    }
-
-    return semanas;
-  }
-
-  private generarUltimasSemanas(cantidad: number): SemanaFacturacion[] {
-    const hoy = new Date();
-    const lunesActual = this.getLunesSemana(hoy);
-    const semanas: SemanaFacturacion[] = [];
-
-    for (let i = cantidad - 1; i >= 0; i--) {
-      const lunes = new Date(lunesActual);
-      lunes.setDate(lunesActual.getDate() - i * 7);
-
-      const domingo = new Date(lunes);
-      domingo.setDate(lunes.getDate() + 6);
-
-      semanas.push({
-        nombre: `Semana ${semanas.length + 1}`,
-        rango: `${this.formatearDiaMes(lunes)} - ${this.formatearDiaMes(domingo)}`,
-        fechaInicio: this.toInputDate(lunes),
-        fechaFin: this.toInputDate(domingo),
-        facturacionTotal: 0,
-        facturasTotales: 0,
-        promedio: 0
-      });
-    }
-
-    return semanas;
-  }
-
-  private calcularDatosSemanales(): void {
-    this.semanas = this.semanas.map(semana => {
-      const inicio = this.parseInputDate(semana.fechaInicio);
-      const fin = this.parseInputDate(semana.fechaFin);
-      fin.setHours(23, 59, 59, 999);
-
-      const facturasSemana = this.facturas.filter(factura => {
-        const fecha = this.formatearFecha(factura.fecha);
-        return fecha && fecha >= inicio && fecha <= fin;
-      });
-
-      const total = facturasSemana.reduce((acc, f) => acc + (f.total || 0), 0);
-
-      return {
-        ...semana,
-        facturacionTotal: total,
-        facturasTotales: facturasSemana.length,
-        promedio: facturasSemana.length ? Math.round(total / facturasSemana.length) : 0
-      };
-    });
-  }
-
-  private getLunesSemana(fecha: Date): Date {
-    const copia = new Date(fecha);
-    const dia = copia.getDay();
-    const diff = dia === 0 ? -6 : 1 - dia;
-
-    copia.setDate(copia.getDate() + diff);
-    copia.setHours(0, 0, 0, 0);
-
-    return copia;
-  }
-
-  private parseInputDate(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  }
-
-  private toInputDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  }
-
-  private formatearDiaMes(date: Date): string {
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 }
