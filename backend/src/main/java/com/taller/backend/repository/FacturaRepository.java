@@ -46,7 +46,6 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
           AND (:tipo IS NULL OR :tipo = '' OR f.tipo = :tipo)
           AND (:inicio IS NULL OR f.fecha >= :inicio)
           AND (:fin IS NULL OR f.fecha <= :fin)
-        ORDER BY f.fecha DESC
     """)
     Page<Factura> buscarFacturasFiltradasPaginadas(
             @Param("idEmpleado") Long idEmpleado,
