@@ -2,8 +2,28 @@ package com.taller.backend.service;
 
 import com.taller.backend.dto.CreateFacturaRequest;
 import com.taller.backend.dto.FacturaListadoResponse;
-import com.taller.backend.entity.*;
-import com.taller.backend.repository.*;
+import com.taller.backend.dto.FacturasPageResponse;
+import com.taller.backend.entity.Empleado;
+import com.taller.backend.entity.Factura;
+import com.taller.backend.entity.FullTuning;
+import com.taller.backend.entity.Item;
+import com.taller.backend.entity.Reparacion;
+import com.taller.backend.entity.Tasacion;
+import com.taller.backend.entity.TasacionPrecio;
+import com.taller.backend.entity.Tuneo;
+import com.taller.backend.repository.EmpleadoRepository;
+import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.FullTuningRepository;
+import com.taller.backend.repository.ItemRepository;
+import com.taller.backend.repository.ReparacionRepository;
+import com.taller.backend.repository.TasacionPrecioRepository;
+import com.taller.backend.repository.TasacionRepository;
+import com.taller.backend.repository.TuneoRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,14 +31,18 @@ import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class FacturaService {
 
     private static final int PRECIO_GRUA = 600;
-    private static final BigDecimal PORCENTAJE_RENDIMIENTO = BigDecimal.valueOf(0.30);
+
+    private static final BigDecimal PORCENTAJE_RENDIMIENTO =
+            BigDecimal.valueOf(0.30);
 
     private final FacturaRepository facturaRepository;
     private final EmpleadoRepository empleadoRepository;
@@ -39,7 +63,9 @@ public class FacturaService {
             TasacionRepository tasacionRepository,
             FullTuningRepository fullTuningRepository,
             TuneoRepository tuneoRepository,
-            PrimasService primasService) {
+            PrimasService primasService
+    ) {
+
         this.facturaRepository = facturaRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
@@ -52,19 +78,26 @@ public class FacturaService {
     }
 
     public Factura crearFactura(CreateFacturaRequest request) {
-        Empleado empleado = empleadoRepository.findByDiscordId(request.getDiscordId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        Empleado empleado = empleadoRepository
+                .findByDiscordId(request.getDiscordId())
+                .orElseThrow(() ->
+                        new RuntimeException("Empleado no encontrado"));
 
         int totalCalculado = calcularTotal(request);
 
         Factura factura = new Factura();
+
         factura.setIdEmpleado(empleado.getId());
         factura.setFecha(LocalDateTime.now());
         factura.setMatricula(request.getMatricula());
         factura.setTipo(request.getTipo());
         factura.setTotal(totalCalculado);
 
-        boolean convenioAplicado = Boolean.TRUE.equals(request.getConvenio()) && !"Tasación".equals(request.getTipo());
+        boolean convenioAplicado =
+                Boolean.TRUE.equals(request.getConvenio())
+                        && !"Tasación".equals(request.getTipo());
+
         factura.setConvenio(convenioAplicado);
 
         factura.setModelo(request.getModelo());
@@ -83,25 +116,37 @@ public class FacturaService {
             guardarTasacion(guardada, request);
         }
 
-        primasService.recalcularPrimaEmpleadoSemana(empleado.getId(), guardada.getFecha());
+        primasService.recalcularPrimaEmpleadoSemana(
+                empleado.getId(),
+                guardada.getFecha()
+        );
 
         return guardada;
     }
 
-    private void guardarTasacion(Factura factura, CreateFacturaRequest request) {
+    private void guardarTasacion(
+            Factura factura,
+            CreateFacturaRequest request
+    ) {
+
         Tasacion t = new Tasacion();
+
         t.setFacturaId(factura.getId());
         t.setModelo(request.getModelo());
         t.setEstado(request.getEstado());
         t.setOtros(request.getOtros());
+
         tasacionRepository.save(t);
     }
 
-    public List<FacturaListadoResponse> listarFacturas(
+    public FacturasPageResponse listarFacturas(
             String fechaInicio,
             String fechaFin,
             String tipo,
-            Long idEmpleado) {
+            Long idEmpleado,
+            int page,
+            int size
+    ) {
 
         LocalDateTime inicio = null;
         LocalDateTime fin = null;
@@ -114,24 +159,88 @@ public class FacturaService {
             fin = LocalDate.parse(fechaFin).atTime(23, 59, 59);
         }
 
-        List<Factura> facturas = facturaRepository.buscarFacturasFiltradas(
-                idEmpleado,
-                tipo,
-                inicio,
-                fin
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "fecha")
         );
 
-        return facturas.stream()
-                .map(this::mapearFactura)
+        Page<Factura> pagina =
+                facturaRepository.buscarFacturasFiltradasPaginadas(
+                        idEmpleado,
+                        tipo,
+                        inicio,
+                        fin,
+                        pageable
+                );
+
+        List<Factura> facturas = pagina.getContent();
+
+        List<Long> idsEmpleados = facturas
+                .stream()
+                .map(Factura::getIdEmpleado)
+                .distinct()
                 .toList();
+
+        Map<Long, String> nombres = new HashMap<>();
+
+        empleadoRepository.findAllById(idsEmpleados)
+                .forEach(emp ->
+                        nombres.put(emp.getId(), emp.getNombre()));
+
+        List<FacturaListadoResponse> content = facturas
+                .stream()
+                .map(f -> mapearFactura(f, nombres))
+                .toList();
+
+        Long totalFacturado =
+                facturaRepository.calcularTotalFacturadoFiltrado(
+                        idEmpleado,
+                        tipo,
+                        inicio,
+                        fin
+                );
+
+        if (totalFacturado == null) {
+            totalFacturado = 0L;
+        }
+
+        FacturasPageResponse response = new FacturasPageResponse();
+
+        response.setContent(content);
+        response.setTotalElements(pagina.getTotalElements());
+        response.setTotalPages(pagina.getTotalPages());
+        response.setPage(pagina.getNumber());
+        response.setSize(pagina.getSize());
+        response.setTotalFacturado(totalFacturado);
+
+        if (pagina.getTotalElements() > 0) {
+            response.setPromedioFactura(
+                    totalFacturado / pagina.getTotalElements()
+            );
+        } else {
+            response.setPromedioFactura(0);
+        }
+
+        return response;
     }
 
-    private FacturaListadoResponse mapearFactura(Factura f) {
+    private FacturaListadoResponse mapearFactura(
+            Factura f,
+            Map<Long, String> nombres
+    ) {
+
         FacturaListadoResponse r = new FacturaListadoResponse();
 
         r.setId(f.getId());
         r.setIdEmpleado(f.getIdEmpleado());
-        r.setFecha(f.getFecha() != null ? f.getFecha().toString() : null);
+
+        r.setFecha(
+                f.getFecha() != null
+                        ? f.getFecha().toString()
+                        : null
+        );
+
         r.setTipo(f.getTipo());
         r.setTotal(f.getTotal());
         r.setConvenio(f.getConvenio());
@@ -146,28 +255,51 @@ public class FacturaService {
         r.setTuneoSeleccionados(f.getTuneoSeleccionados());
         r.setGrua(f.getGrua());
 
-        String nombre = empleadoRepository.findById(f.getIdEmpleado())
-                .map(Empleado::getNombre)
-                .orElse("Desconocido");
-
-        r.setNombreEmpleado(nombre);
+        r.setNombreEmpleado(
+                nombres.getOrDefault(
+                        f.getIdEmpleado(),
+                        "Desconocido"
+                )
+        );
 
         return r;
     }
 
     private int calcularTotal(CreateFacturaRequest request) {
+
         int total;
 
         switch (request.getTipo()) {
-            case "Reparación" -> total = calcularReparacion(request);
-            case "Items" -> total = calcularItems(request);
-            case "Tasación" -> total = calcularTasacion(request);
-            case "Full Tuning" -> total = calcularFullTuning(request);
-            case "Tuneo" -> total = calcularTuneo(request);
-            default -> throw new RuntimeException("Tipo inválido");
+
+            case "Reparación":
+                total = calcularReparacion(request);
+                break;
+
+            case "Items":
+                total = calcularItems(request);
+                break;
+
+            case "Tasación":
+                total = calcularTasacion(request);
+                break;
+
+            case "Full Tuning":
+                total = calcularFullTuning(request);
+                break;
+
+            case "Tuneo":
+                total = calcularTuneo(request);
+                break;
+
+            default:
+                throw new RuntimeException("Tipo inválido");
         }
 
-        if (Boolean.TRUE.equals(request.getConvenio()) && !"Tasación".equals(request.getTipo())) {
+        if (
+                Boolean.TRUE.equals(request.getConvenio())
+                        && !"Tasación".equals(request.getTipo())
+        ) {
+
             total = (int) Math.round(total * 0.8);
         }
 
@@ -175,8 +307,14 @@ public class FacturaService {
     }
 
     private int calcularReparacion(CreateFacturaRequest r) {
-        Reparacion rep = reparacionRepository.findAll().stream()
-                .filter(x -> normalizar(x.getTipo()).equals(normalizar(r.getGravedad())))
+
+        Reparacion rep = reparacionRepository
+                .findAll()
+                .stream()
+                .filter(x ->
+                        normalizar(x.getTipo())
+                                .equals(normalizar(r.getGravedad()))
+                )
                 .findFirst()
                 .orElseThrow();
 
@@ -190,8 +328,14 @@ public class FacturaService {
     }
 
     private int calcularItems(CreateFacturaRequest r) {
-        Item item = itemRepository.findAll().stream()
-                .filter(x -> normalizar(x.getNombre()).equals(normalizar(r.getItem())))
+
+        Item item = itemRepository
+                .findAll()
+                .stream()
+                .filter(x ->
+                        normalizar(x.getNombre())
+                                .equals(normalizar(r.getItem()))
+                )
                 .findFirst()
                 .orElseThrow();
 
@@ -202,8 +346,14 @@ public class FacturaService {
     }
 
     private int calcularTasacion(CreateFacturaRequest r) {
-        TasacionPrecio t = tasacionPrecioRepository.findAll().stream()
-                .filter(x -> normalizar(x.getEstado()).equals(normalizar(r.getEstado())))
+
+        TasacionPrecio t = tasacionPrecioRepository
+                .findAll()
+                .stream()
+                .filter(x ->
+                        normalizar(x.getEstado())
+                                .equals(normalizar(r.getEstado()))
+                )
                 .findFirst()
                 .orElseThrow();
 
@@ -211,8 +361,14 @@ public class FacturaService {
     }
 
     private int calcularFullTuning(CreateFacturaRequest r) {
-        FullTuning ft = fullTuningRepository.findAll().stream()
-                .filter(x -> normalizar(x.getCategoria()).equals(normalizar(r.getCategoria())))
+
+        FullTuning ft = fullTuningRepository
+                .findAll()
+                .stream()
+                .filter(x ->
+                        normalizar(x.getCategoria())
+                                .equals(normalizar(r.getCategoria()))
+                )
                 .findFirst()
                 .orElseThrow();
 
@@ -220,8 +376,14 @@ public class FacturaService {
     }
 
     private int calcularTuneo(CreateFacturaRequest r) {
-        FullTuning ft = fullTuningRepository.findAll().stream()
-                .filter(x -> normalizar(x.getCategoria()).equals(normalizar(r.getCategoria())))
+
+        FullTuning ft = fullTuningRepository
+                .findAll()
+                .stream()
+                .filter(x ->
+                        normalizar(x.getCategoria())
+                                .equals(normalizar(r.getCategoria()))
+                )
                 .findFirst()
                 .orElseThrow();
 
@@ -230,11 +392,23 @@ public class FacturaService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (String p : piezas) {
+
             if (esRendimiento(p)) {
-                total = total.add(ft.getPrecio().multiply(PORCENTAJE_RENDIMIENTO));
+
+                total = total.add(
+                        ft.getPrecio()
+                                .multiply(PORCENTAJE_RENDIMIENTO)
+                );
+
             } else {
-                Tuneo t = tuneoRepository.findAll().stream()
-                        .filter(x -> normalizar(x.getPieza()).equals(normalizar(getClave(p))))
+
+                Tuneo t = tuneoRepository
+                        .findAll()
+                        .stream()
+                        .filter(x ->
+                                normalizar(x.getPieza())
+                                        .equals(normalizar(getClave(p)))
+                        )
                         .findFirst()
                         .orElseThrow();
 
@@ -246,23 +420,42 @@ public class FacturaService {
     }
 
     private boolean esRendimiento(String p) {
+
         String x = normalizar(p);
-        return x.equals("motor") || x.equals("frenos") || x.equals("transmision")
-                || x.equals("suspension") || x.equals("blindaje") || x.equals("turbo");
+
+        return x.equals("motor")
+                || x.equals("frenos")
+                || x.equals("transmision")
+                || x.equals("suspension")
+                || x.equals("blindaje")
+                || x.equals("turbo");
     }
 
     private String getClave(String pieza) {
+
         String p = normalizar(pieza);
 
-        if (p.equals("pintura")) return "Pintura";
-        if (p.equals("livery")) return "Vinilo";
-        if (p.equals("pintura llantas")) return "Pintura de ruedas";
+        if (p.equals("pintura")) {
+            return "Pintura";
+        }
+
+        if (p.equals("livery")) {
+            return "Vinilo";
+        }
+
+        if (p.equals("pintura llantas")) {
+            return "Pintura de ruedas";
+        }
 
         return "Parte estetica";
     }
 
     private String normalizar(String v) {
-        if (v == null) return "";
+
+        if (v == null) {
+            return "";
+        }
+
         return Normalizer.normalize(v, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(Locale.ROOT)

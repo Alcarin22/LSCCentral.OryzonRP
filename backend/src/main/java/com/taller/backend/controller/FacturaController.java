@@ -1,15 +1,15 @@
 package com.taller.backend.controller;
 
 import com.taller.backend.dto.CreateFacturaRequest;
-import com.taller.backend.dto.FacturaListadoResponse;
+import com.taller.backend.dto.FacturasPageResponse;
 import com.taller.backend.entity.Factura;
 import com.taller.backend.service.FacturaService;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/facturas")
+@CrossOrigin(origins = "*")
 public class FacturaController {
 
     private final FacturaService facturaService;
@@ -24,11 +24,22 @@ public class FacturaController {
     }
 
     @GetMapping
-    public List<FacturaListadoResponse> listarFacturas(
+    public FacturasPageResponse listarFacturas(
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
             @RequestParam(required = false) String tipo,
-            @RequestParam(required = false) Long idEmpleado) {
-        return facturaService.listarFacturas(fechaInicio, fechaFin, tipo, idEmpleado);
+            @RequestParam(required = false) Long idEmpleado,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        return facturaService.listarFacturas(
+                fechaInicio,
+                fechaFin,
+                tipo,
+                idEmpleado,
+                page,
+                size
+        );
     }
 }

@@ -5,20 +5,31 @@ public class FacturaListadoResponse {
     private Long id;
     private Long idEmpleado;
     private String nombreEmpleado;
+
     private String fecha;
     private String tipo;
+
     private Integer total;
+
     private Boolean convenio;
+
     private String matricula;
     private String modelo;
     private String estado;
+
     private Integer cantidad;
     private String item;
+
     private String categoria;
     private String gravedad;
+
     private String tuneoPlate;
     private String tuneoSeleccionados;
+
     private Boolean grua;
+
+    public FacturaListadoResponse() {
+    }
 
     public Long getId() {
         return id;
