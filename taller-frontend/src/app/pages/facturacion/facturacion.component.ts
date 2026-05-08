@@ -52,6 +52,11 @@ export class FacturacionComponent implements OnInit {
   facturasPorPagina = 10;
   opcionesPaginacion = [10, 20, 50];
 
+  totalFacturasBackend = 0;
+  totalPaginasBackend = 1;
+  totalFacturadoBackend = 0;
+  promedioFacturaBackend = 0;
+
   constructor(
     private facturacionService: FacturacionService,
     private adminService: AdminService,
@@ -101,18 +106,22 @@ export class FacturacionComponent implements OnInit {
 
     try {
       const response = await firstValueFrom(
-        this.facturacionService.listarFacturas(this.filtros)
+        this.facturacionService.listarFacturas(
+          this.filtros,
+          this.paginaActual - 1,
+          this.facturasPorPagina
+        )
       );
 
       this.zone.run(() => {
-        this.facturas = (response ?? []).sort((a, b) =>
-          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-        );
+        this.facturas = response.content ?? [];
+        this.totalFacturasBackend = response.totalElements ?? 0;
+        this.totalPaginasBackend = response.totalPages ?? 1;
+        this.totalFacturadoBackend = response.totalFacturado ?? 0;
+        this.promedioFacturaBackend = response.promedioFactura ?? 0;
 
-        this.paginaActual = 1;
         this.loading = false;
         this.error = '';
-
         this.cdr.detectChanges();
       });
     } catch (error) {
@@ -120,13 +129,20 @@ export class FacturacionComponent implements OnInit {
 
       this.zone.run(() => {
         this.facturas = [];
-        this.paginaActual = 1;
+        this.totalFacturasBackend = 0;
+        this.totalPaginasBackend = 1;
+        this.totalFacturadoBackend = 0;
+        this.promedioFacturaBackend = 0;
         this.error = 'No se pudo cargar la facturación.';
         this.loading = false;
-
         this.cdr.detectChanges();
       });
     }
+  }
+
+  buscarDesdeFiltros(): void {
+    this.paginaActual = 1;
+    this.buscar();
   }
 
   limpiar(): void {
@@ -144,23 +160,27 @@ export class FacturacionComponent implements OnInit {
 
   cambiarTamanoPagina(): void {
     this.paginaActual = 1;
+    this.buscar();
   }
 
   paginaAnterior(): void {
     if (this.paginaActual > 1) {
       this.paginaActual--;
+      this.buscar();
     }
   }
 
   paginaSiguiente(): void {
     if (this.paginaActual < this.totalPaginas) {
       this.paginaActual++;
+      this.buscar();
     }
   }
 
   irAPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPaginas) {
       this.paginaActual = pagina;
+      this.buscar();
     }
   }
 
@@ -173,14 +193,11 @@ export class FacturacionComponent implements OnInit {
   }
 
   get facturasPaginadas(): FacturaListado[] {
-    const inicio = (this.paginaActual - 1) * this.facturasPorPagina;
-    const fin = inicio + this.facturasPorPagina;
-
-    return this.facturas.slice(inicio, fin);
+    return this.facturas;
   }
 
   get totalPaginas(): number {
-    return Math.max(1, Math.ceil(this.facturas.length / this.facturasPorPagina));
+    return Math.max(1, this.totalPaginasBackend);
   }
 
   get paginasVisibles(): number[] {
@@ -199,25 +216,24 @@ export class FacturacionComponent implements OnInit {
   }
 
   get inicioMostrado(): number {
-    if (!this.facturas.length) return 0;
+    if (!this.totalFacturas) return 0;
     return (this.paginaActual - 1) * this.facturasPorPagina + 1;
   }
 
   get finMostrado(): number {
-    return Math.min(this.paginaActual * this.facturasPorPagina, this.facturas.length);
+    return Math.min(this.paginaActual * this.facturasPorPagina, this.totalFacturas);
   }
 
   get totalFacturado(): number {
-    return this.facturas.reduce((acc, f) => acc + (f.total || 0), 0);
+    return this.totalFacturadoBackend;
   }
 
   get totalFacturas(): number {
-    return this.facturas.length;
+    return this.totalFacturasBackend;
   }
 
   get promedioFactura(): number {
-    if (!this.facturas.length) return 0;
-    return Math.round(this.totalFacturado / this.facturas.length);
+    return this.promedioFacturaBackend;
   }
 
   getDescripcion(f: FacturaListado): string {

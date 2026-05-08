@@ -29,7 +29,9 @@
           <label>Tipo de factura</label>
           <select [(ngModel)]="filtros.tipo">
             <option value="">Todas</option>
-            <option *ngFor="let tipo of tiposFactura" [value]="tipo">{{ tipo }}</option>
+            <option *ngFor="let tipo of tiposFactura" [value]="tipo">
+              {{ tipo }}
+            </option>
           </select>
         </div>
 
@@ -63,8 +65,13 @@
         </div>
 
         <div class="billing-filter-actions">
-          <button class="btn btn-primary" type="button" (click)="buscar()">Buscar</button>
-          <button class="btn btn-secondary" type="button" (click)="limpiar()">Reset</button>
+          <button class="btn btn-primary" type="button" (click)="buscarDesdeFiltros()">
+            Buscar
+          </button>
+
+          <button class="btn btn-secondary" type="button" (click)="limpiar()">
+            Reset
+          </button>
         </div>
       </div>
     </article>
@@ -107,8 +114,8 @@
               <tr
                 class="billing-main-row"
                 [class.is-open]="isFacturaAbierta(factura)"
-                (click)="toggleDetalle(factura)">
-
+                (click)="toggleDetalle(factura)"
+              >
                 <td>#{{ factura.id }}</td>
 
                 <td>
@@ -135,6 +142,7 @@
                 <td colspan="7" class="billing-detail-cell">
                   <div class="billing-detail-box">
                     <div class="billing-detail-grid">
+
                       <div class="billing-detail-item">
                         <span>ID factura</span>
                         <strong>#{{ factura.id }}</strong>
@@ -196,6 +204,7 @@
                           <pre>{{ getInformeTasacion(factura) }}</pre>
                         </div>
                       }
+
                     </div>
 
                     <div class="billing-detail-notes">
@@ -206,7 +215,7 @@
               </tr>
             </ng-container>
 
-            <tr *ngIf="facturas.length === 0">
+            <tr *ngIf="facturasPaginadas.length === 0">
               <td colspan="7" class="empty-row">
                 No hay facturas para los filtros seleccionados.
               </td>
@@ -215,12 +224,13 @@
         </table>
       </div>
 
-      <div class="billing-pagination" *ngIf="facturas.length > 0">
+      <div class="billing-pagination" *ngIf="totalFacturas > 0">
         <button
           class="btn btn-secondary"
           type="button"
           [disabled]="paginaActual === 1"
-          (click)="paginaAnterior()">
+          (click)="paginaAnterior()"
+        >
           Anterior
         </button>
 
@@ -230,7 +240,8 @@
             type="button"
             class="pagination-page"
             [class.active]="paginaActual === pagina"
-            (click)="irAPagina(pagina)">
+            (click)="irAPagina(pagina)"
+          >
             {{ pagina }}
           </button>
         </div>
@@ -239,7 +250,8 @@
           class="btn btn-secondary"
           type="button"
           [disabled]="paginaActual === totalPaginas"
-          (click)="paginaSiguiente()">
+          (click)="paginaSiguiente()"
+        >
           Siguiente
         </button>
 
