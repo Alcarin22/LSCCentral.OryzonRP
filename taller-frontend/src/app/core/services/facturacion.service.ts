@@ -1,43 +1,74 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
+import {
+  HttpClient,
+  HttpParams
+} from '@angular/common/http';
+
+import { Observable } from 'rxjs';
 
 export interface FacturaListado {
+
   id: number;
+
   idEmpleado: number;
+
   nombreEmpleado: string;
+
   fecha: string;
+
   tipo: string;
+
   total: number;
+
   convenio: boolean;
-  matricula?: string | null;
-  modelo?: string | null;
-  estado?: string | null;
-  cantidad?: number | null;
-  item?: string | null;
-  categoria?: string | null;
-  gravedad?: string | null;
-  tuneoPlate?: string | null;
-  tuneoSeleccionados?: string | null;
-  grua?: boolean | null;
+
+  matricula: string;
+
+  modelo: string;
+
+  estado: string;
+
+  cantidad: number;
+
+  item: string;
+
+  categoria: string;
+
+  gravedad: string;
+
+  tuneoPlate: string;
+
+  tuneoSeleccionados: string;
+
+  grua: boolean;
 }
 
 export interface FacturacionFiltros {
+
   fechaInicio?: string;
+
   fechaFin?: string;
+
   tipo?: string;
+
   idEmpleado?: number | null;
 }
 
-export interface FacturasPageResponse {
+export interface FacturaResponse {
+
   content: FacturaListado[];
+
   totalElements: number;
+
   totalPages: number;
+
   page: number;
+
   size: number;
+
   totalFacturado: number;
+
   promedioFactura: number;
 }
 
@@ -45,69 +76,71 @@ export interface FacturasPageResponse {
   providedIn: 'root'
 })
 export class FacturacionService {
-  private readonly baseUrl = `${environment.backendUrl}/api/facturas`;
 
-  constructor(private http: HttpClient) {}
+  private apiUrl =
+    'https://lsccentraloryzonrp-production.up.railway.app/api/facturas';
+
+  constructor(
+    private http: HttpClient
+  ) {}
 
   listarFacturas(
-    filtros: FacturacionFiltros = {},
-    page = 0,
-    size = 10
-  ): Observable<FacturasPageResponse> {
+    filtros: FacturacionFiltros,
+    pagina: number,
+    size: number
+  ): Observable<FacturaResponse> {
+
     let params = new HttpParams()
-      .set('page', String(page))
-      .set('size', String(size))
-      .set('t', String(Date.now()));
+      .set('page', pagina)
+      .set('size', size);
 
     if (filtros.fechaInicio) {
-      params = params.set('fechaInicio', filtros.fechaInicio);
+
+      params = params.set(
+        'fechaInicio',
+        filtros.fechaInicio
+      );
     }
 
     if (filtros.fechaFin) {
-      params = params.set('fechaFin', filtros.fechaFin);
+
+      params = params.set(
+        'fechaFin',
+        filtros.fechaFin
+      );
     }
 
     if (filtros.tipo) {
-      params = params.set('tipo', filtros.tipo);
-    }
 
-    if (filtros.idEmpleado !== null && filtros.idEmpleado !== undefined) {
-      params = params.set('idEmpleado', String(filtros.idEmpleado));
-    }
-
-    return this.http
-      .get<FacturasPageResponse | FacturaListado[]>(this.baseUrl, { params })
-      .pipe(
-        map((response) => {
-          if (Array.isArray(response)) {
-            const totalFacturado = response.reduce(
-              (acc, factura) => acc + (factura.total || 0),
-              0
-            );
-
-            return {
-              content: response,
-              totalElements: response.length,
-              totalPages: 1,
-              page: 0,
-              size: response.length,
-              totalFacturado,
-              promedioFactura: response.length
-                ? Math.round(totalFacturado / response.length)
-                : 0
-            };
-          }
-
-          return {
-            content: response.content ?? [],
-            totalElements: response.totalElements ?? 0,
-            totalPages: response.totalPages ?? 1,
-            page: response.page ?? 0,
-            size: response.size ?? size,
-            totalFacturado: response.totalFacturado ?? 0,
-            promedioFactura: response.promedioFactura ?? 0
-          };
-        })
+      params = params.set(
+        'tipo',
+        filtros.tipo
       );
+    }
+
+    if (
+      filtros.idEmpleado !== null &&
+      filtros.idEmpleado !== undefined
+    ) {
+
+      params = params.set(
+        'idEmpleado',
+        filtros.idEmpleado
+      );
+    }
+
+    return this.http.get<FacturaResponse>(
+      this.apiUrl,
+      { params }
+    );
+  }
+
+  eliminarFactura(
+    id: number
+  ): Observable<void> {
+
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}`
+    );
   }
 }

@@ -124,6 +124,22 @@ public class FacturaService {
         return guardada;
     }
 
+    public void eliminarFactura(Long id) {
+        Factura factura = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        Long empleadoId = factura.getIdEmpleado();
+        LocalDateTime fechaFactura = factura.getFecha();
+
+        facturaRepository.delete(factura);
+
+        try {
+            primasService.recalcularPrimaEmpleadoSemana(empleadoId, fechaFactura);
+        } catch (Exception e) {
+            System.err.println("Error recalculando prima tras eliminar factura: " + e.getMessage());
+        }
+    }
+
     private void guardarTasacion(Factura factura, CreateFacturaRequest request) {
         Tasacion tasacion = new Tasacion();
 
@@ -186,8 +202,8 @@ public class FacturaService {
         Map<Long, String> nombresEmpleados = new HashMap<>();
 
         empleadoRepository.findAllById(idsEmpleados)
-                .forEach(empleadoItem ->
-                        nombresEmpleados.put(empleadoItem.getId(), empleadoItem.getNombre())
+                .forEach(empleado ->
+                        nombresEmpleados.put(empleado.getId(), empleado.getNombre())
                 );
 
         List<FacturaListadoResponse> content = facturas

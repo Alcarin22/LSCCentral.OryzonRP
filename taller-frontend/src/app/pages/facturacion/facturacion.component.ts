@@ -15,6 +15,7 @@ import {
 } from '../../core/services/admin.service';
 
 import { ToastService } from '../../core/services/toast.service';
+import { SessionService } from '../../core/services/session.service';
 
 @Component({
   selector: 'app-facturacion',
@@ -57,10 +58,13 @@ export class FacturacionComponent implements OnInit {
   totalFacturadoBackend = 0;
   promedioFacturaBackend = 0;
 
+  private filtroTimeout: ReturnType<typeof setTimeout> | null = null;
+
   constructor(
     private facturacionService: FacturacionService,
     private adminService: AdminService,
     private toastService: ToastService,
+    private sessionService: SessionService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -68,6 +72,11 @@ export class FacturacionComponent implements OnInit {
   ngOnInit(): void {
     this.cargarEmpleadosActivos();
     this.buscar();
+  }
+
+  get puedeEliminarFacturas(): boolean {
+    const empleado = this.sessionService.getEmpleado();
+    return (empleado?.rango?.nivel ?? 0) >= 3;
   }
 
   async cargarEmpleadosActivos(): Promise<void> {
@@ -140,9 +149,15 @@ export class FacturacionComponent implements OnInit {
     }
   }
 
-  buscarDesdeFiltros(): void {
-    this.paginaActual = 1;
-    this.buscar();
+  onFiltrosChange(): void {
+    if (this.filtroTimeout) {
+      clearTimeout(this.filtroTimeout);
+    }
+
+    this.filtroTimeout = setTimeout(() => {
+      this.paginaActual = 1;
+      this.buscar();
+    }, 350);
   }
 
   limpiar(): void {
@@ -190,6 +205,37 @@ export class FacturacionComponent implements OnInit {
 
   isFacturaAbierta(factura: FacturaListado): boolean {
     return this.facturaAbiertaId === factura.id;
+  }
+
+  eliminarFactura(factura: FacturaListado, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (!this.puedeEliminarFacturas) {
+      this.toastService.error('No tienes permisos para eliminar facturas.');
+      return;
+    }
+
+    const confirmar = confirm(`¿Seguro que quieres eliminar la factura #${factura.id}?`);
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.facturacionService.eliminarFactura(factura.id).subscribe({
+      next: () => {
+        this.toastService.success(`Factura #${factura.id} eliminada correctamente.`);
+
+        if (this.facturas.length === 1 && this.paginaActual > 1) {
+          this.paginaActual--;
+        }
+
+        this.buscar();
+      },
+      error: (error) => {
+        console.error('ERROR ELIMINANDO FACTURA:', error);
+        this.toastService.error('No se pudo eliminar la factura.');
+      }
+    });
   }
 
   get facturasPaginadas(): FacturaListado[] {

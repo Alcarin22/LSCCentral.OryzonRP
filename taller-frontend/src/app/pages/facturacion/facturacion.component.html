@@ -1,265 +1,584 @@
-<section class="facturacion-page">
-  <div class="billing-view">
+<div class="facturacion-container">
 
-    <header class="billing-header">
-      <h1>Facturación</h1>
-      <p>Historial de ventas y registro de facturas emitidas por el taller.</p>
-    </header>
+  <div class="facturacion-header">
 
-    <div class="billing-stats-grid">
-      <article class="card billing-stat-card main-stat">
-        <span>Total facturado</span>
-        <strong>{{ totalFacturado | currency:'USD':'symbol':'1.0-0' }}</strong>
-      </article>
+    <div class="header-left">
 
-      <article class="card billing-stat-card">
-        <span>Facturas emitidas</span>
-        <strong>{{ totalFacturas }}</strong>
-      </article>
+      <h2>
+        Facturación
+      </h2>
 
-      <article class="card billing-stat-card">
-        <span>Promedio por factura</span>
-        <strong>{{ promedioFactura | currency:'USD':'symbol':'1.0-0' }}</strong>
-      </article>
+      <p>
+        Historial completo de facturas registradas
+      </p>
+
     </div>
 
-    <article class="card">
-      <div class="billing-filters-grid">
-        <div class="form-group">
-          <label>Tipo de factura</label>
-          <select [(ngModel)]="filtros.tipo">
-            <option value="">Todas</option>
-            <option *ngFor="let tipo of tiposFactura" [value]="tipo">
-              {{ tipo }}
-            </option>
-          </select>
-        </div>
+    <div class="stats-container">
 
-        <div class="form-group">
-          <label>Empleado</label>
-          <select [(ngModel)]="filtros.idEmpleado">
-            <option [ngValue]="null">Todos los activos</option>
-            <option *ngFor="let empleado of empleadosActivos" [ngValue]="empleado.id">
-              {{ empleado.nombre }}
-            </option>
-          </select>
-        </div>
+      <div class="stat-card">
 
-        <div class="form-group">
-          <label>Desde</label>
-          <input type="date" [(ngModel)]="filtros.fechaInicio" />
-        </div>
-
-        <div class="form-group">
-          <label>Hasta</label>
-          <input type="date" [(ngModel)]="filtros.fechaFin" />
-        </div>
-
-        <div class="form-group">
-          <label>Facturas por página</label>
-          <select [(ngModel)]="facturasPorPagina" (ngModelChange)="cambiarTamanoPagina()">
-            <option *ngFor="let opcion of opcionesPaginacion" [ngValue]="opcion">
-              {{ opcion }}
-            </option>
-          </select>
-        </div>
-
-        <div class="billing-filter-actions">
-          <button class="btn btn-primary" type="button" (click)="buscarDesdeFiltros()">
-            Buscar
-          </button>
-
-          <button class="btn btn-secondary" type="button" (click)="limpiar()">
-            Reset
-          </button>
-        </div>
-      </div>
-    </article>
-
-    <div *ngIf="loading" class="card loading-card">
-      <p>Cargando facturación...</p>
-    </div>
-
-    <div *ngIf="error" class="error-card">
-      {{ error }}
-    </div>
-
-    <article class="card billing-table-card" *ngIf="!loading">
-      <div class="card-header">
-        <div>
-          <h3>Historial de ventas</h3>
-          <p>
-            Mostrando {{ inicioMostrado }} - {{ finMostrado }}
-            de {{ totalFacturas }} facturas.
-          </p>
-        </div>
-      </div>
-
-      <div class="billing-table-wrapper">
-        <table class="billing-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tipo</th>
-              <th>Mecánico</th>
-              <th>Detalle</th>
-              <th>Fecha</th>
-              <th>Total</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <ng-container *ngFor="let factura of facturasPaginadas">
-              <tr
-                class="billing-main-row"
-                [class.is-open]="isFacturaAbierta(factura)"
-                (click)="toggleDetalle(factura)"
-              >
-                <td>#{{ factura.id }}</td>
-
-                <td>
-                  <span class="billing-badge">{{ factura.tipo }}</span>
-                </td>
-
-                <td>{{ factura.nombreEmpleado }}</td>
-                <td>{{ getDescripcion(factura) }}</td>
-
-                <td>
-                  {{ formatearFecha(factura.fecha) | date:'dd/MM/yyyy HH:mm' }}
-                </td>
-
-                <td class="billing-money">
-                  {{ factura.total | currency:'USD':'symbol':'1.0-0' }}
-                </td>
-
-                <td>
-                  <span class="billing-status status-ok">Emitida</span>
-                </td>
-              </tr>
-
-              <tr class="billing-detail-row" [class.is-open]="isFacturaAbierta(factura)">
-                <td colspan="7" class="billing-detail-cell">
-                  <div class="billing-detail-box">
-                    <div class="billing-detail-grid">
-
-                      <div class="billing-detail-item">
-                        <span>ID factura</span>
-                        <strong>#{{ factura.id }}</strong>
-                      </div>
-
-                      <div class="billing-detail-item">
-                        <span>Tipo</span>
-                        <strong>{{ factura.tipo }}</strong>
-                      </div>
-
-                      <div class="billing-detail-item">
-                        <span>Mecánico</span>
-                        <strong>{{ factura.nombreEmpleado }}</strong>
-                      </div>
-
-                      <div class="billing-detail-item">
-                        <span>Matrícula</span>
-                        <strong>{{ getMatricula(factura) }}</strong>
-                      </div>
-
-                      <div class="billing-detail-item">
-                        <span>Modelo</span>
-                        <strong>{{ factura.modelo || '-' }}</strong>
-                      </div>
-
-                      <div class="billing-detail-item">
-                        <span>Categoría / Estado</span>
-                        <strong>{{ factura.categoria || factura.estado || '-' }}</strong>
-                      </div>
-
-                      @if (factura.tipo !== 'Tasación') {
-                        <div class="billing-detail-item">
-                          <span>Convenio</span>
-                          <strong>{{ factura.convenio ? 'Sí' : 'No' }}</strong>
-                        </div>
-
-                        <div class="billing-detail-item">
-                          <span>Grúa</span>
-                          <strong>{{ factura.grua ? 'Sí' : 'No' }}</strong>
-                        </div>
-                      }
-
-                      <div class="billing-detail-item">
-                        <span>Total</span>
-                        <strong>{{ factura.total | currency:'USD':'symbol':'1.0-0' }}</strong>
-                      </div>
-
-                      @if (factura.tipo === 'Tasación') {
-                        <div
-                          class="billing-detail-item billing-report-item"
-                          role="button"
-                          tabindex="0"
-                          title="Pulsa para copiar el informe"
-                          (click)="copiarInformeTasacion(factura); $event.stopPropagation()"
-                          (keydown.enter)="copiarInformeTasacion(factura); $event.stopPropagation()"
-                          (keydown.space)="copiarInformeTasacion(factura); $event.preventDefault(); $event.stopPropagation()"
-                        >
-                          <span>Informe</span>
-                          <pre>{{ getInformeTasacion(factura) }}</pre>
-                        </div>
-                      }
-
-                    </div>
-
-                    <div class="billing-detail-notes">
-                      {{ getDescripcion(factura) }}
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </ng-container>
-
-            <tr *ngIf="facturasPaginadas.length === 0">
-              <td colspan="7" class="empty-row">
-                No hay facturas para los filtros seleccionados.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="billing-pagination" *ngIf="totalFacturas > 0">
-        <button
-          class="btn btn-secondary"
-          type="button"
-          [disabled]="paginaActual === 1"
-          (click)="paginaAnterior()"
-        >
-          Anterior
-        </button>
-
-        <div class="pagination-pages">
-          <button
-            *ngFor="let pagina of paginasVisibles"
-            type="button"
-            class="pagination-page"
-            [class.active]="paginaActual === pagina"
-            (click)="irAPagina(pagina)"
-          >
-            {{ pagina }}
-          </button>
-        </div>
-
-        <button
-          class="btn btn-secondary"
-          type="button"
-          [disabled]="paginaActual === totalPaginas"
-          (click)="paginaSiguiente()"
-        >
-          Siguiente
-        </button>
-
-        <span class="pagination-info">
-          Página {{ paginaActual }} de {{ totalPaginas }}
+        <span class="stat-label">
+          Total Facturas
         </span>
+
+        <span class="stat-value">
+          {{ totalFacturas }}
+        </span>
+
       </div>
-    </article>
+
+      <div class="stat-card">
+
+        <span class="stat-label">
+          Total Facturado
+        </span>
+
+        <span class="stat-value">
+          {{ totalFacturado | currency:'USD':'symbol':'1.0-0' }}
+        </span>
+
+      </div>
+
+      <div class="stat-card">
+
+        <span class="stat-label">
+          Media Factura
+        </span>
+
+        <span class="stat-value">
+          {{ promedioFactura | currency:'USD':'symbol':'1.0-0' }}
+        </span>
+
+      </div>
+
+    </div>
 
   </div>
-</section>
+
+  <div class="filtros-container">
+
+    <div class="filtro-group">
+
+      <label>
+        Desde
+      </label>
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.fechaInicio"
+        (change)="onFiltrosChange()"
+      />
+
+    </div>
+
+    <div class="filtro-group">
+
+      <label>
+        Hasta
+      </label>
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.fechaFin"
+        (change)="onFiltrosChange()"
+      />
+
+    </div>
+
+    <div class="filtro-group">
+
+      <label>
+        Tipo
+      </label>
+
+      <select
+        [(ngModel)]="filtros.tipo"
+        (change)="onFiltrosChange()"
+      >
+
+        <option value="">
+          Todos
+        </option>
+
+        <option
+          *ngFor="let tipo of tiposFactura"
+          [value]="tipo"
+        >
+          {{ tipo }}
+        </option>
+
+      </select>
+
+    </div>
+
+    <div class="filtro-group">
+
+      <label>
+        Empleado
+      </label>
+
+      <select
+        [(ngModel)]="filtros.idEmpleado"
+        (change)="onFiltrosChange()"
+      >
+
+        <option [ngValue]="null">
+          Todos
+        </option>
+
+        <option
+          *ngFor="let empleado of empleadosActivos"
+          [ngValue]="empleado.id"
+        >
+          {{ empleado.nombre }}
+        </option>
+
+      </select>
+
+    </div>
+
+    <div class="filtro-group filtro-small">
+
+      <label>
+        Mostrar
+      </label>
+
+      <select
+        [(ngModel)]="facturasPorPagina"
+        (change)="cambiarTamanoPagina()"
+      >
+
+        <option
+          *ngFor="let opcion of opcionesPaginacion"
+          [value]="opcion"
+        >
+          {{ opcion }}
+        </option>
+
+      </select>
+
+    </div>
+
+    <button
+      class="btn-limpiar"
+      (click)="limpiar()"
+    >
+      Limpiar
+    </button>
+
+  </div>
+
+  <div
+    class="loading-container"
+    *ngIf="loading"
+  >
+
+    <div class="loading-spinner"></div>
+
+    <span>
+      Cargando facturación...
+    </span>
+
+  </div>
+
+  <div
+    class="error-container"
+    *ngIf="error && !loading"
+  >
+    {{ error }}
+  </div>
+
+  <div
+    class="tabla-container"
+    *ngIf="!loading && !error"
+  >
+
+    <table class="tabla-facturacion">
+
+      <thead>
+
+        <tr>
+
+          <th>ID</th>
+
+          <th>Fecha</th>
+
+          <th>Empleado</th>
+
+          <th>Tipo</th>
+
+          <th>Matrícula</th>
+
+          <th>Descripción</th>
+
+          <th>Total</th>
+
+          <th>Estado</th>
+
+          <th
+            *ngIf="puedeEliminarFacturas"
+            class="acciones-column"
+          >
+            Acciones
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <ng-container
+          *ngFor="let factura of facturasPaginadas"
+        >
+
+          <tr
+            class="factura-row"
+            (click)="toggleDetalle(factura)"
+          >
+
+            <td>
+              #{{ factura.id }}
+            </td>
+
+            <td>
+              {{
+                formatearFecha(factura.fecha)
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </td>
+
+            <td>
+              {{ factura.nombreEmpleado }}
+            </td>
+
+            <td>
+
+              <span class="tipo-badge">
+                {{ factura.tipo }}
+              </span>
+
+            </td>
+
+            <td>
+              {{ getMatricula(factura) }}
+            </td>
+
+            <td>
+              {{ getDescripcion(factura) }}
+            </td>
+
+            <td class="total-column">
+
+              {{
+                factura.total
+                  | currency:'USD':'symbol':'1.0-0'
+              }}
+
+            </td>
+
+            <td>
+
+              <span
+                class="estado-badge convenio"
+                *ngIf="factura.convenio"
+              >
+                Convenio
+              </span>
+
+              <span
+                class="estado-badge normal"
+                *ngIf="!factura.convenio"
+              >
+                Normal
+              </span>
+
+            </td>
+
+            <td
+              *ngIf="puedeEliminarFacturas"
+              class="acciones-column"
+            >
+
+              <button
+                class="btn-eliminar"
+                (click)="eliminarFactura(factura, $event)"
+              >
+                Eliminar
+              </button>
+
+            </td>
+
+          </tr>
+
+          <tr
+            class="detalle-row"
+            *ngIf="isFacturaAbierta(factura)"
+          >
+
+            <td
+              class="detalle-container"
+              [attr.colspan]="
+                puedeEliminarFacturas ? 9 : 8
+              "
+            >
+
+              <div class="detalle-grid">
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    ID Factura
+                  </span>
+
+                  <span class="detalle-value">
+                    #{{ factura.id }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    Tipo
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.tipo }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    Empleado
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.nombreEmpleado }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    Matrícula
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ getMatricula(factura) }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    Total
+                  </span>
+
+                  <span class="detalle-value">
+                    {{
+                      factura.total
+                        | currency:'USD':'symbol':'1.0-0'
+                    }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
+                    Convenio
+                  </span>
+
+                  <span class="detalle-value">
+                    {{
+                      factura.convenio
+                        ? 'Sí'
+                        : 'No'
+                    }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.gravedad"
+                >
+
+                  <span class="detalle-label">
+                    Gravedad
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.gravedad }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.item"
+                >
+
+                  <span class="detalle-label">
+                    Item
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.item }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.cantidad"
+                >
+
+                  <span class="detalle-label">
+                    Cantidad
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.cantidad }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.categoria"
+                >
+
+                  <span class="detalle-label">
+                    Categoría
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.categoria }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item detalle-wide"
+                  *ngIf="factura.tuneoSeleccionados"
+                >
+
+                  <span class="detalle-label">
+                    Tuneo
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.tuneoSeleccionados }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.modelo"
+                >
+
+                  <span class="detalle-label">
+                    Modelo
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.modelo }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.estado"
+                >
+
+                  <span class="detalle-label">
+                    Estado
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.estado }}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </ng-container>
+
+      </tbody>
+
+    </table>
+
+    <div
+      class="sin-resultados"
+      *ngIf="facturas.length === 0"
+    >
+
+      No hay facturas que coincidan con los filtros.
+
+    </div>
+
+  </div>
+
+  <div
+    class="paginacion-container"
+    *ngIf="!loading && totalFacturas > 0"
+  >
+
+    <div class="paginacion-info">
+
+      Mostrando
+      {{ inicioMostrado }}
+      -
+      {{ finMostrado }}
+      de
+      {{ totalFacturas }}
+      facturas
+
+    </div>
+
+    <div class="paginacion-controls">
+
+      <button
+        class="btn-page"
+        [disabled]="paginaActual === 1"
+        (click)="paginaAnterior()"
+      >
+        ←
+      </button>
+
+      <button
+        class="btn-page"
+        *ngFor="let pagina of paginasVisibles"
+        [class.active]="pagina === paginaActual"
+        (click)="irAPagina(pagina)"
+      >
+        {{ pagina }}
+      </button>
+
+      <button
+        class="btn-page"
+        [disabled]="paginaActual === totalPaginas"
+        (click)="paginaSiguiente()"
+      >
+        →
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

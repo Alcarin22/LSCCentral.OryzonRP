@@ -31,7 +31,6 @@ public class FacturaController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-
         return facturaService.listarFacturas(
                 fechaInicio,
                 fechaFin,
@@ -40,5 +39,10 @@ public class FacturaController {
                 page,
                 size
         );
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminarFactura(@PathVariable Long id) {
+        facturaService.eliminarFactura(id);
     }
 }
