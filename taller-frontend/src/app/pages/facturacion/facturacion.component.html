@@ -365,6 +365,21 @@
                 <div class="detalle-item">
 
                   <span class="detalle-label">
+                    Fecha
+                  </span>
+
+                  <span class="detalle-value">
+                    {{
+                      formatearFecha(factura.fecha)
+                        | date:'dd/MM/yyyy HH:mm:ss'
+                    }}
+                  </span>
+
+                </div>
+
+                <div class="detalle-item">
+
+                  <span class="detalle-label">
                     Matrícula
                   </span>
 
@@ -401,6 +416,21 @@
                         ? 'Sí'
                         : 'No'
                     }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.grua"
+                >
+
+                  <span class="detalle-label">
+                    Grúa
+                  </span>
+
+                  <span class="detalle-value">
+                    Sí
                   </span>
 
                 </div>
@@ -466,21 +496,6 @@
                 </div>
 
                 <div
-                  class="detalle-item detalle-wide"
-                  *ngIf="factura.tuneoSeleccionados"
-                >
-
-                  <span class="detalle-label">
-                    Tuneo
-                  </span>
-
-                  <span class="detalle-value">
-                    {{ factura.tuneoSeleccionados }}
-                  </span>
-
-                </div>
-
-                <div
                   class="detalle-item"
                   *ngIf="factura.modelo"
                 >
@@ -506,6 +521,21 @@
 
                   <span class="detalle-value">
                     {{ factura.estado }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item detalle-wide"
+                  *ngIf="factura.tuneoSeleccionados"
+                >
+
+                  <span class="detalle-label">
+                    Tuneo Seleccionado
+                  </span>
+
+                  <span class="detalle-value">
+                    {{ factura.tuneoSeleccionados }}
                   </span>
 
                 </div>
