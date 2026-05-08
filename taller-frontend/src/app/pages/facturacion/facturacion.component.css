@@ -1,411 +1,419 @@
 :host {
   display: block;
+  width: 100%;
 }
 
-.facturacion-page {
+.facturacion-container {
+  width: 100%;
   min-height: 100vh;
   padding: 24px;
   color: #f5f7fb;
 }
 
-.billing-view {
-  display: grid;
-  gap: 18px;
-  width: 100%;
+.facturacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 20px;
+  margin-bottom: 22px;
 }
 
-.billing-header {
-  text-align: center;
-}
-
-.billing-header h1 {
+.header-left h2 {
+  margin: 0 0 6px;
   font-size: clamp(2rem, 3vw, 2.8rem);
-  font-weight: 800;
-  margin: 0 0 8px;
+  font-weight: 900;
 }
 
-.billing-header p {
-  color: #9aa4b2;
+.header-left p {
   margin: 0;
+  color: #9aa4b2;
 }
 
-.card {
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 14px;
+  min-width: 520px;
+}
+
+.stat-card {
+  background: linear-gradient(180deg, rgba(35,41,56,0.95), rgba(26,30,40,0.98));
+  border: 1px solid #2f3748;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.stat-label {
+  display: block;
+  color: #9aa4b2;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #f5f7fb;
+}
+
+.filtros-container {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr)) auto;
+  gap: 14px;
+  align-items: end;
   background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
   border: 1px solid #2f3748;
   border-radius: 18px;
   padding: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-}
-
-.billing-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.billing-stat-card {
-  display: grid;
-  gap: 8px;
-}
-
-.billing-stat-card span,
-.card-header p,
-.form-group label {
-  color: #9aa4b2;
-  font-size: 0.84rem;
-}
-
-.billing-stat-card strong {
-  font-size: 1.6rem;
-  color: #f5f7fb;
-}
-
-.billing-stat-card.main-stat {
-  background: #2a54d6;
-}
-
-.billing-stat-card.main-stat span {
-  color: rgba(255,255,255,0.78);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
   margin-bottom: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
-.card-header h3 {
-  font-size: 1.05rem;
-  color: #f5f7fb;
-  margin: 0;
-}
-
-.card-header p {
-  margin: 4px 0 0;
-}
-
-.billing-filters-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  align-items: end;
-}
-
-.billing-filter-actions {
-  display: flex;
-  align-items: end;
-  gap: 10px;
-}
-
-.form-group {
+.filtro-group {
   display: grid;
   gap: 8px;
 }
 
-.form-group input,
-.form-group select {
+.filtro-group label {
+  color: #9aa4b2;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.filtro-group input,
+.filtro-group select {
   width: 100%;
+  min-height: 44px;
   border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.04);
   color: #f5f7fb;
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   outline: none;
 }
 
-.form-group select option {
+.filtro-group input:focus,
+.filtro-group select:focus {
+  border-color: rgba(244, 180, 0, 0.65);
+  box-shadow: 0 0 0 3px rgba(244, 180, 0, 0.12);
+}
+
+.filtro-group select option {
   color: #111;
   background: #fff;
 }
 
-.btn {
-  border: 0;
-  border-radius: 14px;
-  padding: 12px 18px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: 0.2s ease;
-  white-space: nowrap;
+.filtro-small {
+  max-width: 130px;
 }
 
-.btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-primary {
-  background: #f4b400;
-  color: #111;
-}
-
-.btn-secondary {
+.btn-limpiar {
+  min-height: 44px;
+  border: 1px solid #2f3748;
   background: #1d212b;
   color: #f5f7fb;
-  border: 1px solid #2f3748;
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
-.btn:hover:not(:disabled) {
+.btn-limpiar:hover {
   transform: translateY(-1px);
+  filter: brightness(1.12);
 }
 
-.loading-card {
-  text-align: center;
-}
-
-.loading-card p {
-  color: #9aa4b2;
-  margin: 0;
-}
-
-.error-card {
+.loading-container,
+.error-container {
+  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
+  border: 1px solid #2f3748;
   border-radius: 18px;
-  border: 1px solid rgba(239,68,68,0.28);
-  background: rgba(239,68,68,0.15);
-  padding: 18px;
+  padding: 22px;
   text-align: center;
+  margin-bottom: 18px;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #9aa4b2;
+}
+
+.loading-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.18);
+  border-top-color: #f4b400;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-container {
+  border-color: rgba(239,68,68,0.28);
+  background: rgba(239,68,68,0.14);
   color: #ffb4b4;
 }
 
-.billing-table-card {
-  padding: 0;
+.tabla-container {
+  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
+  border: 1px solid #2f3748;
+  border-radius: 18px;
   overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
-.billing-table-card .card-header {
-  padding: 18px;
-  margin-bottom: 0;
-}
-
-.billing-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.billing-table {
+.tabla-facturacion {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  min-width: 1100px;
 }
 
-.billing-table th,
-.billing-table td {
-  text-align: left;
+.tabla-facturacion th,
+.tabla-facturacion td {
   padding: 14px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-align: left;
   vertical-align: middle;
 }
 
-.billing-table th {
+.tabla-facturacion th {
   color: #9aa4b2;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 700;
+  font-weight: 800;
+  background: rgba(255,255,255,0.02);
 }
 
-.billing-main-row {
+.factura-row {
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.billing-main-row:hover {
-  background: rgba(255,255,255,0.03);
-  filter: brightness(1.1);
+.factura-row:hover {
+  background: rgba(255,255,255,0.035);
 }
 
-.billing-main-row.is-open {
-  background: rgba(244,180,0,0.06);
-}
-
-.billing-detail-row {
-  display: none;
-}
-
-.billing-detail-row.is-open {
-  display: table-row;
-}
-
-.billing-detail-cell {
-  padding: 0 !important;
-}
-
-.billing-detail-box {
-  margin: 12px;
-  padding: 18px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  display: grid;
-  gap: 14px;
-}
-
-.billing-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.billing-detail-item {
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-  display: grid;
-  gap: 6px;
-}
-
-.billing-detail-item span {
-  color: #9aa4b2;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.billing-detail-item strong {
-  color: #f5f7fb;
-  font-size: 0.95rem;
-  font-weight: 700;
-  word-break: break-word;
-}
-
-.billing-detail-notes {
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(244,180,0,0.06);
-  border: 1px solid rgba(244,180,0,0.14);
-  color: #f5f7fb;
-  line-height: 1.5;
-}
-
-.billing-badge {
+.tipo-badge {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
   background: rgba(244,180,0,0.12);
-  border: 1px solid rgba(244,180,0,0.2);
+  border: 1px solid rgba(244,180,0,0.22);
   color: #f5f7fb;
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.billing-status {
+.total-column {
+  color: #f4b400;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.estado-badge {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.status-ok {
+.estado-badge.convenio {
+  background: rgba(244,180,0,0.12);
+  border: 1px solid rgba(244,180,0,0.22);
+  color: #ffd66b;
+}
+
+.estado-badge.normal {
   background: rgba(16,185,129,0.12);
   border: 1px solid rgba(16,185,129,0.22);
   color: #9ff3cf;
 }
 
-.billing-money {
-  color: #f4b400;
-  font-weight: 800;
+.acciones-column {
+  text-align: center !important;
+  width: 120px;
 }
 
-.empty-row {
-  padding: 28px;
+.btn-eliminar {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ffb4b4;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-eliminar:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.65);
+}
+
+.detalle-row {
+  background: rgba(244,180,0,0.035);
+}
+
+.detalle-container {
+  padding: 0 !important;
+}
+
+.detalle-grid {
+  margin: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.07);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detalle-item {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: grid;
+  gap: 5px;
+}
+
+.detalle-wide {
+  grid-column: span 2;
+}
+
+.detalle-label {
+  color: #9aa4b2;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.detalle-value {
+  color: #f5f7fb;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.sin-resultados {
+  padding: 30px;
   text-align: center;
   color: #9aa4b2;
 }
 
-.billing-report-item {
-  cursor: pointer;
-  user-select: text;
+.paginacion-container {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
+  border: 1px solid #2f3748;
+  border-radius: 18px;
+  padding: 14px 18px;
 }
 
-.billing-report-item:hover {
-  border-color: #f4b400;
+.paginacion-info {
+  color: #9aa4b2;
+  font-size: 0.9rem;
 }
 
-.billing-report-item pre {
-  margin: 0;
-  color: inherit;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
-
-.billing-pagination {
+.paginacion-controls {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 18px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  gap: 8px;
 }
 
-.pagination-pages {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pagination-page {
+.btn-page {
   min-width: 38px;
   height: 38px;
   border-radius: 12px;
   border: 1px solid #2f3748;
   background: #1d212b;
   color: #f5f7fb;
-  cursor: pointer;
   font-weight: 800;
+  cursor: pointer;
 }
 
-.pagination-page.active {
+.btn-page:hover:not(:disabled),
+.btn-page.active {
   background: #f4b400;
   color: #111;
   border-color: #f4b400;
 }
 
-.pagination-info {
-  color: #9aa4b2;
-  font-size: 0.9rem;
-  font-weight: 600;
+.btn-page:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1300px) {
-  .billing-filters-grid {
+  .facturacion-header {
+    flex-direction: column;
+  }
+
+  .stats-container {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filtros-container {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 1200px) {
-  .billing-stats-grid {
-    grid-template-columns: 1fr;
+  .filtro-small {
+    max-width: none;
   }
 }
 
 @media (max-width: 860px) {
-  .facturacion-page {
-    padding: 18px;
+  .facturacion-container {
+    padding: 16px;
   }
 
-  .billing-filters-grid {
+  .stats-container {
     grid-template-columns: 1fr;
   }
 
-  .billing-filter-actions {
-    align-items: stretch;
+  .filtros-container {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla-container {
+    overflow-x: auto;
+  }
+
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-wide {
+    grid-column: span 1;
+  }
+
+  .paginacion-container {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .billing-detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .billing-pagination {
+  .paginacion-controls {
     justify-content: center;
+    flex-wrap: wrap;
   }
 }
