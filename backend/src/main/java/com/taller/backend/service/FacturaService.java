@@ -112,10 +112,14 @@ public class FacturaService {
             guardarTasacion(guardada, request);
         }
 
-        primasService.recalcularPrimaEmpleadoSemana(
-                empleado.getId(),
-                guardada.getFecha()
-        );
+        try {
+            primasService.recalcularPrimaEmpleadoSemana(
+                    empleado.getId(),
+                    guardada.getFecha()
+            );
+        } catch (Exception e) {
+            System.err.println("Error recalculando prima tras crear factura: " + e.getMessage());
+        }
 
         return guardada;
     }
@@ -182,8 +186,8 @@ public class FacturaService {
         Map<Long, String> nombresEmpleados = new HashMap<>();
 
         empleadoRepository.findAllById(idsEmpleados)
-                .forEach(empleado ->
-                        nombresEmpleados.put(empleado.getId(), empleado.getNombre())
+                .forEach(empleadoItem ->
+                        nombresEmpleados.put(empleadoItem.getId(), empleadoItem.getNombre())
                 );
 
         List<FacturaListadoResponse> content = facturas
