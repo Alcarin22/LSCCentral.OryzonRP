@@ -23,8 +23,15 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/**",
+                                "/oauth2/**",
+                                "/login/**",
+                                "/error"
+                        ).permitAll()
                         .anyRequest().permitAll()
-                );
+                )
+                .oauth2Login(Customizer.withDefaults());
 
         return http.build();
     }
@@ -34,7 +41,11 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:4200",
+                "https://*.vercel.app",
+                "https://lsccentraloryzonrp-production.up.railway.app"
+        ));
 
         configuration.setAllowedMethods(List.of(
                 "GET",
@@ -45,7 +56,7 @@ public class SecurityConfig {
         ));
 
         configuration.setAllowedHeaders(List.of("*"));
-
+        configuration.setExposedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
