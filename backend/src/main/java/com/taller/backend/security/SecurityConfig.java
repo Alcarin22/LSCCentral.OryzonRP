@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import org.springframework.security.web.SecurityFilterChain;
@@ -112,9 +113,10 @@ public class SecurityConfig {
                                             oauthToken.getName()
                                     );
 
-                            String accessToken = client != null && client.getAccessToken() != null
-                                    ? client.getAccessToken().getTokenValue()
-                                    : null;
+                            String accessToken =
+                                    client != null && client.getAccessToken() != null
+                                            ? client.getAccessToken().getTokenValue()
+                                            : null;
 
                             boolean tieneRolEmpleado = false;
 
@@ -127,14 +129,19 @@ public class SecurityConfig {
                             }
 
                             if (!tieneRolEmpleado) {
-                                System.err.println("LOGIN DENEGADO: usuario sin rol Empleado. Discord ID: " + discordId);
+                                System.err.println(
+                                        "LOGIN DENEGADO: usuario sin rol Empleado. Discord ID: "
+                                                + discordId
+                                );
                                 escribirRespuestaPopup(response, null);
                                 return;
                             }
 
                             Empleado empleado = empleadoRepository
                                     .findByDiscordId(discordId)
-                                    .orElseGet(() -> crearEmpleadoDesdeDiscord(discordId, username));
+                                    .orElseGet(() ->
+                                            crearEmpleadoDesdeDiscord(discordId, username)
+                                    );
 
                             if (Boolean.FALSE.equals(empleado.getActivo())) {
                                 empleado.setActivo(true);
@@ -164,18 +171,26 @@ public class SecurityConfig {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
 
-            ResponseEntity<JsonNode> discordResponse = restTemplate.exchange(
+            ResponseEntity<String> discordResponse = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
-                    JsonNode.class
+                    String.class
             );
 
-            return contieneRolEmpleado(discordResponse.getBody(), "OAuth");
+            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+
+            return contieneRolEmpleado(body, "OAuth");
 
         } catch (HttpClientErrorException e) {
-            System.err.println("DISCORD OAUTH CHECK ERROR: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            System.err.println(
+                    "DISCORD OAUTH CHECK ERROR: "
+                            + e.getStatusCode()
+                            + " - "
+                            + e.getResponseBodyAsString()
+            );
             return false;
+
         } catch (Exception e) {
             System.err.println("DISCORD OAUTH CHECK ERROR: " + e.getMessage());
             return false;
@@ -195,20 +210,28 @@ public class SecurityConfig {
                     + discordId;
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(discordBotToken);
+            headers.set("Authorization", "Bot " + discordBotToken);
 
-            ResponseEntity<JsonNode> discordResponse = restTemplate.exchange(
+            ResponseEntity<String> discordResponse = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     new HttpEntity<>(headers),
-                    JsonNode.class
+                    String.class
             );
 
-            return contieneRolEmpleado(discordResponse.getBody(), "BOT");
+            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+
+            return contieneRolEmpleado(body, "BOT");
 
         } catch (HttpClientErrorException e) {
-            System.err.println("DISCORD BOT CHECK ERROR: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            System.err.println(
+                    "DISCORD BOT CHECK ERROR: "
+                            + e.getStatusCode()
+                            + " - "
+                            + e.getResponseBodyAsString()
+            );
             return false;
+
         } catch (Exception e) {
             System.err.println("DISCORD BOT CHECK ERROR: " + e.getMessage());
             return false;
@@ -248,7 +271,11 @@ public class SecurityConfig {
         Empleado empleado = new Empleado();
 
         empleado.setDiscordId(discordId);
-        empleado.setNombre(username != null && !username.isBlank() ? username : "Empleado");
+        empleado.setNombre(
+                username != null && !username.isBlank()
+                        ? username
+                        : "Empleado"
+        );
         empleado.setActivo(true);
         empleado.setRango(rangoDefault);
 
@@ -267,9 +294,14 @@ public class SecurityConfig {
         rango.put("nombre", empleado.getRango().getNombre());
         rango.put("nivel", empleado.getRango().getNivel());
 
-        String avatarUrl = avatar != null && !avatar.isBlank()
-                ? "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatar + ".png"
-                : "https://cdn.discordapp.com/embed/avatars/0.png";
+        String avatarUrl =
+                avatar != null && !avatar.isBlank()
+                        ? "https://cdn.discordapp.com/avatars/"
+                                + discordId
+                                + "/"
+                                + avatar
+                                + ".png"
+                        : "https://cdn.discordapp.com/embed/avatars/0.png";
 
         Map<String, Object> user = new HashMap<>();
 
@@ -278,7 +310,12 @@ public class SecurityConfig {
         user.put("nombre", empleado.getNombre());
         user.put("activo", empleado.getActivo());
         user.put("avatarUrl", avatarUrl);
-        user.put("nickServidor", username != null && !username.isBlank() ? username : empleado.getNombre());
+        user.put(
+                "nickServidor",
+                username != null && !username.isBlank()
+                        ? username
+                        : empleado.getNombre()
+        );
         user.put("rango", rango);
 
         return user;
