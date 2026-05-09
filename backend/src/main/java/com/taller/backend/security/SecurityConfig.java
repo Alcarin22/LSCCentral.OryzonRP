@@ -24,11 +24,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import org.springframework.web.cors.CorsConfiguration;
@@ -55,6 +55,12 @@ public class SecurityConfig {
 
     @Value("${discord.empleado-role-id}")
     private String empleadoRoleId;
+
+    @Value("${discord.bot-token:}")
+    private String discordBotToken;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public SecurityConfig(
             EmpleadoRepository empleadoRepository,
@@ -90,31 +96,38 @@ public class SecurityConfig {
                             OAuth2User oauthUser =
                                     (OAuth2User) authentication.getPrincipal();
 
+                            String discordId = oauthUser.getAttribute("id");
+                            String username = oauthUser.getAttribute("username");
+                            String avatar = oauthUser.getAttribute("avatar");
+
+                            if (discordId == null || discordId.isBlank()) {
+                                System.err.println("LOGIN DENEGADO: no se pudo obtener discordId");
+                                escribirRespuestaPopup(response, null);
+                                return;
+                            }
+
                             OAuth2AuthorizedClient client =
                                     authorizedClientService.loadAuthorizedClient(
                                             oauthToken.getAuthorizedClientRegistrationId(),
                                             oauthToken.getName()
                                     );
 
-                            if (client == null || client.getAccessToken() == null) {
-                                escribirRespuestaPopup(response, null);
-                                return;
+                            String accessToken = client != null && client.getAccessToken() != null
+                                    ? client.getAccessToken().getTokenValue()
+                                    : null;
+
+                            boolean tieneRolEmpleado = false;
+
+                            if (accessToken != null && !accessToken.isBlank()) {
+                                tieneRolEmpleado = usuarioTieneRolEmpleadoConOAuth(accessToken);
                             }
-
-                            String accessToken = client.getAccessToken().getTokenValue();
-
-                            String discordId = oauthUser.getAttribute("id");
-                            String username = oauthUser.getAttribute("username");
-                            String avatar = oauthUser.getAttribute("avatar");
-
-                            if (discordId == null || discordId.isBlank()) {
-                                escribirRespuestaPopup(response, null);
-                                return;
-                            }
-
-                            boolean tieneRolEmpleado = usuarioTieneRolEmpleado(accessToken);
 
                             if (!tieneRolEmpleado) {
+                                tieneRolEmpleado = usuarioTieneRolEmpleadoConBot(discordId);
+                            }
+
+                            if (!tieneRolEmpleado) {
+                                System.err.println("LOGIN DENEGADO: usuario sin rol Empleado. Discord ID: " + discordId);
                                 escribirRespuestaPopup(response, null);
                                 return;
                             }
@@ -142,7 +155,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private boolean usuarioTieneRolEmpleado(String accessToken) {
+    private boolean usuarioTieneRolEmpleadoConOAuth(String accessToken) {
         try {
             String url = "https://discord.com/api/users/@me/guilds/"
                     + discordGuildId
@@ -151,39 +164,81 @@ public class SecurityConfig {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
 
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<JsonNode> response = restTemplate.exchange(
+            ResponseEntity<JsonNode> discordResponse = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
-                    entity,
+                    new HttpEntity<>(headers),
                     JsonNode.class
             );
 
-            JsonNode body = response.getBody();
+            return contieneRolEmpleado(discordResponse.getBody(), "OAuth");
 
-            if (body == null || !body.has("roles")) {
-                return false;
-            }
-
-            JsonNode roles = body.get("roles");
-
-            if (!roles.isArray()) {
-                return false;
-            }
-
-            for (JsonNode role : roles) {
-                if (empleadoRoleId.equals(role.asText())) {
-                    return true;
-                }
-            }
-
+        } catch (HttpClientErrorException e) {
+            System.err.println("DISCORD OAUTH CHECK ERROR: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             return false;
-
         } catch (Exception e) {
-            System.err.println("Error comprobando rol Empleado en Discord: " + e.getMessage());
+            System.err.println("DISCORD OAUTH CHECK ERROR: " + e.getMessage());
             return false;
         }
+    }
+
+    private boolean usuarioTieneRolEmpleadoConBot(String discordId) {
+        try {
+            if (discordBotToken == null || discordBotToken.isBlank()) {
+                System.err.println("DISCORD BOT CHECK ERROR: discord.bot-token vacío");
+                return false;
+            }
+
+            String url = "https://discord.com/api/guilds/"
+                    + discordGuildId
+                    + "/members/"
+                    + discordId;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(discordBotToken);
+
+            ResponseEntity<JsonNode> discordResponse = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    JsonNode.class
+            );
+
+            return contieneRolEmpleado(discordResponse.getBody(), "BOT");
+
+        } catch (HttpClientErrorException e) {
+            System.err.println("DISCORD BOT CHECK ERROR: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            System.err.println("DISCORD BOT CHECK ERROR: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean contieneRolEmpleado(JsonNode body, String origen) {
+        if (body == null || !body.has("roles")) {
+            System.err.println("DISCORD " + origen + " CHECK: respuesta sin roles");
+            return false;
+        }
+
+        JsonNode roles = body.get("roles");
+
+        if (!roles.isArray()) {
+            System.err.println("DISCORD " + origen + " CHECK: roles no es array");
+            return false;
+        }
+
+        for (JsonNode role : roles) {
+            String roleId = role.asText();
+
+            if (empleadoRoleId.equals(roleId)) {
+                System.out.println("DISCORD " + origen + " CHECK: rol Empleado encontrado");
+                return true;
+            }
+        }
+
+        System.err.println("DISCORD " + origen + " CHECK: rol Empleado NO encontrado");
+        return false;
     }
 
     private Empleado crearEmpleadoDesdeDiscord(String discordId, String username) {
@@ -248,7 +303,7 @@ public class SecurityConfig {
                 <body>
                     <script>
                         if (window.opener) {
-                            window.opener.postMessage(%s, "*");
+                            window.opener.postMessage(%s, "%s");
                             window.close();
                         } else {
                             document.body.innerText = "Login completado. Puedes cerrar esta ventana.";
@@ -256,7 +311,7 @@ public class SecurityConfig {
                     </script>
                 </body>
                 </html>
-                """.formatted(json));
+                """.formatted(json, frontendUrl));
     }
 
     @Bean
@@ -266,6 +321,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:4200",
+                frontendUrl,
                 "https://*.vercel.app",
                 "https://lsccentraloryzonrp-production.up.railway.app"
         ));
