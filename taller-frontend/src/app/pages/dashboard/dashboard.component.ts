@@ -184,7 +184,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.textoBotonFichaje = 'Finalizar fichaje';
 
       if (response.fechaHoraEntrada) {
-        this.fechaEntrada = this.parseLocalDateTime(response.fechaHoraEntrada);
+        this.fechaEntrada = this.parseBackendLocalDateTime(response.fechaHoraEntrada);
 
         if (this.fechaEntrada) {
           this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
@@ -214,7 +214,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.estadoActualTexto = 'En servicio';
       this.textoBotonFichaje = 'Finalizar fichaje';
 
-      this.fechaEntrada = this.parseLocalDateTime(hoy.horaEntrada);
+      this.fechaEntrada = this.parseBackendLocalDateTime(hoy.horaEntrada);
 
       if (this.fechaEntrada) {
         this.horaEntradaFormateada = this.formatearHora(this.fechaEntrada);
@@ -243,35 +243,68 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.tiempoTrabajadoActual = this.formatearDuracion(
-      Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
-    );
+    this.actualizarTiempoTrabajado();
 
     this.timerSub = interval(1000).subscribe(() => {
-      if (!this.fechaEntrada) return;
-
-      this.tiempoTrabajadoActual = this.formatearDuracion(
-        Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
-      );
+      this.actualizarTiempoTrabajado();
     });
   }
 
-  private parseLocalDateTime(value: string | null | undefined): Date | null {
-    if (!value) return null;
+  private actualizarTiempoTrabajado(): void {
+    if (!this.fechaEntrada) {
+      this.tiempoTrabajadoActual = '00:00:00';
+      return;
+    }
 
-    const [datePart, timePart] = value.split('T');
-    if (!datePart || !timePart) return null;
+    const segundos = Math.max(
+      0,
+      Math.floor((Date.now() - this.fechaEntrada.getTime()) / 1000)
+    );
+
+    this.tiempoTrabajadoActual = this.formatearDuracion(segundos);
+  }
+
+  private parseBackendLocalDateTime(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const limpio = value
+      .trim()
+      .replace(' ', 'T')
+      .replace(/Z$/, '')
+      .replace(/[+-]\d{2}:\d{2}$/, '');
+
+    const [datePart, timePartRaw] = limpio.split('T');
+
+    if (!datePart || !timePartRaw) {
+      return null;
+    }
 
     const [year, month, day] = datePart.split('-').map(Number);
-    const [hour, minute, secondWithMs] = timePart.split(':');
-    const second = Number((secondWithMs ?? '0').split('.')[0]);
+    const [hourRaw, minuteRaw, secondRaw] = timePartRaw.split(':');
+
+    const hour = Number(hourRaw);
+    const minute = Number(minuteRaw);
+    const second = Number((secondRaw ?? '0').split('.')[0]);
+
+    if (
+      Number.isNaN(year) ||
+      Number.isNaN(month) ||
+      Number.isNaN(day) ||
+      Number.isNaN(hour) ||
+      Number.isNaN(minute) ||
+      Number.isNaN(second)
+    ) {
+      return null;
+    }
 
     return new Date(
       year,
       month - 1,
       day,
-      Number(hour),
-      Number(minute),
+      hour,
+      minute,
       second
     );
   }
