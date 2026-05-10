@@ -11,11 +11,17 @@ import com.taller.backend.repository.FichajeRepository;
 
 import org.springframework.stereotype.Service;
 
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 public class DashboardService {
+
+    private static final ZoneId ZONA_MADRID = ZoneId.of("Europe/Madrid");
 
     private final EmpleadoRepository empleadoRepository;
     private final FichajeRepository fichajeRepository;
@@ -34,7 +40,7 @@ public class DashboardService {
     public DashboardHoyResponse getResumenHoy(String discordId) {
         Empleado empleado = getEmpleado(discordId);
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDateTime inicio = hoy.atStartOfDay();
         LocalDateTime fin = hoy.atTime(LocalTime.MAX);
 
@@ -65,7 +71,7 @@ public class DashboardService {
     public DashboardSemanaResponse getResumenSemana(String discordId) {
         Empleado empleado = getEmpleado(discordId);
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDate lunes = hoy.with(DayOfWeek.MONDAY);
         LocalDate domingo = hoy.with(DayOfWeek.SUNDAY);
 
@@ -105,7 +111,7 @@ public class DashboardService {
     public DashboardMesResponse getResumenMes(String discordId) {
         Empleado empleado = getEmpleado(discordId);
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDate inicioMes = hoy.withDayOfMonth(1);
         LocalDate finMes = hoy.withDayOfMonth(hoy.lengthOfMonth());
 

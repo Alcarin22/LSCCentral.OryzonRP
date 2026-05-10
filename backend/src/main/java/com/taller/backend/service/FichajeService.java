@@ -2,6 +2,7 @@ package com.taller.backend.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ import com.taller.backend.repository.FichajeRepository;
 @Service
 public class FichajeService {
 
+    private static final ZoneId ZONA_MADRID = ZoneId.of("Europe/Madrid");
+
     private final FichajeRepository fichajeRepository;
     private final EmpleadoRepository empleadoRepository;
     private final PrimasService primasService;
@@ -23,7 +26,8 @@ public class FichajeService {
     public FichajeService(
             FichajeRepository fichajeRepository,
             EmpleadoRepository empleadoRepository,
-            PrimasService primasService) {
+            PrimasService primasService
+    ) {
         this.fichajeRepository = fichajeRepository;
         this.empleadoRepository = empleadoRepository;
         this.primasService = primasService;
@@ -38,9 +42,11 @@ public class FichajeService {
                 .orElse(null);
 
         if (fichajeAbierto == null) {
+            LocalDateTime ahora = LocalDateTime.now(ZONA_MADRID);
+
             Fichaje nuevoFichaje = new Fichaje();
             nuevoFichaje.setEmpleado(empleado);
-            nuevoFichaje.setFechaHoraEntrada(LocalDateTime.now());
+            nuevoFichaje.setFechaHoraEntrada(ahora);
             nuevoFichaje.setFechaHoraSalida(null);
             nuevoFichaje.setMinutosTrabajados(null);
 
@@ -52,14 +58,19 @@ public class FichajeService {
             response.setFechaHoraEntrada(nuevoFichaje.getFechaHoraEntrada().toString());
             response.setFechaHoraSalida(null);
             response.setMinutosTrabajados(null);
+
             return response;
         }
 
-        LocalDateTime ahora = LocalDateTime.now();
-        int minutos = (int) Duration.between(fichajeAbierto.getFechaHoraEntrada(), ahora).toMinutes();
+        LocalDateTime ahora = LocalDateTime.now(ZONA_MADRID);
+
+        int minutos = (int) Duration.between(
+                fichajeAbierto.getFechaHoraEntrada(),
+                ahora
+        ).toMinutes();
 
         fichajeAbierto.setFechaHoraSalida(ahora);
-        fichajeAbierto.setMinutosTrabajados(minutos);
+        fichajeAbierto.setMinutosTrabajados(Math.max(minutos, 0));
 
         fichajeRepository.save(fichajeAbierto);
 
@@ -74,6 +85,7 @@ public class FichajeService {
         response.setFechaHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
         response.setFechaHoraSalida(fichajeAbierto.getFechaHoraSalida().toString());
         response.setMinutosTrabajados(fichajeAbierto.getMinutosTrabajados());
+
         return response;
     }
 
@@ -96,6 +108,9 @@ public class FichajeService {
         response.setFichajeActivo(true);
         response.setMensaje("Hay un fichaje activo");
         response.setFechaHoraEntrada(fichajeAbierto.getFechaHoraEntrada().toString());
+        response.setFechaHoraSalida(null);
+        response.setMinutosTrabajados(null);
+
         return response;
     }
 
