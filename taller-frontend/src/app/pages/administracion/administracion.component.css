@@ -381,6 +381,23 @@
   line-height: 1.6;
 }
 
+.inactive-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #9aa4b2;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+
+.inactive-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #f4b400;
+}
+
 @media (max-width: 1200px) {
   .admin-stats-grid,
   .admin-primas-stats-grid {

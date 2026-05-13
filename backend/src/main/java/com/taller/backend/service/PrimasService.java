@@ -29,6 +29,7 @@ public class PrimasService {
     private static final LocalDate FECHA_INICIO_SEMANA_0 = LocalDate.of(2026, 4, 13);
     private static final int MINUTOS_BASE_SIN_EXTRAS = 7 * 60;
     private static final int IMPORTE_HORA_EXTRA = 1000;
+    private static final ZoneId ZONA_MADRID = ZoneId.of("Europe/Madrid");
 
     private final EmpleadoRepository empleadoRepository;
     private final FichajeRepository fichajeRepository;
@@ -165,7 +166,10 @@ public class PrimasService {
             return List.of();
         }
 
-        List<Empleado> empleados = empleadoRepository.findAllByOrderByActivoDescNombreAsc();
+        List<Empleado> empleados = empleadoRepository.findAllByOrderByActivoDescNombreAsc()
+                .stream()
+                .filter(e -> Boolean.TRUE.equals(e.getActivo()))
+                .toList();
 
         empleados.forEach(empleado ->
                 recalcularPrimaEmpleadoSemana(empleado.getId(), semanaSeleccionada)
@@ -173,6 +177,8 @@ public class PrimasService {
 
         return primaRepository.findBySemanaOrderByEmpleadoNombreAsc(semanaSeleccionada)
                 .stream()
+                .filter(prima -> prima.getEmpleado() != null)
+                .filter(prima -> Boolean.TRUE.equals(prima.getEmpleado().getActivo()))
                 .map(this::mapearAdminPrima)
                 .toList();
     }
@@ -185,7 +191,7 @@ public class PrimasService {
         boolean pagada = request.getPagada() != null && request.getPagada();
 
         prima.setPagada(pagada);
-        prima.setFechaPago(pagada ? LocalDateTime.now() : null);
+        prima.setFechaPago(pagada ? LocalDateTime.now(ZONA_MADRID) : null);
 
         return mapearAdminPrima(primaRepository.save(prima));
     }
@@ -236,8 +242,7 @@ public class PrimasService {
     }
 
     private int getCurrentWeek() {
-        ZoneId zonaMadrid = ZoneId.of("Europe/Madrid");
-        LocalDate hoy = LocalDate.now(zonaMadrid);
+        LocalDate hoy = LocalDate.now(ZONA_MADRID);
         LocalDate lunesActual = hoy.with(DayOfWeek.MONDAY);
 
         if (lunesActual.isBefore(FECHA_INICIO_SEMANA_0)) {

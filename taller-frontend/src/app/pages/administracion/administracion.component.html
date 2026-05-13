@@ -77,9 +77,19 @@
             <p>Cambia rangos, asciende, degrada o desactiva empleados.</p>
           </div>
 
-          <button type="button" class="btn btn-secondary" (click)="cargarDatos()">
-            Recargar
-          </button>
+          <div class="table-actions">
+            <label class="inactive-toggle">
+              <input
+                type="checkbox"
+                [(ngModel)]="mostrarInactivos"
+              />
+              Mostrar inactivos
+            </label>
+
+            <button type="button" class="btn btn-secondary" (click)="cargarDatos()">
+              Recargar
+            </button>
+          </div>
         </div>
 
         <div class="admin-table-wrapper">
@@ -97,7 +107,7 @@
             </thead>
 
             <tbody>
-              <ng-container *ngFor="let empleado of empleados">
+              <ng-container *ngFor="let empleado of empleadosFiltrados">
                 <tr
                   class="admin-main-row"
                   [class.is-open]="isEmpleadoAbierto(empleado)"
@@ -199,9 +209,9 @@
                 </tr>
               </ng-container>
 
-              <tr *ngIf="empleados.length === 0">
+              <tr *ngIf="empleadosFiltrados.length === 0">
                 <td colspan="7" class="empty-row">
-                  No hay empleados registrados.
+                  No hay empleados para el filtro seleccionado.
                 </td>
               </tr>
             </tbody>
@@ -235,7 +245,7 @@
         <article class="card admin-primas-filters">
           <div>
             <h3>Semana {{ semanaSeleccionada ?? '-' }}</h3>
-            <p>Usa los botones para cambiar la semana de primas.</p>
+            <p>Solo se muestran primas de empleados activos.</p>
           </div>
 
           <div class="primas-filter-actions">
@@ -269,7 +279,7 @@
           <div class="card-header">
             <div>
               <h3>Primas del taller</h3>
-              <p>Control de primas generadas y estado de pago por empleado.</p>
+              <p>Control de primas generadas y estado de pago por empleado activo.</p>
             </div>
           </div>
 
@@ -356,7 +366,7 @@
 
                 <tr *ngIf="primas.length === 0">
                   <td colspan="12" class="empty-row">
-                    No hay primas registradas.
+                    No hay primas registradas para empleados activos.
                   </td>
                 </tr>
               </tbody>

@@ -44,6 +44,8 @@ export class AdministracionComponent implements OnInit {
   primas: AdminPrima[] = [];
   semanaSeleccionada: number | null = null;
 
+  mostrarInactivos = false;
+
   loading = false;
   loadingPrimas = false;
   error = '';
@@ -96,7 +98,14 @@ export class AdministracionComponent implements OnInit {
         this.adminService.listarEmpleados().subscribe({
           next: (empleados) => {
             this.zone.run(() => {
-              this.empleados = empleados ?? [];
+              this.empleados = (empleados ?? []).sort((a, b) => {
+                if (a.activo !== b.activo) {
+                  return a.activo ? -1 : 1;
+                }
+
+                return a.nombre.localeCompare(b.nombre);
+              });
+
               this.loading = false;
               this.error = '';
               this.cdr.detectChanges();
@@ -200,7 +209,11 @@ export class AdministracionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error actualizando estado de prima:', error);
-        alert('No se pudo actualizar el estado de la prima.');
+        alert(
+          error?.error?.message ||
+          error?.error?.error ||
+          'No se pudo actualizar el estado de la prima.'
+        );
       }
     });
   }
@@ -268,6 +281,14 @@ export class AdministracionComponent implements OnInit {
         alert('No se pudo actualizar el estado del empleado.');
       }
     });
+  }
+
+  get empleadosFiltrados(): EmpleadoAdmin[] {
+    if (this.mostrarInactivos) {
+      return this.empleados;
+    }
+
+    return this.empleados.filter(e => e.activo);
   }
 
   get totalEmpleados(): number {
