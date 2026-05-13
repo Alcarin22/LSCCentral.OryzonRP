@@ -390,6 +390,7 @@
   font-weight: 700;
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
 }
 
 .inactive-toggle input {
