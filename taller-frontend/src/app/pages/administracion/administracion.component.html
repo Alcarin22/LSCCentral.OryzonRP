@@ -325,7 +325,7 @@
                     {{ prima.facturado | currency:'USD':'symbol':'1.0-0' }}
                   </td>
 
-                  <td>{{ prima.horas }}h</td>
+                  <td>{{ formatearHoras(prima.horas) }}</td>
 
                   <td>{{ prima.servicios }}</td>
 
