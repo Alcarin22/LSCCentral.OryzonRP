@@ -338,6 +338,23 @@ export class AdministracionComponent implements OnInit {
     return new Date(value);
   }
 
+  formatearHoras(valor: number | string | null | undefined): string {
+    if (valor === null || valor === undefined) {
+      return '0:00';
+    }
+
+    const horasDecimal = Number(valor);
+
+    if (Number.isNaN(horasDecimal)) {
+      return '0:00';
+    }
+
+    const horas = Math.floor(horasDecimal);
+    const minutos = Math.round((horasDecimal - horas) * 60);
+
+    return `${horas}:${String(minutos).padStart(2, '0')}`;
+  }
+
   private actualizarEmpleadoEnLista(actualizado: EmpleadoAdmin): void {
     this.zone.run(() => {
       this.empleados = this.empleados.map(e =>
