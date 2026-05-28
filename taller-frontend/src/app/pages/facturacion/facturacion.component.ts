@@ -27,6 +27,7 @@ import { SessionService } from '../../core/services/session.service';
 export class FacturacionComponent implements OnInit {
   facturas: FacturaListado[] = [];
   empleadosActivos: EmpleadoAdmin[] = [];
+  tasacionesPendientes: FacturaListado[] = [];
 
   loading = false;
   loadingEmpleados = false;
@@ -72,9 +73,18 @@ export class FacturacionComponent implements OnInit {
   ngOnInit(): void {
     this.cargarEmpleadosActivos();
     this.buscar();
+
+    if (this.puedeGestionarTasaciones) {
+      this.cargarTasacionesPendientes();
+    }
   }
 
   get puedeEliminarFacturas(): boolean {
+    const empleado = this.sessionService.getEmpleado();
+    return (empleado?.rango?.nivel ?? 0) >= 3;
+  }
+
+  get puedeGestionarTasaciones(): boolean {
     const empleado = this.sessionService.getEmpleado();
     return (empleado?.rango?.nivel ?? 0) >= 3;
   }
@@ -102,6 +112,37 @@ export class FacturacionComponent implements OnInit {
         this.toastService.error('No se pudieron cargar los empleados activos.');
         this.cdr.detectChanges();
       });
+    }
+  }
+
+  async cargarTasacionesPendientes(): Promise<void> {
+    if (!this.puedeGestionarTasaciones) {
+      this.tasacionesPendientes = [];
+      return;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.facturacionService.listarFacturas(
+          {
+            fechaInicio: '',
+            fechaFin: '',
+            tipo: 'Tasación',
+            idEmpleado: null
+          },
+          0,
+          50
+        )
+      );
+
+      this.zone.run(() => {
+        this.tasacionesPendientes = (response.content ?? [])
+          .filter(f => this.getEstadoTasacion(f) !== 'Enviada');
+
+        this.cdr.detectChanges();
+      });
+    } catch (error) {
+      console.error('ERROR CARGANDO TASACIONES PENDIENTES:', error);
     }
   }
 
@@ -133,6 +174,10 @@ export class FacturacionComponent implements OnInit {
         this.error = '';
         this.cdr.detectChanges();
       });
+
+      if (this.puedeGestionarTasaciones) {
+        this.cargarTasacionesPendientes();
+      }
     } catch (error) {
       console.error('ERROR CARGANDO FACTURACIÓN:', error);
 
@@ -203,6 +248,11 @@ export class FacturacionComponent implements OnInit {
     this.facturaAbiertaId = this.facturaAbiertaId === factura.id ? null : factura.id;
   }
 
+  abrirFacturaDesdeAlerta(factura: FacturaListado): void {
+    this.facturaAbiertaId = factura.id;
+    this.toastService.info(`Abierta la tasación #${factura.id}.`);
+  }
+
   isFacturaAbierta(factura: FacturaListado): boolean {
     return this.facturaAbiertaId === factura.id;
   }
@@ -238,8 +288,15 @@ export class FacturacionComponent implements OnInit {
     });
   }
 
-  marcarTasacionEnviada(factura: FacturaListado, event: MouseEvent): void {
-    event.stopPropagation();
+  marcarTasacionEnviada(factura: FacturaListado, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!this.puedeGestionarTasaciones) {
+      this.toastService.error('No tienes permisos para cambiar el estado de tasaciones.');
+      return;
+    }
 
     if (factura.tipo !== 'Tasación') {
       return;
@@ -257,7 +314,10 @@ export class FacturacionComponent implements OnInit {
             f.id === actualizada.id ? actualizada : f
           );
 
-          this.toastService.success('Tasación marcada como enviada.');
+          this.tasacionesPendientes = this.tasacionesPendientes
+            .filter(f => f.id !== actualizada.id);
+
+          this.toastService.success(`Tasación #${actualizada.id} marcada como enviada.`);
           this.cdr.detectChanges();
         });
       },

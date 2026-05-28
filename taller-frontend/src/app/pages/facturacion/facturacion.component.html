@@ -56,6 +56,60 @@
 
   </div>
 
+  <div
+    class="alertas-tasaciones-container"
+    *ngIf="puedeGestionarTasaciones && tasacionesPendientes.length > 0"
+  >
+
+    <div
+      class="alerta-tasacion"
+      *ngFor="let tasacion of tasacionesPendientes"
+    >
+
+      <div class="alerta-icon">
+        ⚠️
+      </div>
+
+      <div class="alerta-content">
+
+        <strong>
+          Tasación #{{ tasacion.id }} pendiente de enviar
+        </strong>
+
+        <span>
+          {{ tasacion.modelo || 'Modelo desconocido' }}
+          ·
+          {{ tasacion.estado || 'Estado desconocido' }}
+          ·
+          {{ getMatricula(tasacion) }}
+        </span>
+
+      </div>
+
+      <div class="alerta-actions">
+
+        <button
+          type="button"
+          class="btn-alerta-secundario"
+          (click)="abrirFacturaDesdeAlerta(tasacion)"
+        >
+          Ver
+        </button>
+
+        <button
+          type="button"
+          class="btn-alerta-principal"
+          (click)="marcarTasacionEnviada(tasacion)"
+        >
+          Marcar enviada
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
   <div class="filtros-container">
 
     <div class="filtro-group">
@@ -576,7 +630,7 @@
 
                 <div
                   class="detalle-item"
-                  *ngIf="factura.tipo === 'Tasación'"
+                  *ngIf="factura.tipo === 'Tasación' && puedeGestionarTasaciones"
                 >
 
                   <span class="detalle-label">
