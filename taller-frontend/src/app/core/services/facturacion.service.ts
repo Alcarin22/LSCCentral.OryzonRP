@@ -8,67 +8,40 @@ import {
 import { Observable } from 'rxjs';
 
 export interface FacturaListado {
-
   id: number;
-
   idEmpleado: number;
-
   nombreEmpleado: string;
-
   fecha: string;
-
   tipo: string;
-
   total: number;
-
   convenio: boolean;
-
   matricula: string;
-
   modelo: string;
-
   estado: string;
-
+  estadoTasacion?: string;
   cantidad: number;
-
   item: string;
-
   categoria: string;
-
   gravedad: string;
-
   tuneoPlate: string;
-
   tuneoSeleccionados: string;
-
   grua: boolean;
 }
 
 export interface FacturacionFiltros {
-
   fechaInicio?: string;
-
   fechaFin?: string;
-
   tipo?: string;
-
   idEmpleado?: number | null;
 }
 
 export interface FacturaResponse {
-
   content: FacturaListado[];
-
   totalElements: number;
-
   totalPages: number;
-
   page: number;
-
   size: number;
-
   totalFacturado: number;
-
   promedioFactura: number;
 }
 
@@ -95,38 +68,22 @@ export class FacturacionService {
       .set('size', size);
 
     if (filtros.fechaInicio) {
-
-      params = params.set(
-        'fechaInicio',
-        filtros.fechaInicio
-      );
+      params = params.set('fechaInicio', filtros.fechaInicio);
     }
 
     if (filtros.fechaFin) {
-
-      params = params.set(
-        'fechaFin',
-        filtros.fechaFin
-      );
+      params = params.set('fechaFin', filtros.fechaFin);
     }
 
     if (filtros.tipo) {
-
-      params = params.set(
-        'tipo',
-        filtros.tipo
-      );
+      params = params.set('tipo', filtros.tipo);
     }
 
     if (
       filtros.idEmpleado !== null &&
       filtros.idEmpleado !== undefined
     ) {
-
-      params = params.set(
-        'idEmpleado',
-        filtros.idEmpleado
-      );
+      params = params.set('idEmpleado', filtros.idEmpleado);
     }
 
     return this.http.get<FacturaResponse>(
@@ -135,10 +92,16 @@ export class FacturacionService {
     );
   }
 
+  marcarTasacionEnviada(id: number): Observable<FacturaListado> {
+    return this.http.patch<FacturaListado>(
+      `${this.apiUrl}/${id}/tasacion/enviada`,
+      {}
+    );
+  }
+
   eliminarFactura(
     id: number
   ): Observable<void> {
-
     return this.http.delete<void>(
       `${this.apiUrl}/${id}`
     );

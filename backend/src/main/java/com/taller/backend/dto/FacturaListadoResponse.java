@@ -16,6 +16,7 @@ public class FacturaListadoResponse {
     private String matricula;
     private String modelo;
     private String estado;
+    private String estadoTasacion;
 
     private Integer cantidad;
     private String item;
@@ -109,6 +110,14 @@ public class FacturaListadoResponse {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getEstadoTasacion() {
+        return estadoTasacion;
+    }
+
+    public void setEstadoTasacion(String estadoTasacion) {
+        this.estadoTasacion = estadoTasacion;
     }
 
     public Integer getCantidad() {

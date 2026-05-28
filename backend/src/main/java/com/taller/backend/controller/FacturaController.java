@@ -1,6 +1,7 @@
 package com.taller.backend.controller;
 
 import com.taller.backend.dto.CreateFacturaRequest;
+import com.taller.backend.dto.FacturaListadoResponse;
 import com.taller.backend.dto.FacturasPageResponse;
 import com.taller.backend.entity.Factura;
 import com.taller.backend.service.FacturaService;
@@ -39,6 +40,11 @@ public class FacturaController {
                 page,
                 size
         );
+    }
+
+    @PatchMapping("/{id}/tasacion/enviada")
+    public FacturaListadoResponse marcarTasacionEnviada(@PathVariable Long id) {
+        return facturaService.marcarTasacionEnviada(id);
     }
 
     @DeleteMapping("/{id}")

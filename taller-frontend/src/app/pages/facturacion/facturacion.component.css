@@ -246,6 +246,18 @@
   color: #9ff3cf;
 }
 
+.estado-badge.tasacion.pendiente {
+  background: rgba(244,180,0,0.12);
+  border: 1px solid rgba(244,180,0,0.25);
+  color: #ffd66b;
+}
+
+.estado-badge.tasacion.enviada {
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.25);
+  color: #9ff3cf;
+}
+
 .acciones-column {
   text-align: center !important;
   width: 120px;
@@ -309,6 +321,70 @@
   color: #f5f7fb;
   font-weight: 800;
   word-break: break-word;
+}
+
+.tasacion-template {
+  cursor: pointer;
+  user-select: text;
+  transition: 0.2s ease;
+}
+
+.tasacion-template:hover {
+  border-color: rgba(244, 180, 0, 0.5);
+  background: rgba(244, 180, 0, 0.07);
+}
+
+.tasacion-template pre {
+  margin: 0;
+  color: #f5f7fb;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.estado-tasacion-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.estado-tasacion-badge.pendiente {
+  background: rgba(244, 180, 0, 0.12);
+  border: 1px solid rgba(244, 180, 0, 0.25);
+  color: #ffd66b;
+}
+
+.estado-tasacion-badge.enviada {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #9ff3cf;
+}
+
+.btn-tasacion {
+  border: 1px solid rgba(244, 180, 0, 0.4);
+  background: rgba(244, 180, 0, 0.14);
+  color: #ffd66b;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-tasacion:hover:not(:disabled) {
+  background: rgba(244, 180, 0, 0.24);
+  border-color: rgba(244, 180, 0, 0.7);
+}
+
+.btn-tasacion:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .sin-resultados {

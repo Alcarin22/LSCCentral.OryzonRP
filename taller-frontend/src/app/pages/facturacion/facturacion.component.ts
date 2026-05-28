@@ -238,6 +238,36 @@ export class FacturacionComponent implements OnInit {
     });
   }
 
+  marcarTasacionEnviada(factura: FacturaListado, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (factura.tipo !== 'Tasación') {
+      return;
+    }
+
+    if (factura.estadoTasacion === 'Enviada') {
+      this.toastService.info('Esta tasación ya está marcada como enviada.');
+      return;
+    }
+
+    this.facturacionService.marcarTasacionEnviada(factura.id).subscribe({
+      next: (actualizada) => {
+        this.zone.run(() => {
+          this.facturas = this.facturas.map(f =>
+            f.id === actualizada.id ? actualizada : f
+          );
+
+          this.toastService.success('Tasación marcada como enviada.');
+          this.cdr.detectChanges();
+        });
+      },
+      error: (error) => {
+        console.error('ERROR MARCANDO TASACIÓN COMO ENVIADA:', error);
+        this.toastService.error('No se pudo cambiar el estado de la tasación.');
+      }
+    });
+  }
+
   get facturasPaginadas(): FacturaListado[] {
     return this.facturas;
   }
@@ -308,6 +338,10 @@ export class FacturacionComponent implements OnInit {
     return f.matricula || f.tuneoPlate || '-';
   }
 
+  getEstadoTasacion(f: FacturaListado): string {
+    return f.estadoTasacion || 'Pendiente';
+  }
+
   getInformeTasacion(f: FacturaListado): string {
     return [
       `Modelo: ${f.modelo || '-'}`,
@@ -316,16 +350,20 @@ export class FacturacionComponent implements OnInit {
     ].join('\n');
   }
 
-  copiarInformeTasacion(f: FacturaListado): void {
+  copiarInformeTasacion(f: FacturaListado, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
     const texto = this.getInformeTasacion(f);
 
     navigator.clipboard.writeText(texto)
       .then(() => {
-        this.toastService.success('Informe copiado al portapapeles.');
+        this.toastService.success('Plantilla de tasación copiada.');
       })
       .catch(error => {
         console.error('Error copiando informe:', error);
-        this.toastService.error('No se pudo copiar el informe.');
+        this.toastService.error('No se pudo copiar la plantilla.');
       });
   }
 

@@ -106,6 +106,12 @@ public class FacturaService {
         factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
         factura.setGrua(Boolean.TRUE.equals(request.getGrua()));
 
+        if ("Tasación".equals(request.getTipo())) {
+            factura.setEstadoTasacion("Pendiente");
+        } else {
+            factura.setEstadoTasacion(null);
+        }
+
         Factura guardada = facturaRepository.save(factura);
 
         if ("Tasación".equals(request.getTipo())) {
@@ -122,6 +128,26 @@ public class FacturaService {
         }
 
         return guardada;
+    }
+
+    public FacturaListadoResponse marcarTasacionEnviada(Long id) {
+        Factura factura = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+
+        if (!"Tasación".equals(factura.getTipo())) {
+            throw new RuntimeException("La factura no es una tasación");
+        }
+
+        factura.setEstadoTasacion("Enviada");
+
+        Factura guardada = facturaRepository.save(factura);
+
+        Map<Long, String> nombres = new HashMap<>();
+
+        empleadoRepository.findById(guardada.getIdEmpleado())
+                .ifPresent(empleado -> nombres.put(empleado.getId(), empleado.getNombre()));
+
+        return mapearFactura(guardada, nombres);
     }
 
     public void eliminarFactura(Long id) {
@@ -297,6 +323,11 @@ public class FacturaService {
         response.setMatricula(factura.getMatricula());
         response.setModelo(factura.getModelo());
         response.setEstado(factura.getEstado());
+        response.setEstadoTasacion(
+                factura.getEstadoTasacion() != null
+                        ? factura.getEstadoTasacion()
+                        : ("Tasación".equals(factura.getTipo()) ? "Pendiente" : null)
+        );
         response.setCantidad(factura.getCantidad());
         response.setItem(factura.getItem());
         response.setCategoria(factura.getCategoria());

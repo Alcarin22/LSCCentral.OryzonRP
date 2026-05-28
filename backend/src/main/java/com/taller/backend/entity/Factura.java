@@ -35,6 +35,9 @@ public class Factura {
     @Column
     private String estado;
 
+    @Column(name = "estado_tasacion")
+    private String estadoTasacion;
+
     @Column
     private Integer cantidad;
 
@@ -122,6 +125,14 @@ public class Factura {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getEstadoTasacion() {
+        return estadoTasacion;
+    }
+
+    public void setEstadoTasacion(String estadoTasacion) {
+        this.estadoTasacion = estadoTasacion;
     }
 
     public Integer getCantidad() {

@@ -281,15 +281,24 @@
             <td>
 
               <span
+                class="estado-badge tasacion"
+                *ngIf="factura.tipo === 'Tasación'"
+                [class.enviada]="getEstadoTasacion(factura) === 'Enviada'"
+                [class.pendiente]="getEstadoTasacion(factura) !== 'Enviada'"
+              >
+                {{ getEstadoTasacion(factura) }}
+              </span>
+
+              <span
                 class="estado-badge convenio"
-                *ngIf="factura.convenio"
+                *ngIf="factura.tipo !== 'Tasación' && factura.convenio"
               >
                 Convenio
               </span>
 
               <span
                 class="estado-badge normal"
-                *ngIf="!factura.convenio"
+                *ngIf="factura.tipo !== 'Tasación' && !factura.convenio"
               >
                 Normal
               </span>
@@ -404,7 +413,10 @@
 
                 </div>
 
-                <div class="detalle-item">
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.tipo !== 'Tasación'"
+                >
 
                   <span class="detalle-label">
                     Convenio
@@ -416,6 +428,25 @@
                         ? 'Sí'
                         : 'No'
                     }}
+                  </span>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.tipo === 'Tasación'"
+                >
+
+                  <span class="detalle-label">
+                    Estado Tasación
+                  </span>
+
+                  <span
+                    class="estado-tasacion-badge"
+                    [class.enviada]="getEstadoTasacion(factura) === 'Enviada'"
+                    [class.pendiente]="getEstadoTasacion(factura) !== 'Enviada'"
+                  >
+                    {{ getEstadoTasacion(factura) }}
                   </span>
 
                 </div>
@@ -522,6 +553,48 @@
                   <span class="detalle-value">
                     {{ factura.estado }}
                   </span>
+
+                </div>
+
+                <div
+                  class="detalle-item detalle-wide tasacion-template"
+                  *ngIf="factura.tipo === 'Tasación'"
+                  role="button"
+                  tabindex="0"
+                  title="Pulsa para copiar la plantilla"
+                  (click)="copiarInformeTasacion(factura, $event)"
+                  (keydown.enter)="copiarInformeTasacion(factura)"
+                >
+
+                  <span class="detalle-label">
+                    Plantilla Tasación
+                  </span>
+
+                  <pre>{{ getInformeTasacion(factura) }}</pre>
+
+                </div>
+
+                <div
+                  class="detalle-item"
+                  *ngIf="factura.tipo === 'Tasación'"
+                >
+
+                  <span class="detalle-label">
+                    Acción Tasación
+                  </span>
+
+                  <button
+                    type="button"
+                    class="btn-tasacion"
+                    [disabled]="getEstadoTasacion(factura) === 'Enviada'"
+                    (click)="marcarTasacionEnviada(factura, $event)"
+                  >
+                    {{
+                      getEstadoTasacion(factura) === 'Enviada'
+                        ? 'Enviada'
+                        : 'Marcar como enviada'
+                    }}
+                  </button>
 
                 </div>
 
