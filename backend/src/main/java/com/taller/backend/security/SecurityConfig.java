@@ -37,9 +37,13 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Configuration
 public class SecurityConfig {
@@ -118,14 +122,13 @@ public class SecurityConfig {
                                             ? client.getAccessToken().getTokenValue()
                                             : null;
 
-                            boolean tieneRolEmpleado = false;
+                            DiscordMemberData memberData = obtenerMiembroDiscordConBot(discordId);
 
-                            if (accessToken != null && !accessToken.isBlank()) {
+                            boolean tieneRolEmpleado = memberData != null &&
+                                    memberData.roleIds().contains(empleadoRoleId);
+
+                            if (!tieneRolEmpleado && accessToken != null && !accessToken.isBlank()) {
                                 tieneRolEmpleado = usuarioTieneRolEmpleadoConOAuth(accessToken);
-                            }
-
-                            if (!tieneRolEmpleado) {
-                                tieneRolEmpleado = usuarioTieneRolEmpleadoConBot(discordId);
                             }
 
                             if (!tieneRolEmpleado) {
@@ -139,14 +142,13 @@ public class SecurityConfig {
 
                             Empleado empleado = empleadoRepository
                                     .findByDiscordId(discordId)
-                                    .orElseGet(() ->
-                                            crearEmpleadoDesdeDiscord(discordId, username)
-                                    );
+                                    .orElseGet(() -> crearEmpleadoDesdeDiscord(discordId, username));
 
-                            if (Boolean.FALSE.equals(empleado.getActivo())) {
-                                empleado.setActivo(true);
-                                empleado = empleadoRepository.save(empleado);
-                            }
+                            actualizarEmpleadoDesdeDiscord(
+                                    empleado,
+                                    memberData,
+                                    username
+                            );
 
                             Map<String, Object> user = crearRespuestaUsuario(
                                     empleado,
@@ -160,6 +162,61 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    private DiscordMemberData obtenerMiembroDiscordConBot(String discordId) {
+        try {
+            if (discordBotToken == null || discordBotToken.isBlank()) {
+                System.err.println("DISCORD BOT MEMBER ERROR: discord.bot-token vacío");
+                return null;
+            }
+
+            String url = "https://discord.com/api/guilds/"
+                    + discordGuildId
+                    + "/members/"
+                    + discordId;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bot " + discordBotToken);
+
+            ResponseEntity<String> discordResponse = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    String.class
+            );
+
+            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+
+            String nickServidor = null;
+
+            if (body.has("nick") && !body.get("nick").isNull()) {
+                nickServidor = body.get("nick").asText();
+            }
+
+            List<String> roleIds = new ArrayList<>();
+
+            if (body.has("roles") && body.get("roles").isArray()) {
+                for (JsonNode role : body.get("roles")) {
+                    roleIds.add(role.asText());
+                }
+            }
+
+            return new DiscordMemberData(nickServidor, roleIds);
+
+        } catch (HttpClientErrorException e) {
+            System.err.println(
+                    "DISCORD BOT MEMBER ERROR: "
+                            + e.getStatusCode()
+                            + " - "
+                            + e.getResponseBodyAsString()
+            );
+            return null;
+
+        } catch (Exception e) {
+            System.err.println("DISCORD BOT MEMBER ERROR: " + e.getMessage());
+            return null;
+        }
     }
 
     private boolean usuarioTieneRolEmpleadoConOAuth(String accessToken) {
@@ -197,47 +254,6 @@ public class SecurityConfig {
         }
     }
 
-    private boolean usuarioTieneRolEmpleadoConBot(String discordId) {
-        try {
-            if (discordBotToken == null || discordBotToken.isBlank()) {
-                System.err.println("DISCORD BOT CHECK ERROR: discord.bot-token vacío");
-                return false;
-            }
-
-            String url = "https://discord.com/api/guilds/"
-                    + discordGuildId
-                    + "/members/"
-                    + discordId;
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bot " + discordBotToken);
-
-            ResponseEntity<String> discordResponse = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
-            );
-
-            JsonNode body = objectMapper.readTree(discordResponse.getBody());
-
-            return contieneRolEmpleado(body, "BOT");
-
-        } catch (HttpClientErrorException e) {
-            System.err.println(
-                    "DISCORD BOT CHECK ERROR: "
-                            + e.getStatusCode()
-                            + " - "
-                            + e.getResponseBodyAsString()
-            );
-            return false;
-
-        } catch (Exception e) {
-            System.err.println("DISCORD BOT CHECK ERROR: " + e.getMessage());
-            return false;
-        }
-    }
-
     private boolean contieneRolEmpleado(JsonNode body, String origen) {
         if (body == null || !body.has("roles")) {
             System.err.println("DISCORD " + origen + " CHECK: respuesta sin roles");
@@ -262,6 +278,132 @@ public class SecurityConfig {
 
         System.err.println("DISCORD " + origen + " CHECK: rol Empleado NO encontrado");
         return false;
+    }
+
+    private void actualizarEmpleadoDesdeDiscord(
+            Empleado empleado,
+            DiscordMemberData memberData,
+            String username
+    ) {
+        String nombreServidor = obtenerNombreServidor(memberData, username);
+
+        empleado.setNombre(nombreServidor);
+        empleado.setActivo(true);
+
+        Optional<Rango> rangoDiscord = detectarRangoDesdeRolesDiscord(memberData);
+
+        if (rangoDiscord.isPresent()) {
+            empleado.setRango(rangoDiscord.get());
+        } else if (empleado.getRango() == null) {
+            Rango rangoDefault = rangoRepository.findByNombre("Aprendiz")
+                    .orElseThrow(() -> new RuntimeException("No existe el rango Aprendiz"));
+
+            empleado.setRango(rangoDefault);
+        }
+
+        empleadoRepository.save(empleado);
+    }
+
+    private String obtenerNombreServidor(
+            DiscordMemberData memberData,
+            String username
+    ) {
+        if (
+                memberData != null &&
+                memberData.nickServidor() != null &&
+                !memberData.nickServidor().isBlank()
+        ) {
+            return memberData.nickServidor();
+        }
+
+        if (username != null && !username.isBlank()) {
+            return username;
+        }
+
+        return "Empleado";
+    }
+
+    private Optional<Rango> detectarRangoDesdeRolesDiscord(DiscordMemberData memberData) {
+        if (memberData == null || memberData.roleIds().isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, String> rolesServidor = obtenerRolesServidorConBot();
+
+        if (rolesServidor.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<String> nombresRolesUsuario = memberData.roleIds()
+                .stream()
+                .map(rolesServidor::get)
+                .filter(nombre -> nombre != null && !nombre.isBlank())
+                .toList();
+
+        if (nombresRolesUsuario.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<Rango> rangos = rangoRepository.findAll();
+
+        return rangos.stream()
+                .filter(rango -> nombresRolesUsuario.stream()
+                        .anyMatch(nombreRolDiscord ->
+                                normalizar(nombreRolDiscord).equals(normalizar(rango.getNombre()))
+                        )
+                )
+                .max(Comparator.comparingInt(Rango::getNivel));
+    }
+
+    private Map<String, String> obtenerRolesServidorConBot() {
+        Map<String, String> roles = new HashMap<>();
+
+        try {
+            if (discordBotToken == null || discordBotToken.isBlank()) {
+                System.err.println("DISCORD BOT ROLES ERROR: discord.bot-token vacío");
+                return roles;
+            }
+
+            String url = "https://discord.com/api/guilds/"
+                    + discordGuildId
+                    + "/roles";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bot " + discordBotToken);
+
+            ResponseEntity<String> discordResponse = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    String.class
+            );
+
+            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+
+            if (body != null && body.isArray()) {
+                for (JsonNode role : body) {
+                    if (role.has("id") && role.has("name")) {
+                        roles.put(
+                                role.get("id").asText(),
+                                role.get("name").asText()
+                        );
+                    }
+                }
+            }
+
+        } catch (HttpClientErrorException e) {
+            System.err.println(
+                    "DISCORD BOT ROLES ERROR: "
+                            + e.getStatusCode()
+                            + " - "
+                            + e.getResponseBodyAsString()
+            );
+
+        } catch (Exception e) {
+            System.err.println("DISCORD BOT ROLES ERROR: " + e.getMessage());
+        }
+
+        return roles;
     }
 
     private Empleado crearEmpleadoDesdeDiscord(String discordId, String username) {
@@ -312,9 +454,7 @@ public class SecurityConfig {
         user.put("avatarUrl", avatarUrl);
         user.put(
                 "nickServidor",
-                username != null && !username.isBlank()
-                        ? username
-                        : empleado.getNombre()
+                empleado.getNombre()
         );
         user.put("rango", rango);
 
@@ -351,6 +491,17 @@ public class SecurityConfig {
                 """.formatted(json, frontendUrl));
     }
 
+    private String normalizar(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .trim();
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -383,4 +534,9 @@ public class SecurityConfig {
 
         return source;
     }
+
+    private record DiscordMemberData(
+            String nickServidor,
+            List<String> roleIds
+    ) {}
 }
