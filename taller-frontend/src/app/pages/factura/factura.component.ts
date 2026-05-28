@@ -214,47 +214,30 @@ export class FacturaComponent implements OnInit {
     });
   }
 
-  onTipoFacturaChange(): void {
-    this.total = 0;
+onTipoFacturaChange(): void {
+  const nuevoTipo = this.tipoSeleccionado;
 
-    if (this.tipoSeleccionado !== 'Reparación') {
-      this.gravedad = '';
-      this.grua = false;
-    }
+  this.total = 0;
 
-    if (this.tipoSeleccionado !== 'Items') {
-      this.item = '';
-      this.cantidad = 1;
-    }
+  this.matricula = '';
+  this.modelo = '';
+  this.estado = 'SERIE';
+  this.convenio = false;
+  this.cantidad = 1;
+  this.item = '';
+  this.otros = '';
 
-    if (this.tipoSeleccionado !== 'Tasación') {
-      this.estado = 'SERIE';
-      this.otros = '';
-      this.modelo = '';
-    }
+  this.categoria = '';
+  this.tuneoPlate = '';
+  this.gravedad = '';
+  this.grua = false;
 
-    if (
-      this.tipoSeleccionado !== 'Tasación' &&
-      this.tipoSeleccionado !== 'Full Tuning'
-    ) {
-      this.matricula = '';
-    }
+  this.tuneoSeleccionados = [];
 
-    if (this.tipoSeleccionado !== 'Full Tuning' && this.tipoSeleccionado !== 'Tuneo') {
-      this.categoria = '';
-    }
+  this.tipoSeleccionado = nuevoTipo;
 
-    if (this.tipoSeleccionado !== 'Tuneo') {
-      this.tuneoPlate = '';
-      this.tuneoSeleccionados = [];
-    }
-
-    if (this.tipoSeleccionado === 'Tasación') {
-      this.convenio = false;
-    }
-
-    this.actualizarTotal();
-  }
+  this.actualizarTotal();
+}
 
   isTuneoSelected(opcion: string): boolean {
     return this.tuneoSeleccionados.includes(opcion);
