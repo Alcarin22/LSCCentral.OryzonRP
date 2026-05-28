@@ -450,19 +450,43 @@ public class FacturaService {
     }
 
     private int calcularTuneo(CreateFacturaRequest request) {
-        FullTuning fullTuning = fullTuningRepository
-                .findAll()
-                .stream()
-                .filter(ft ->
-                        normalizar(ft.getCategoria())
-                                .equals(normalizar(request.getCategoria()))
-                )
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Categoría de tuneo no encontrada"));
+        if (
+                request.getTuneoSeleccionados() == null ||
+                request.getTuneoSeleccionados().isBlank()
+        ) {
+            throw new RuntimeException("No se han seleccionado piezas de tuneo");
+        }
 
         String[] piezas = request.getTuneoSeleccionados().split(",");
 
         BigDecimal total = BigDecimal.ZERO;
+
+        boolean tieneRendimiento = false;
+
+        for (String pieza : piezas) {
+            if (esRendimiento(pieza)) {
+                tieneRendimiento = true;
+                break;
+            }
+        }
+
+        FullTuning fullTuning = null;
+
+        if (tieneRendimiento) {
+            if (request.getCategoria() == null || request.getCategoria().isBlank()) {
+                throw new RuntimeException("La categoría es obligatoria para mejoras de rendimiento");
+            }
+
+            fullTuning = fullTuningRepository
+                    .findAll()
+                    .stream()
+                    .filter(ft ->
+                            normalizar(ft.getCategoria())
+                                    .equals(normalizar(request.getCategoria()))
+                    )
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Categoría de tuneo no encontrada"));
+        }
 
         for (String pieza : piezas) {
             if (esRendimiento(pieza)) {

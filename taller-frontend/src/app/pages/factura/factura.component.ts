@@ -260,6 +260,12 @@ export class FacturaComponent implements OnInit {
     return this.tuneoSeleccionados.includes(opcion);
   }
 
+  tieneMejorasRendimientoSeleccionadas(): boolean {
+    return this.tuneoSeleccionados.some(opcion =>
+      this.tuneoRendimientoOpciones.includes(opcion)
+    );
+  }
+
   toggleTuneoItem(opcion: string, checked: boolean): void {
     if (checked) {
       if (!this.tuneoSeleccionados.includes(opcion)) {
@@ -318,16 +324,22 @@ export class FacturaComponent implements OnInit {
       }
 
       case 'Tuneo': {
-        const fullTuningSeleccionado = this.fullTuningDisponibles.find(
-          ft => this.normalizarClave(ft.categoria) === this.normalizarClave(this.categoria)
-        );
+        const tieneRendimiento = this.tieneMejorasRendimientoSeleccionadas();
 
-        const precioFullTuning = fullTuningSeleccionado?.precio ?? 0;
-        const precioPorRendimiento = precioFullTuning * 0.3;
+        let totalRendimiento = 0;
 
-        const totalRendimiento = this.tuneoSeleccionados
-          .filter(pieza => this.tuneoRendimientoOpciones.includes(pieza))
-          .length * precioPorRendimiento;
+        if (tieneRendimiento && this.categoria) {
+          const fullTuningSeleccionado = this.fullTuningDisponibles.find(
+            ft => this.normalizarClave(ft.categoria) === this.normalizarClave(this.categoria)
+          );
+
+          const precioFullTuning = fullTuningSeleccionado?.precio ?? 0;
+          const precioPorRendimiento = precioFullTuning * 0.3;
+
+          totalRendimiento = this.tuneoSeleccionados
+            .filter(pieza => this.tuneoRendimientoOpciones.includes(pieza))
+            .length * precioPorRendimiento;
+        }
 
         const totalEstetica = this.tuneoSeleccionados
           .filter(pieza => this.tuneoEsteticaOpciones.includes(pieza))
@@ -412,13 +424,17 @@ export class FacturaComponent implements OnInit {
         return;
       }
 
-      if (!this.categoria) {
-        this.toastService.warning('Debes seleccionar la categoría del vehículo.');
+      if (this.tuneoSeleccionados.length === 0) {
+        this.toastService.warning('Debes seleccionar al menos una pieza de tuneo.');
         return;
       }
 
-      if (this.tuneoSeleccionados.length === 0) {
-        this.toastService.warning('Debes seleccionar al menos una pieza de tuneo.');
+      const tieneRendimiento = this.tieneMejorasRendimientoSeleccionadas();
+
+      if (tieneRendimiento && !this.categoria) {
+        this.toastService.warning(
+          'Debes seleccionar la categoría del vehículo para mejoras de rendimiento.'
+        );
         return;
       }
     }
