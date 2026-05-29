@@ -1,11 +1,112 @@
-<section class="construction-page">
-  <article class="construction-card">
-    <div class="construction-icon">📘</div>
+<section class="manual-page">
 
-    <h1>Manual LSC</h1>
+  <header class="manual-header">
+    <div>
+      <h1>Manual LSC</h1>
+      <p>Consulta el manual interno de funcionamiento de LSC Central.</p>
+    </div>
+  </header>
 
-    <p>
-      Esta sección se encuentra actualmente en construcción.
-    </p>
+  <article class="visor-card">
+
+    <div class="visor-header">
+
+      <div class="visor-title">
+        <span>{{ manual.icono }}</span>
+
+        <div>
+          <h2>{{ manual.titulo }}</h2>
+          <p>Página {{ paginaActual }} de {{ manual.totalPaginas }}</p>
+        </div>
+      </div>
+
+      <div class="visor-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="abrirPdf()"
+        >
+          Abrir PDF
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="descargarPdf()"
+        >
+          Descargar PDF
+        </button>
+      </div>
+
+    </div>
+
+    <div class="pager-top">
+
+      <button
+        type="button"
+        class="btn-page-main"
+        [disabled]="paginaActual === 1"
+        (click)="paginaAnterior()"
+      >
+        ← Página anterior
+      </button>
+
+      <div class="page-selector">
+        <button
+          type="button"
+          class="page-dot"
+          *ngFor="let pagina of paginas"
+          [class.active]="pagina === paginaActual"
+          (click)="irAPagina(pagina)"
+        >
+          {{ pagina }}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="btn-page-main"
+        [disabled]="paginaActual === manual.totalPaginas"
+        (click)="paginaSiguiente()"
+      >
+        Página siguiente →
+      </button>
+
+    </div>
+
+    <div class="image-viewer">
+      <img
+        [src]="manual.getImagenUrl(paginaActual)"
+        [alt]="manual.titulo + ' página ' + paginaActual"
+      />
+    </div>
+
+    <div class="pager-bottom">
+
+      <button
+        type="button"
+        class="btn-page-main"
+        [disabled]="paginaActual === 1"
+        (click)="paginaAnterior()"
+      >
+        ← Página anterior
+      </button>
+
+      <span>
+        Página {{ paginaActual }} / {{ manual.totalPaginas }}
+      </span>
+
+      <button
+        type="button"
+        class="btn-page-main"
+        [disabled]="paginaActual === manual.totalPaginas"
+        (click)="paginaSiguiente()"
+      >
+        Página siguiente →
+      </button>
+
+    </div>
+
   </article>
+
 </section>
