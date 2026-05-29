@@ -25,7 +25,7 @@ export class ManualLscComponent {
   descripcion: 'Manual interno de funcionamiento de LSC Central.',
   icono: '📘',
   totalPaginas: 15,
-  pdfUrl: '/assets/manual-lsc/Manual_LSCCentral.pdf',
+  pdfUrl: '/assets/m-local/Manual_LSCCentral.pdf',
   getImagenUrl: (pagina: number) =>
     `/assets/m-local/pagina_${String(pagina).padStart(2, '0')}.png`
 };
