@@ -21,14 +21,14 @@ export class ManualLscComponent {
   paginaActual = 1;
 
   manual: ManualLsc = {
-    titulo: 'Manual LSC',
-    descripcion: 'Manual interno de funcionamiento de LSC Central.',
-    icono: '📘',
-    totalPaginas: 1,
-    pdfUrl: '/assets/manual-lsc/Manual_LSCCentral.pdf',
-    getImagenUrl: (pagina: number) =>
-      `/assets/manual-lsc/${pagina}.png`
-  };
+  titulo: 'Manual LSC',
+  descripcion: 'Manual interno de funcionamiento de LSC Central.',
+  icono: '📘',
+  totalPaginas: 15,
+  pdfUrl: '/assets/manual-lsc/Manual_LSCCentral.pdf',
+  getImagenUrl: (pagina: number) =>
+    `/assets/manual-lsc/pagina_${String(pagina).padStart(2, '0')}.png`
+};
 
   paginaAnterior(): void {
     if (this.paginaActual > 1) {
