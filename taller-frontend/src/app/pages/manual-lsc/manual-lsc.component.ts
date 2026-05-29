@@ -27,7 +27,7 @@ export class ManualLscComponent {
   totalPaginas: 15,
   pdfUrl: '/assets/manual-lsc/Manual_LSCCentral.pdf',
   getImagenUrl: (pagina: number) =>
-    `/assets/manual-lsc/pagina_${String(pagina).padStart(2, '0')}.png`
+    `/assets/m-local/pagina_${String(pagina).padStart(2, '0')}.png`
 };
 
   paginaAnterior(): void {
