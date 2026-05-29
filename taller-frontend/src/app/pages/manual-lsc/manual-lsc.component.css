@@ -1,0 +1,33 @@
+.construction-page {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  color: #f5f7fb;
+}
+
+.construction-card {
+  width: min(620px, 100%);
+  text-align: center;
+  padding: 42px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(35, 41, 56, 0.95), rgba(26, 30, 40, 0.98));
+  border: 1px solid #2f3748;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.construction-icon {
+  font-size: 4rem;
+  margin-bottom: 18px;
+}
+
+.construction-card h1 {
+  margin: 0 0 10px;
+  font-size: 2.2rem;
+  font-weight: 900;
+}
+
+.construction-card p {
+  margin: 0;
+  color: #9aa4b2;
+}
