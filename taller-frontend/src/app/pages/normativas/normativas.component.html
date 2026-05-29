@@ -1,11 +1,154 @@
-<section class="construction-page">
-  <article class="construction-card">
-    <div class="construction-icon">🚧</div>
+<section class="normativas-page">
 
-    <h1>Normativas</h1>
+  <header class="normativas-header">
+    <div>
+      <h1>Normativas</h1>
+      <p>Consulta la normativa general del servidor y la normativa específica de locales.</p>
+    </div>
+  </header>
 
-    <p>
-      Esta sección se encuentra actualmente en construcción.
-    </p>
-  </article>
+  <ng-container *ngIf="!normativaActual">
+
+    <div class="normativas-grid">
+
+      <article
+        class="normativa-card"
+        *ngFor="let normativa of normativas"
+      >
+        <div class="normativa-icon">
+          {{ normativa.icono }}
+        </div>
+
+        <div>
+          <h2>{{ normativa.titulo }}</h2>
+          <p>{{ normativa.descripcion }}</p>
+        </div>
+
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="seleccionarNormativa(normativa.id)"
+        >
+          Ver normativa
+        </button>
+      </article>
+
+    </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="normativaActual as normativa">
+
+    <article class="visor-card">
+
+      <div class="visor-header">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="volver()"
+        >
+          ← Volver
+        </button>
+
+        <div class="visor-title">
+          <span>{{ normativa.icono }}</span>
+
+          <div>
+            <h2>{{ normativa.titulo }}</h2>
+            <p>Página {{ paginaActual }} de {{ normativa.totalPaginas }}</p>
+          </div>
+        </div>
+
+        <div class="visor-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="abrirPdf()"
+          >
+            Abrir PDF
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="descargarPdf()"
+          >
+            Descargar PDF
+          </button>
+        </div>
+
+      </div>
+
+      <div class="pager-top">
+
+        <button
+          type="button"
+          class="btn-page-main"
+          [disabled]="paginaActual === 1"
+          (click)="paginaAnterior()"
+        >
+          ← Página anterior
+        </button>
+
+        <div class="page-selector">
+          <button
+            type="button"
+            class="page-dot"
+            *ngFor="let pagina of paginas"
+            [class.active]="pagina === paginaActual"
+            (click)="irAPagina(pagina)"
+          >
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="btn-page-main"
+          [disabled]="paginaActual === normativa.totalPaginas"
+          (click)="paginaSiguiente()"
+        >
+          Página siguiente →
+        </button>
+
+      </div>
+
+      <div class="image-viewer">
+        <img
+          [src]="normativa.getImagenUrl(paginaActual)"
+          [alt]="normativa.titulo + ' página ' + paginaActual"
+        />
+      </div>
+
+      <div class="pager-bottom">
+
+        <button
+          type="button"
+          class="btn-page-main"
+          [disabled]="paginaActual === 1"
+          (click)="paginaAnterior()"
+        >
+          ← Página anterior
+        </button>
+
+        <span>
+          Página {{ paginaActual }} / {{ normativa.totalPaginas }}
+        </span>
+
+        <button
+          type="button"
+          class="btn-page-main"
+          [disabled]="paginaActual === normativa.totalPaginas"
+          (click)="paginaSiguiente()"
+        >
+          Página siguiente →
+        </button>
+
+      </div>
+
+    </article>
+
+  </ng-container>
+
 </section>
