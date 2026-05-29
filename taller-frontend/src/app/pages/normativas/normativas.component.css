@@ -70,7 +70,7 @@
   background: linear-gradient(180deg, rgba(35, 41, 56, 0.95), rgba(26, 30, 40, 0.98));
   border: 1px solid #2f3748;
   border-radius: 22px;
-  margin: 50px;
+  padding: 50px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
 }
 
