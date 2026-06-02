@@ -40,7 +40,7 @@ export class NormativasComponent {
       titulo: 'Normativa Locales',
       descripcion: 'Normativa específica para locales y negocios.',
       icono: '🏪',
-      totalPaginas: 9,
+      totalPaginas: 10,
       pdfUrl: '/assets/n-locales/NORMATIVA LOCALES WIPE9.pdf',
       getImagenUrl: (pagina: number) =>
         `/assets/n-locales/${pagina}.png`
