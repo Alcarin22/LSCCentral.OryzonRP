@@ -43,7 +43,7 @@ export class NormativasComponent {
       totalPaginas: 9,
       pdfUrl: '/assets/n-locales/NORMATIVA LOCALES WIPE9.pdf',
       getImagenUrl: (pagina: number) =>
-        `/assets/n-locales/${pagina}.jpg`
+        `/assets/n-locales/${pagina}.png`
     }
   ];
 
