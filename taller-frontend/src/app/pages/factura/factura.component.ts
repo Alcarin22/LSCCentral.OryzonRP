@@ -36,6 +36,7 @@ export class FacturaComponent implements OnInit {
   modelo = '';
   estado = 'SERIE';
   convenio = false;
+  lspd = false;
   cantidad = 1;
   item = '';
   otros = '';
@@ -214,30 +215,27 @@ export class FacturaComponent implements OnInit {
     });
   }
 
-onTipoFacturaChange(): void {
-  const nuevoTipo = this.tipoSeleccionado;
+  onTipoFacturaChange(): void {
+    const nuevoTipo = this.tipoSeleccionado;
 
-  this.total = 0;
+    this.total = 0;
+    this.matricula = '';
+    this.modelo = '';
+    this.estado = 'SERIE';
+    this.convenio = false;
+    this.lspd = false;
+    this.cantidad = 1;
+    this.item = '';
+    this.otros = '';
+    this.categoria = '';
+    this.tuneoPlate = '';
+    this.gravedad = '';
+    this.grua = false;
+    this.tuneoSeleccionados = [];
 
-  this.matricula = '';
-  this.modelo = '';
-  this.estado = 'SERIE';
-  this.convenio = false;
-  this.cantidad = 1;
-  this.item = '';
-  this.otros = '';
-
-  this.categoria = '';
-  this.tuneoPlate = '';
-  this.gravedad = '';
-  this.grua = false;
-
-  this.tuneoSeleccionados = [];
-
-  this.tipoSeleccionado = nuevoTipo;
-
-  this.actualizarTotal();
-}
+    this.tipoSeleccionado = nuevoTipo;
+    this.actualizarTotal();
+  }
 
   isTuneoSelected(opcion: string): boolean {
     return this.tuneoSeleccionados.includes(opcion);
@@ -285,6 +283,11 @@ onTipoFacturaChange(): void {
         );
 
         base = (itemSeleccionado?.precio ?? 0) * (this.cantidad || 1);
+
+        if (this.lspd) {
+          base = Math.round(base * 0.9);
+        }
+
         break;
       }
 
@@ -518,6 +521,7 @@ onTipoFacturaChange(): void {
     this.modelo = '';
     this.estado = 'SERIE';
     this.convenio = false;
+    this.lspd = false;
     this.cantidad = 1;
     this.item = '';
     this.otros = '';

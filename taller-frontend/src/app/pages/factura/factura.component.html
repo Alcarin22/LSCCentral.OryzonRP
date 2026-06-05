@@ -76,6 +76,15 @@
             class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
           />
         </div>
+
+        <label class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            [(ngModel)]="lspd"
+            (change)="actualizarTotal()"
+          />
+          <span>LSPD (-10%)</span>
+        </label>
       </div>
     }
 
