@@ -6,6 +6,7 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -323,26 +324,59 @@ public class PrimasService {
     }
 
     private int calcularRecordPersonal(Long idEmpleado) {
-        return facturaRepository.findAllByIdEmpleado(idEmpleado).stream()
-                .map(Factura::getTotal)
-                .filter(Objects::nonNull)
+        return facturaRepository.findAllByIdEmpleado(idEmpleado)
+                .stream()
+                .filter(f -> f.getFecha() != null)
+                .filter(f -> f.getTotal() != null)
+                .collect(
+                        Collectors.groupingBy(
+                                f -> getWeekFromDate(f.getFecha().toLocalDate()),
+                                Collectors.summingInt(Factura::getTotal)
+                        )
+                )
+                .values()
+                .stream()
                 .max(Integer::compareTo)
                 .orElse(0);
     }
 
     private int calcularRecordGlobal() {
-        return facturaRepository.findAll().stream()
-                .map(Factura::getTotal)
-                .filter(Objects::nonNull)
+        return facturaRepository.findAll()
+                .stream()
+                .filter(f -> f.getFecha() != null)
+                .filter(f -> f.getTotal() != null)
+                .collect(
+                        Collectors.groupingBy(
+                                f -> getWeekFromDate(f.getFecha().toLocalDate()) + "-" + f.getIdEmpleado(),
+                                Collectors.summingInt(Factura::getTotal)
+                        )
+                )
+                .values()
+                .stream()
                 .max(Integer::compareTo)
                 .orElse(0);
     }
 
     private MisPrimasResponse crearRespuestaSinSemana(Empleado e) {
         MisPrimasResponse r = new MisPrimasResponse();
+
         r.setNombreEmpleado(e.getNombre());
         r.setRango(e.getRango().getNombre());
+        r.setWeekOffset(0);
         r.setSemana("Sin semana activa");
+        r.setRangoFechas("-");
+        r.setPrimaEstimada(0);
+        r.setPrimaBase(0);
+        r.setExtraHoras(0);
+        r.setFacturacionSemanal(0);
+        r.setHorasTrabajadas("0h 0m");
+        r.setServiciosRealizados(0);
+        r.setDiasTrabajados(0);
+        r.setPorcentajeAplicado(0);
+        r.setRecordPersonalFacturacion(calcularRecordPersonal(e.getId()));
+        r.setRecordGlobalFacturacion(calcularRecordGlobal());
+        r.setHistorico(List.of());
+
         return r;
     }
 }
