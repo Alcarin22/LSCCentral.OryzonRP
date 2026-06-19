@@ -3,7 +3,7 @@
 
     <header class="admin-header">
       <h1>Administración</h1>
-      <p>Gestión interna del taller: empleados, primas y precios.</p>
+      <p>Gestión interna del taller: empleados, primas, precios y vehículos.</p>
     </header>
 
     <div *ngIf="!puedeAcceder()" class="error-card">
@@ -23,8 +23,8 @@
         </article>
 
         <article class="card admin-stat-card">
-          <span>Inactivos</span>
-          <strong>{{ empleadosInactivos }}</strong>
+          <span>Vehículos activos</span>
+          <strong>{{ vehiculosActivos }}</strong>
         </article>
 
         <article class="card admin-stat-card">
@@ -59,6 +59,15 @@
           (click)="setTab('precios')"
         >
           Precios
+        </button>
+
+        <button
+          type="button"
+          class="admin-tab"
+          [class.active]="activeTab === 'vehiculos'"
+          (click)="setTab('vehiculos')"
+        >
+          Vehículos
         </button>
       </article>
 
@@ -220,6 +229,7 @@
       </article>
 
       <ng-container *ngIf="!loading && activeTab === 'primas'">
+        <!-- Mantengo tu bloque de Primas igual -->
         <div class="admin-primas-stats-grid">
           <article class="card admin-stat-card main-stat">
             <span>Pendiente de pagar</span>
@@ -387,7 +397,249 @@
           Esta pestaña queda preparada para modificar todos los catálogos de precios.
         </p>
       </article>
-    </ng-container>
 
+      <ng-container *ngIf="!loading && activeTab === 'vehiculos'">
+        <div class="admin-primas-stats-grid">
+          <article class="card admin-stat-card main-stat">
+            <span>Vehículos</span>
+            <strong>{{ totalVehiculos }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Activos</span>
+            <strong>{{ vehiculosActivos }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Inactivos</span>
+            <strong>{{ vehiculosInactivos }}</strong>
+          </article>
+
+          <article class="card admin-stat-card">
+            <span>Mostrando</span>
+            <strong>{{ vehiculosFiltrados.length }}</strong>
+          </article>
+        </div>
+
+        <article class="card vehiculo-form-card">
+          <div class="card-header">
+            <div>
+              <h3>{{ editandoVehiculoId ? 'Editar vehículo' : 'Añadir vehículo' }}</h3>
+              <p>Introduce marca, modelo, categoría, precio e imagen del vehículo.</p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              *ngIf="editandoVehiculoId"
+              (click)="cancelarEdicionVehiculo()"
+            >
+              Cancelar edición
+            </button>
+          </div>
+
+          <div class="vehiculo-form-grid">
+            <div class="form-group">
+              <label>Marca</label>
+              <input
+                type="text"
+                [(ngModel)]="vehiculoForm.marca"
+                placeholder="Ej: Karin"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Modelo</label>
+              <input
+                type="text"
+                [(ngModel)]="vehiculoForm.modelo"
+                placeholder="Ej: Sultan RS"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Categoría</label>
+              <select [(ngModel)]="vehiculoForm.categoria">
+                <option value="">Selecciona categoría</option>
+                <option *ngFor="let categoria of categoriasVehiculos" [value]="categoria">
+                  {{ categoria }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Precio</label>
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="vehiculoForm.precio"
+                placeholder="0"
+              />
+            </div>
+
+            <div class="form-group form-group-wide">
+              <label>URL imagen</label>
+              <input
+                type="text"
+                [(ngModel)]="vehiculoForm.imagenUrl"
+                placeholder="https://..."
+              />
+            </div>
+
+            <label class="inactive-toggle vehiculo-active-toggle">
+              <input
+                type="checkbox"
+                [(ngModel)]="vehiculoForm.activo"
+              />
+              Activo
+            </label>
+          </div>
+
+          <div class="vehiculo-form-actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="guardarVehiculo()"
+            >
+              {{ editandoVehiculoId ? 'Guardar cambios' : 'Añadir vehículo' }}
+            </button>
+          </div>
+        </article>
+
+        <article class="card admin-table-card">
+          <div class="card-header">
+            <div>
+              <h3>Catálogo de vehículos</h3>
+              <p>Gestiona vehículos activos e inactivos del servidor.</p>
+            </div>
+
+            <div class="table-actions">
+              <label class="inactive-toggle">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="mostrarVehiculosInactivos"
+                />
+                Mostrar inactivos
+              </label>
+
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cargarVehiculos()"
+              >
+                Recargar
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="loadingVehiculos" class="loading-card">
+            <p>Cargando vehículos...</p>
+          </div>
+
+          <div *ngIf="errorVehiculos && !loadingVehiculos" class="error-card">
+            {{ errorVehiculos }}
+          </div>
+
+          <div class="admin-table-wrapper" *ngIf="!loadingVehiculos && !errorVehiculos">
+            <table class="admin-table vehiculos-table">
+              <thead>
+                <tr>
+                  <th>Imagen</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr
+                  *ngFor="let vehiculo of vehiculosFiltrados"
+                  [class.is-inactive]="!vehiculo.activo"
+                >
+                  <td>
+                    <div class="vehiculo-thumb">
+                      <img
+                        *ngIf="vehiculo.imagenUrl"
+                        [src]="vehiculo.imagenUrl"
+                        [alt]="vehiculo.marca + ' ' + vehiculo.modelo"
+                      />
+
+                      <span *ngIf="!vehiculo.imagenUrl">
+                        🚗
+                      </span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <strong>{{ vehiculo.marca }}</strong>
+                  </td>
+
+                  <td>{{ vehiculo.modelo }}</td>
+
+                  <td>
+                    <span class="admin-badge">
+                      {{ vehiculo.categoria }}
+                    </span>
+                  </td>
+
+                  <td class="admin-money">
+                    {{ vehiculo.precio | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="admin-status"
+                      [class.status-ok]="vehiculo.activo"
+                      [class.status-inactive]="!vehiculo.activo"
+                    >
+                      {{ vehiculo.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="table-actions">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        (click)="editarVehiculo(vehiculo)"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-danger"
+                        *ngIf="vehiculo.activo"
+                        (click)="toggleActivoVehiculo(vehiculo)"
+                      >
+                        Desactivar
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        *ngIf="!vehiculo.activo"
+                        (click)="toggleActivoVehiculo(vehiculo)"
+                      >
+                        Reactivar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr *ngIf="vehiculosFiltrados.length === 0">
+                  <td colspan="7" class="empty-row">
+                    No hay vehículos para el filtro seleccionado.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </ng-container>
+    </ng-container>
   </div>
 </section>

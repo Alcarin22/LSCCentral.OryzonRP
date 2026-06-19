@@ -24,6 +24,27 @@ export interface EmpleadoAdminUpdateRequest {
   activo: boolean | null;
 }
 
+export interface VehiculoAdmin {
+  id: number;
+  marca: string;
+  modelo: string;
+  categoria: string;
+  precio: number;
+  imagenUrl: string | null;
+  activo: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface VehiculoAdminRequest {
+  marca: string;
+  modelo: string;
+  categoria: string;
+  precio: number;
+  imagenUrl: string | null;
+  activo: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,6 +65,40 @@ export class AdminService {
     empleadoId: number,
     payload: EmpleadoAdminUpdateRequest
   ): Observable<EmpleadoAdmin> {
-    return this.http.put<EmpleadoAdmin>(`${this.baseUrl}/empleados/${empleadoId}`, payload);
+    return this.http.put<EmpleadoAdmin>(
+      `${this.baseUrl}/empleados/${empleadoId}`,
+      payload
+    );
+  }
+
+  listarVehiculos(): Observable<VehiculoAdmin[]> {
+    return this.http.get<VehiculoAdmin[]>(`${this.baseUrl}/vehiculos`);
+  }
+
+  crearVehiculo(payload: VehiculoAdminRequest): Observable<VehiculoAdmin> {
+    return this.http.post<VehiculoAdmin>(
+      `${this.baseUrl}/vehiculos`,
+      payload
+    );
+  }
+
+  actualizarVehiculo(
+    vehiculoId: number,
+    payload: VehiculoAdminRequest
+  ): Observable<VehiculoAdmin> {
+    return this.http.put<VehiculoAdmin>(
+      `${this.baseUrl}/vehiculos/${vehiculoId}`,
+      payload
+    );
+  }
+
+  cambiarEstadoVehiculo(
+    vehiculoId: number,
+    activo: boolean
+  ): Observable<VehiculoAdmin> {
+    return this.http.patch<VehiculoAdmin>(
+      `${this.baseUrl}/vehiculos/${vehiculoId}/activo`,
+      { activo }
+    );
   }
 }
