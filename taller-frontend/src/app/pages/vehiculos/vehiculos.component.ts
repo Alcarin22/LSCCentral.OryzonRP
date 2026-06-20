@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize, timeout } from 'rxjs/operators';
 
 import {
   Vehiculo,
@@ -11,8 +12,8 @@ import {
   selector: 'app-vehiculos',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: 'vehiculos.component.html',
-  styleUrls: ['vehiculos.component.css']
+  templateUrl: './vehiculos.component.html',
+  styleUrls: ['./vehiculos.component.css']
 })
 export class VehiculosComponent implements OnInit {
   vehiculos: Vehiculo[] = [];
@@ -28,7 +29,9 @@ export class VehiculosComponent implements OnInit {
   vehiculoSeleccionado: Vehiculo | null = null;
 
   constructor(
-    private vehiculosService: VehiculosService
+    private vehiculosService: VehiculosService,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -36,18 +39,47 @@ export class VehiculosComponent implements OnInit {
   }
 
   cargarVehiculos(): void {
-    this.cargando = true;
-    this.error = '';
+    this.zone.run(() => {
+      this.cargando = true;
+      this.error = '';
+      this.cdr.detectChanges();
+    });
 
-    this.vehiculosService.listarVehiculos().subscribe({
+    this.vehiculosService.listarVehiculos().pipe(
+      timeout(15000),
+      finalize(() => {
+        this.zone.run(() => {
+          this.cargando = false;
+          this.cdr.detectChanges();
+        });
+      })
+    ).subscribe({
       next: (data) => {
-        this.vehiculos = data ?? [];
-        this.cargando = false;
+        this.zone.run(() => {
+          this.vehiculos = data ?? [];
+          this.error = '';
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('Error cargando vehículos:', error);
-        this.error = 'No se pudieron cargar los vehículos.';
-        this.cargando = false;
+
+        this.zone.run(() => {
+          this.vehiculos = [];
+
+          if (error?.name === 'TimeoutError') {
+            this.error = 'La carga de vehículos ha tardado demasiado. Revisa si el backend responde.';
+          } else if (error?.status === 0) {
+            this.error = 'No se pudo conectar con el backend. Revisa CORS, la URL del backend o si Railway está activo.';
+          } else {
+            this.error =
+              error?.error?.message ||
+              error?.error?.error ||
+              `No se pudieron cargar los vehículos. Código: ${error?.status ?? 'desconocido'}`;
+          }
+
+          this.cdr.detectChanges();
+        });
       }
     });
   }
