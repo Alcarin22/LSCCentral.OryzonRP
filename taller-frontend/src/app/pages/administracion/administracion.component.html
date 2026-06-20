@@ -1,645 +1,305 @@
-<section class="administracion-page">
-  <div class="admin-view">
+<!-- Sustituye SOLO el bloque completo de activeTab === 'vehiculos' por este -->
 
-    <header class="admin-header">
-      <h1>Administración</h1>
-      <p>Gestión interna del taller: empleados, primas, precios y vehículos.</p>
-    </header>
+<ng-container *ngIf="!loading && activeTab === 'vehiculos'">
+  <div class="admin-primas-stats-grid">
+    <article class="card admin-stat-card main-stat">
+      <span>Vehículos</span>
+      <strong>{{ totalVehiculos }}</strong>
+    </article>
 
-    <div *ngIf="!puedeAcceder()" class="error-card">
-      No tienes permisos para acceder a esta sección.
+    <article class="card admin-stat-card">
+      <span>Activos</span>
+      <strong>{{ vehiculosActivos }}</strong>
+    </article>
+
+    <article class="card admin-stat-card">
+      <span>Inactivos</span>
+      <strong>{{ vehiculosInactivos }}</strong>
+    </article>
+
+    <article class="card admin-stat-card">
+      <span>Mostrando</span>
+      <strong>{{ vehiculosFiltrados.length }}</strong>
+    </article>
+  </div>
+
+  <article
+    class="card vehiculo-form-card"
+    *ngIf="mostrarFormularioNuevoVehiculo"
+  >
+    <div class="card-header">
+      <div>
+        <h3>Añadir vehículo</h3>
+        <p>Introduce marca, modelo, categoría, precio e imagen del vehículo.</p>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="cancelarEdicionVehiculo()"
+      >
+        Cancelar
+      </button>
     </div>
 
-    <ng-container *ngIf="puedeAcceder()">
-      <div class="admin-stats-grid">
-        <article class="card admin-stat-card main-stat">
-          <span>Empleados</span>
-          <strong>{{ totalEmpleados }}</strong>
-        </article>
-
-        <article class="card admin-stat-card">
-          <span>Activos</span>
-          <strong>{{ empleadosActivos }}</strong>
-        </article>
-
-        <article class="card admin-stat-card">
-          <span>Vehículos activos</span>
-          <strong>{{ vehiculosActivos }}</strong>
-        </article>
-
-        <article class="card admin-stat-card">
-          <span>Nivel máximo</span>
-          <strong>{{ rangoMaximo }}</strong>
-        </article>
+    <div class="vehiculo-form-grid">
+      <div class="form-group">
+        <label>Marca</label>
+        <input type="text" [(ngModel)]="vehiculoForm.marca" />
       </div>
 
-      <article class="card admin-tabs-card">
-        <button
-          type="button"
-          class="admin-tab"
-          [class.active]="activeTab === 'empleados'"
-          (click)="setTab('empleados')"
-        >
-          Empleados
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          [class.active]="activeTab === 'primas'"
-          (click)="setTab('primas')"
-        >
-          Primas
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          [class.active]="activeTab === 'precios'"
-          (click)="setTab('precios')"
-        >
-          Precios
-        </button>
-
-        <button
-          type="button"
-          class="admin-tab"
-          [class.active]="activeTab === 'vehiculos'"
-          (click)="setTab('vehiculos')"
-        >
-          Vehículos
-        </button>
-      </article>
-
-      <div *ngIf="loading" class="card loading-card">
-        <p>Cargando administración...</p>
+      <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" [(ngModel)]="vehiculoForm.modelo" />
       </div>
 
-      <div *ngIf="error && !loading" class="error-card">
-        {{ error }}
+      <div class="form-group">
+        <label>Categoría</label>
+        <select [(ngModel)]="vehiculoForm.categoria">
+          <option value="">Selecciona categoría</option>
+          <option *ngFor="let categoria of categoriasVehiculos" [value]="categoria">
+            {{ categoria }}
+          </option>
+        </select>
       </div>
 
-      <article class="card admin-table-card" *ngIf="!loading && activeTab === 'empleados'">
-        <div class="card-header">
-          <div>
-            <h3>Gestión de empleados</h3>
-            <p>Cambia rangos, asciende, degrada o desactiva empleados.</p>
-          </div>
+      <div class="form-group">
+        <label>Precio</label>
+        <input type="number" min="0" [(ngModel)]="vehiculoForm.precio" />
+      </div>
 
-          <div class="table-actions">
-            <label class="inactive-toggle">
-              <input
-                type="checkbox"
-                [(ngModel)]="mostrarInactivos"
-              />
-              Mostrar inactivos
-            </label>
+      <div class="form-group form-group-wide">
+        <label>URL imagen</label>
+        <input type="text" [(ngModel)]="vehiculoForm.imagenUrl" />
+      </div>
 
-            <button type="button" class="btn btn-secondary" (click)="cargarDatos()">
-              Recargar
-            </button>
-          </div>
-        </div>
+      <label class="inactive-toggle vehiculo-active-toggle">
+        <input type="checkbox" [(ngModel)]="vehiculoForm.activo" />
+        Activo
+      </label>
+    </div>
 
-        <div class="admin-table-wrapper">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Empleado</th>
-                <th>Discord ID</th>
-                <th>Rango</th>
-                <th>Nivel</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
+    <div class="vehiculo-form-actions">
+      <button type="button" class="btn btn-primary" (click)="guardarVehiculo()">
+        Añadir vehículo
+      </button>
+    </div>
+  </article>
 
-            <tbody>
-              <ng-container *ngFor="let empleado of empleadosFiltrados">
-                <tr
-                  class="admin-main-row"
-                  [class.is-open]="isEmpleadoAbierto(empleado)"
-                  [class.is-inactive]="!empleado.activo"
-                  (click)="toggleEmpleado(empleado)"
+  <article class="card admin-table-card">
+    <div class="card-header">
+      <div>
+        <h3>Catálogo de vehículos</h3>
+        <p>Gestiona vehículos activos e inactivos del servidor.</p>
+      </div>
+
+      <div class="table-actions">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="mostrarNuevoVehiculo()"
+        >
+          Añadir vehículo
+        </button>
+
+        <label class="inactive-toggle">
+          <input
+            type="checkbox"
+            [(ngModel)]="mostrarVehiculosInactivos"
+          />
+          Mostrar inactivos
+        </label>
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cargarVehiculos()"
+        >
+          Recargar
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="loadingVehiculos" class="loading-card">
+      <p>Cargando vehículos...</p>
+    </div>
+
+    <div *ngIf="errorVehiculos && !loadingVehiculos" class="error-card">
+      {{ errorVehiculos }}
+    </div>
+
+    <div class="admin-table-wrapper" *ngIf="!loadingVehiculos && !errorVehiculos">
+      <table class="admin-table vehiculos-table">
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <ng-container *ngFor="let vehiculo of vehiculosFiltrados">
+            <tr [class.is-inactive]="!vehiculo.activo">
+              <td>
+                <div class="vehiculo-thumb">
+                  <img
+                    *ngIf="vehiculo.imagenUrl"
+                    [src]="vehiculo.imagenUrl"
+                    [alt]="vehiculo.marca + ' ' + vehiculo.modelo"
+                    (error)="vehiculo.imagenUrl = null"
+                  />
+
+                  <span *ngIf="!vehiculo.imagenUrl">🚗</span>
+                </div>
+              </td>
+
+              <td><strong>{{ vehiculo.marca }}</strong></td>
+
+              <td>{{ vehiculo.modelo }}</td>
+
+              <td>
+                <span class="admin-badge">
+                  {{ vehiculo.categoria }}
+                </span>
+              </td>
+
+              <td class="admin-money">
+                {{ vehiculo.precio | currency:'USD':'symbol':'1.0-0' }}
+              </td>
+
+              <td>
+                <span
+                  class="admin-status"
+                  [class.status-ok]="vehiculo.activo"
+                  [class.status-inactive]="!vehiculo.activo"
                 >
-                  <td>#{{ empleado.id }}</td>
+                  {{ vehiculo.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
 
-                  <td>
-                    <strong>{{ empleado.nombre }}</strong>
-                  </td>
+              <td>
+                <div class="table-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    (click)="editarVehiculo(vehiculo)"
+                  >
+                    Editar
+                  </button>
 
-                  <td>{{ empleado.discordId }}</td>
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    *ngIf="vehiculo.activo"
+                    (click)="toggleActivoVehiculo(vehiculo)"
+                  >
+                    Desactivar
+                  </button>
 
-                  <td>
-                    <span class="admin-badge">{{ empleado.rangoNombre }}</span>
-                  </td>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    *ngIf="!vehiculo.activo"
+                    (click)="toggleActivoVehiculo(vehiculo)"
+                  >
+                    Reactivar
+                  </button>
+                </div>
+              </td>
+            </tr>
 
-                  <td>{{ empleado.rangoNivel }}</td>
-
-                  <td>
-                    <span
-                      class="admin-status"
-                      [class.status-ok]="empleado.activo"
-                      [class.status-inactive]="!empleado.activo"
-                    >
-                      {{ empleado.activo ? 'Activo' : 'Inactivo' }}
-                    </span>
-                  </td>
-
-                  <td>
-                    <div class="table-actions" (click)="$event.stopPropagation()">
-                      <button
-                        type="button"
-                        class="btn btn-danger"
-                        *ngIf="empleado.activo"
-                        (click)="toggleActivo(empleado)"
-                      >
-                        Despedir
-                      </button>
-
-                      <button
-                        type="button"
-                        class="btn btn-primary"
-                        *ngIf="!empleado.activo"
-                        (click)="toggleActivo(empleado)"
-                      >
-                        Reactivar
-                      </button>
+            <tr
+              class="vehiculo-detail-row"
+              *ngIf="editandoVehiculoId === vehiculo.id"
+            >
+              <td colspan="7">
+                <div class="vehiculo-inline-editor">
+                  <div class="vehiculo-inline-header">
+                    <div>
+                      <h3>Editar {{ vehiculo.marca }} {{ vehiculo.modelo }}</h3>
+                      <p>Modifica los datos del vehículo seleccionado.</p>
                     </div>
-                  </td>
-                </tr>
 
-                <tr class="admin-detail-row" [class.is-open]="isEmpleadoAbierto(empleado)">
-                  <td colspan="7" class="admin-detail-cell">
-                    <div class="admin-detail-box">
-                      <div class="admin-detail-grid">
-                        <div class="admin-detail-item">
-                          <span>Empleado</span>
-                          <strong>{{ empleado.nombre }}</strong>
-                        </div>
-
-                        <div class="admin-detail-item">
-                          <span>Discord ID</span>
-                          <strong>{{ empleado.discordId }}</strong>
-                        </div>
-
-                        <div class="admin-detail-item">
-                          <span>Estado</span>
-                          <strong>{{ empleado.activo ? 'Activo' : 'Inactivo' }}</strong>
-                        </div>
-
-                        <div class="admin-detail-item">
-                          <span>Rango actual</span>
-                          <strong>{{ empleado.rangoNombre }}</strong>
-                        </div>
-
-                        <div class="admin-detail-item">
-                          <span>Nivel actual</span>
-                          <strong>{{ empleado.rangoNivel }}</strong>
-                        </div>
-
-                        <div class="admin-detail-item">
-                          <span>Cambiar rango</span>
-
-                          <select
-                            [ngModel]="empleado.rangoId"
-                            (ngModelChange)="cambiarRango(empleado, $event)"
-                            (click)="$event.stopPropagation()"
-                          >
-                            <option *ngFor="let rango of rangos" [value]="rango.id">
-                              {{ rango.nombre }} · Nivel {{ rango.nivel }}
-                            </option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </ng-container>
-
-              <tr *ngIf="empleadosFiltrados.length === 0">
-                <td colspan="7" class="empty-row">
-                  No hay empleados para el filtro seleccionado.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <ng-container *ngIf="!loading && activeTab === 'primas'">
-        <!-- Mantengo tu bloque de Primas igual -->
-        <div class="admin-primas-stats-grid">
-          <article class="card admin-stat-card main-stat">
-            <span>Pendiente de pagar</span>
-            <strong>{{ totalAPagar | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Pagado</span>
-            <strong>{{ totalPagado | currency:'USD':'symbol':'1.0-0' }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Primas pagadas</span>
-            <strong>{{ primasPagadas }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Primas pendientes</span>
-            <strong>{{ primasPendientes }}</strong>
-          </article>
-        </div>
-
-        <article class="card admin-primas-filters">
-          <div>
-            <h3>Semana {{ semanaSeleccionada ?? '-' }}</h3>
-            <p>Solo se muestran primas de empleados activos.</p>
-          </div>
-
-          <div class="primas-filter-actions">
-            <button type="button" class="btn btn-secondary" (click)="setSemanaAnteriorPrimas()">
-              Semana anterior
-            </button>
-
-            <button type="button" class="btn btn-primary" (click)="setSemanaActualPrimas()">
-              Semana actual
-            </button>
-
-            <button type="button" class="btn btn-secondary" (click)="setSemanaSiguientePrimas()">
-              Semana siguiente
-            </button>
-
-            <button type="button" class="btn btn-secondary" (click)="cargarPrimas()">
-              Recargar
-            </button>
-          </div>
-        </article>
-
-        <div *ngIf="loadingPrimas" class="card loading-card">
-          <p>Cargando primas...</p>
-        </div>
-
-        <div *ngIf="errorPrimas && !loadingPrimas" class="error-card">
-          {{ errorPrimas }}
-        </div>
-
-        <article class="card admin-table-card" *ngIf="!loadingPrimas">
-          <div class="card-header">
-            <div>
-              <h3>Primas del taller</h3>
-              <p>Control de primas generadas y estado de pago por empleado activo.</p>
-            </div>
-          </div>
-
-          <div class="admin-table-wrapper">
-            <table class="admin-table primas-table">
-              <thead>
-                <tr>
-                  <th>Empleado</th>
-                  <th>Rango</th>
-                  <th>Semana</th>
-                  <th>Fechas</th>
-                  <th>Facturado</th>
-                  <th>Horas</th>
-                  <th>Servicios</th>
-                  <th>Base</th>
-                  <th>Extra</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr
-                  *ngFor="let prima of primas"
-                  [class.is-paid]="prima.pagada"
-                >
-                  <td>
-                    <strong>{{ prima.nombreEmpleado }}</strong>
-                  </td>
-
-                  <td>{{ prima.rango }}</td>
-
-                  <td>Semana {{ prima.semana }}</td>
-
-                  <td>
-                    {{ formatearFecha(prima.fechaInicio) | date:'dd/MM/yyyy' }}
-                    -
-                    {{ formatearFecha(prima.fechaFin) | date:'dd/MM/yyyy' }}
-                  </td>
-
-                  <td class="admin-money">
-                    {{ prima.facturado | currency:'USD':'symbol':'1.0-0' }}
-                  </td>
-
-                  <td>{{ formatearHoras(prima.horas) }}</td>
-
-                  <td>{{ prima.servicios }}</td>
-
-                  <td>
-                    {{ prima.primaBase | currency:'USD':'symbol':'1.0-0' }}
-                  </td>
-
-                  <td>
-                    {{ prima.extraHoras | currency:'USD':'symbol':'1.0-0' }}
-                  </td>
-
-                  <td class="admin-money">
-                    {{ prima.total | currency:'USD':'symbol':'1.0-0' }}
-                  </td>
-
-                  <td>
-                    <span
-                      class="admin-status"
-                      [class.status-ok]="prima.pagada"
-                      [class.status-pending]="!prima.pagada"
-                    >
-                      {{ prima.pagada ? 'Pagada' : 'Pendiente' }}
-                    </span>
-                  </td>
-
-                  <td>
                     <button
                       type="button"
-                      class="btn"
-                      [class.btn-primary]="!prima.pagada"
-                      [class.btn-danger]="prima.pagada"
-                      (click)="togglePagada(prima)"
+                      class="btn btn-secondary"
+                      (click)="cancelarEdicionVehiculo()"
                     >
-                      {{ prima.pagada ? 'Desmarcar' : 'Pagar' }}
+                      Cerrar
                     </button>
-                  </td>
-                </tr>
+                  </div>
 
-                <tr *ngIf="primas.length === 0">
-                  <td colspan="12" class="empty-row">
-                    No hay primas registradas para empleados activos.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-      </ng-container>
-
-      <article class="card admin-placeholder-card" *ngIf="!loading && activeTab === 'precios'">
-        <div class="card-header">
-          <div>
-            <h3>Precios</h3>
-            <p>Próximo apartado: edición de precios de reparaciones, items, tasaciones, full tuning y tuneo.</p>
-          </div>
-        </div>
-
-        <p class="placeholder-text">
-          Esta pestaña queda preparada para modificar todos los catálogos de precios.
-        </p>
-      </article>
-
-      <ng-container *ngIf="!loading && activeTab === 'vehiculos'">
-        <div class="admin-primas-stats-grid">
-          <article class="card admin-stat-card main-stat">
-            <span>Vehículos</span>
-            <strong>{{ totalVehiculos }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Activos</span>
-            <strong>{{ vehiculosActivos }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Inactivos</span>
-            <strong>{{ vehiculosInactivos }}</strong>
-          </article>
-
-          <article class="card admin-stat-card">
-            <span>Mostrando</span>
-            <strong>{{ vehiculosFiltrados.length }}</strong>
-          </article>
-        </div>
-
-        <article class="card vehiculo-form-card">
-          <div class="card-header">
-            <div>
-              <h3>{{ editandoVehiculoId ? 'Editar vehículo' : 'Añadir vehículo' }}</h3>
-              <p>Introduce marca, modelo, categoría, precio e imagen del vehículo.</p>
-            </div>
-
-            <button
-              type="button"
-              class="btn btn-secondary"
-              *ngIf="editandoVehiculoId"
-              (click)="cancelarEdicionVehiculo()"
-            >
-              Cancelar edición
-            </button>
-          </div>
-
-          <div class="vehiculo-form-grid">
-            <div class="form-group">
-              <label>Marca</label>
-              <input
-                type="text"
-                [(ngModel)]="vehiculoForm.marca"
-                placeholder="Ej: Karin"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Modelo</label>
-              <input
-                type="text"
-                [(ngModel)]="vehiculoForm.modelo"
-                placeholder="Ej: Sultan RS"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Categoría</label>
-              <select [(ngModel)]="vehiculoForm.categoria">
-                <option value="">Selecciona categoría</option>
-                <option *ngFor="let categoria of categoriasVehiculos" [value]="categoria">
-                  {{ categoria }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Precio</label>
-              <input
-                type="number"
-                min="0"
-                [(ngModel)]="vehiculoForm.precio"
-                placeholder="0"
-              />
-            </div>
-
-            <div class="form-group form-group-wide">
-              <label>URL imagen</label>
-              <input
-                type="text"
-                [(ngModel)]="vehiculoForm.imagenUrl"
-                placeholder="https://..."
-              />
-            </div>
-
-            <label class="inactive-toggle vehiculo-active-toggle">
-              <input
-                type="checkbox"
-                [(ngModel)]="vehiculoForm.activo"
-              />
-              Activo
-            </label>
-          </div>
-
-          <div class="vehiculo-form-actions">
-            <button
-              type="button"
-              class="btn btn-primary"
-              (click)="guardarVehiculo()"
-            >
-              {{ editandoVehiculoId ? 'Guardar cambios' : 'Añadir vehículo' }}
-            </button>
-          </div>
-        </article>
-
-        <article class="card admin-table-card">
-          <div class="card-header">
-            <div>
-              <h3>Catálogo de vehículos</h3>
-              <p>Gestiona vehículos activos e inactivos del servidor.</p>
-            </div>
-
-            <div class="table-actions">
-              <label class="inactive-toggle">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="mostrarVehiculosInactivos"
-                />
-                Mostrar inactivos
-              </label>
-
-              <button
-                type="button"
-                class="btn btn-secondary"
-                (click)="cargarVehiculos()"
-              >
-                Recargar
-              </button>
-            </div>
-          </div>
-
-          <div *ngIf="loadingVehiculos" class="loading-card">
-            <p>Cargando vehículos...</p>
-          </div>
-
-          <div *ngIf="errorVehiculos && !loadingVehiculos" class="error-card">
-            {{ errorVehiculos }}
-          </div>
-
-          <div class="admin-table-wrapper" *ngIf="!loadingVehiculos && !errorVehiculos">
-            <table class="admin-table vehiculos-table">
-              <thead>
-                <tr>
-                  <th>Imagen</th>
-                  <th>Marca</th>
-                  <th>Modelo</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr
-                  *ngFor="let vehiculo of vehiculosFiltrados"
-                  [class.is-inactive]="!vehiculo.activo"
-                >
-                  <td>
-                    <div class="vehiculo-thumb">
-                      <img
-                        *ngIf="vehiculo.imagenUrl"
-                        [src]="vehiculo.imagenUrl"
-                        [alt]="vehiculo.marca + ' ' + vehiculo.modelo"
-                      />
-
-                      <span *ngIf="!vehiculo.imagenUrl">
-                        🚗
-                      </span>
+                  <div class="vehiculo-form-grid">
+                    <div class="form-group">
+                      <label>Marca</label>
+                      <input type="text" [(ngModel)]="vehiculoForm.marca" />
                     </div>
-                  </td>
 
-                  <td>
-                    <strong>{{ vehiculo.marca }}</strong>
-                  </td>
+                    <div class="form-group">
+                      <label>Modelo</label>
+                      <input type="text" [(ngModel)]="vehiculoForm.modelo" />
+                    </div>
 
-                  <td>{{ vehiculo.modelo }}</td>
+                    <div class="form-group">
+                      <label>Categoría</label>
+                      <select [(ngModel)]="vehiculoForm.categoria">
+                        <option value="">Selecciona categoría</option>
+                        <option *ngFor="let categoria of categoriasVehiculos" [value]="categoria">
+                          {{ categoria }}
+                        </option>
+                      </select>
+                    </div>
 
-                  <td>
-                    <span class="admin-badge">
-                      {{ vehiculo.categoria }}
-                    </span>
-                  </td>
+                    <div class="form-group">
+                      <label>Precio</label>
+                      <input type="number" min="0" [(ngModel)]="vehiculoForm.precio" />
+                    </div>
 
-                  <td class="admin-money">
-                    {{ vehiculo.precio | currency:'USD':'symbol':'1.0-0' }}
-                  </td>
+                    <div class="form-group form-group-wide">
+                      <label>URL imagen</label>
+                      <input type="text" [(ngModel)]="vehiculoForm.imagenUrl" />
+                    </div>
 
-                  <td>
-                    <span
-                      class="admin-status"
-                      [class.status-ok]="vehiculo.activo"
-                      [class.status-inactive]="!vehiculo.activo"
+                    <label class="inactive-toggle vehiculo-active-toggle">
+                      <input type="checkbox" [(ngModel)]="vehiculoForm.activo" />
+                      Activo
+                    </label>
+                  </div>
+
+                  <div class="vehiculo-inline-actions">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="guardarVehiculo()"
                     >
-                      {{ vehiculo.activo ? 'Activo' : 'Inactivo' }}
-                    </span>
-                  </td>
+                      Guardar cambios
+                    </button>
 
-                  <td>
-                    <div class="table-actions">
-                      <button
-                        type="button"
-                        class="btn btn-secondary"
-                        (click)="editarVehiculo(vehiculo)"
-                      >
-                        Editar
-                      </button>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      (click)="cancelarEdicionVehiculo()"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
 
-                      <button
-                        type="button"
-                        class="btn btn-danger"
-                        *ngIf="vehiculo.activo"
-                        (click)="toggleActivoVehiculo(vehiculo)"
-                      >
-                        Desactivar
-                      </button>
-
-                      <button
-                        type="button"
-                        class="btn btn-primary"
-                        *ngIf="!vehiculo.activo"
-                        (click)="toggleActivoVehiculo(vehiculo)"
-                      >
-                        Reactivar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr *ngIf="vehiculosFiltrados.length === 0">
-                  <td colspan="7" class="empty-row">
-                    No hay vehículos para el filtro seleccionado.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-      </ng-container>
-    </ng-container>
-  </div>
-</section>
+          <tr *ngIf="vehiculosFiltrados.length === 0">
+            <td colspan="7" class="empty-row">
+              No hay vehículos para el filtro seleccionado.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</ng-container>

@@ -181,7 +181,8 @@
   gap: 8px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   border: 1px solid #2f3748;
   background: rgba(255,255,255,0.03);
@@ -189,6 +190,12 @@
   border-radius: 14px;
   padding: 12px 14px;
   outline: none;
+}
+
+.form-group select option,
+.admin-detail-item select option {
+  color: #111;
+  background: #fff;
 }
 
 .admin-table-card {
@@ -310,11 +317,6 @@
   outline: none;
 }
 
-.admin-detail-item select option {
-  color: #111;
-  background: #fff;
-}
-
 .admin-badge {
   display: inline-flex;
   align-items: center;
@@ -399,36 +401,7 @@
   accent-color: #f4b400;
 }
 
-@media (max-width: 1200px) {
-  .admin-stats-grid,
-  .admin-primas-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .admin-detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-primas-filters {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 860px) {
-  .administracion-page {
-    padding: 18px;
-  }
-
-  .admin-stats-grid,
-  .admin-primas-stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
+/* Vehículos */
 
 .vehiculo-form-card {
   display: grid;
@@ -439,21 +412,6 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-}
-
-.form-group select {
-  width: 100%;
-  border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.03);
-  color: #f5f7fb;
-  border-radius: 14px;
-  padding: 12px 14px;
-  outline: none;
-}
-
-.form-group select option {
-  color: #111;
-  background: #fff;
 }
 
 .form-group-wide {
@@ -496,7 +454,60 @@
   opacity: 0.65;
 }
 
+.vehiculo-detail-row td {
+  padding: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.vehiculo-inline-editor {
+  margin: 0 12px 14px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(244, 180, 0, 0.045);
+  border: 1px solid rgba(244, 180, 0, 0.16);
+}
+
+.vehiculo-inline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.vehiculo-inline-header h3 {
+  margin: 0;
+  color: #f5f7fb;
+  font-size: 1.05rem;
+}
+
+.vehiculo-inline-header p {
+  margin: 4px 0 0;
+  color: #9aa4b2;
+  font-size: 0.86rem;
+}
+
+.vehiculo-inline-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 @media (max-width: 1200px) {
+  .admin-stats-grid,
+  .admin-primas-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-primas-filters {
+    grid-template-columns: 1fr;
+  }
+
   .vehiculo-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -507,6 +518,20 @@
 }
 
 @media (max-width: 860px) {
+  .administracion-page {
+    padding: 18px;
+  }
+
+  .admin-stats-grid,
+  .admin-primas-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .vehiculo-form-grid {
     grid-template-columns: 1fr;
   }
@@ -520,6 +545,18 @@
   }
 
   .vehiculo-form-actions .btn {
+    width: 100%;
+  }
+
+  .vehiculo-inline-header {
+    flex-direction: column;
+  }
+
+  .vehiculo-inline-actions {
+    flex-direction: column;
+  }
+
+  .vehiculo-inline-actions .btn {
     width: 100%;
   }
 }

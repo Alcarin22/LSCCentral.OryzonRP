@@ -52,6 +52,7 @@ export class AdministracionComponent implements OnInit {
   errorVehiculos = '';
 
   editandoVehiculoId: number | null = null;
+  mostrarFormularioNuevoVehiculo = false;
 
   vehiculoForm: VehiculoAdminRequest = this.getVehiculoFormVacio();
 
@@ -136,10 +137,7 @@ export class AdministracionComponent implements OnInit {
           next: (empleados) => {
             this.zone.run(() => {
               this.empleados = (empleados ?? []).sort((a, b) => {
-                if (a.activo !== b.activo) {
-                  return a.activo ? -1 : 1;
-                }
-
+                if (a.activo !== b.activo) return a.activo ? -1 : 1;
                 return a.nombre.localeCompare(b.nombre);
               });
 
@@ -230,9 +228,7 @@ export class AdministracionComponent implements OnInit {
       `¿Quieres ${accion} la prima de "${prima.nombreEmpleado}"?`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     this.adminPrimasService.actualizarPagada(prima.id, nuevaPagada).subscribe({
       next: (actualizada) => {
@@ -266,9 +262,7 @@ export class AdministracionComponent implements OnInit {
   cambiarRango(empleado: EmpleadoAdmin, rangoIdValue: string | number): void {
     const rangoId = Number(rangoIdValue);
 
-    if (!rangoId || rangoId === empleado.rangoId) {
-      return;
-    }
+    if (!rangoId || rangoId === empleado.rangoId) return;
 
     const rango = this.rangos.find(r => r.id === rangoId);
 
@@ -276,9 +270,7 @@ export class AdministracionComponent implements OnInit {
       `¿Cambiar el rango de "${empleado.nombre}" a "${rango?.nombre ?? 'nuevo rango'}"?`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     this.adminService.actualizarEmpleado(empleado.id, {
       rangoId,
@@ -302,9 +294,7 @@ export class AdministracionComponent implements OnInit {
       `¿Seguro que quieres ${accion} a "${empleado.nombre}"?`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     this.adminService.actualizarEmpleado(empleado.id, {
       rangoId: null,
@@ -331,15 +321,10 @@ export class AdministracionComponent implements OnInit {
       next: (vehiculos) => {
         this.zone.run(() => {
           this.vehiculos = (vehiculos ?? []).sort((a, b) => {
-            if (a.activo !== b.activo) {
-              return a.activo ? -1 : 1;
-            }
+            if (a.activo !== b.activo) return a.activo ? -1 : 1;
 
             const marcaCompare = a.marca.localeCompare(b.marca);
-
-            if (marcaCompare !== 0) {
-              return marcaCompare;
-            }
+            if (marcaCompare !== 0) return marcaCompare;
 
             return a.modelo.localeCompare(b.modelo);
           });
@@ -360,6 +345,12 @@ export class AdministracionComponent implements OnInit {
         });
       }
     });
+  }
+
+  mostrarNuevoVehiculo(): void {
+    this.editandoVehiculoId = null;
+    this.vehiculoForm = this.getVehiculoFormVacio();
+    this.mostrarFormularioNuevoVehiculo = true;
   }
 
   guardarVehiculo(): void {
@@ -413,6 +404,7 @@ export class AdministracionComponent implements OnInit {
   }
 
   editarVehiculo(vehiculo: VehiculoAdmin): void {
+    this.mostrarFormularioNuevoVehiculo = false;
     this.editandoVehiculoId = vehiculo.id;
 
     this.vehiculoForm = {
@@ -427,6 +419,7 @@ export class AdministracionComponent implements OnInit {
 
   cancelarEdicionVehiculo(): void {
     this.editandoVehiculoId = null;
+    this.mostrarFormularioNuevoVehiculo = false;
     this.vehiculoForm = this.getVehiculoFormVacio();
   }
 
@@ -438,9 +431,7 @@ export class AdministracionComponent implements OnInit {
       `¿Seguro que quieres ${accion} el vehículo "${vehiculo.marca} ${vehiculo.modelo}"?`
     );
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     this.adminService.cambiarEstadoVehiculo(vehiculo.id, nuevoEstado).subscribe({
       next: (actualizado) => {
@@ -450,15 +441,10 @@ export class AdministracionComponent implements OnInit {
           );
 
           this.vehiculos = [...this.vehiculos].sort((a, b) => {
-            if (a.activo !== b.activo) {
-              return a.activo ? -1 : 1;
-            }
+            if (a.activo !== b.activo) return a.activo ? -1 : 1;
 
             const marcaCompare = a.marca.localeCompare(b.marca);
-
-            if (marcaCompare !== 0) {
-              return marcaCompare;
-            }
+            if (marcaCompare !== 0) return marcaCompare;
 
             return a.modelo.localeCompare(b.modelo);
           });
@@ -474,18 +460,12 @@ export class AdministracionComponent implements OnInit {
   }
 
   get empleadosFiltrados(): EmpleadoAdmin[] {
-    if (this.mostrarInactivos) {
-      return this.empleados;
-    }
-
+    if (this.mostrarInactivos) return this.empleados;
     return this.empleados.filter(e => e.activo);
   }
 
   get vehiculosFiltrados(): VehiculoAdmin[] {
-    if (this.mostrarVehiculosInactivos) {
-      return this.vehiculos;
-    }
-
+    if (this.mostrarVehiculosInactivos) return this.vehiculos;
     return this.vehiculos.filter(v => v.activo);
   }
 
@@ -549,15 +529,11 @@ export class AdministracionComponent implements OnInit {
   }
 
   formatearHoras(valor: number | string | null | undefined): string {
-    if (valor === null || valor === undefined) {
-      return '0:00';
-    }
+    if (valor === null || valor === undefined) return '0:00';
 
     const horasDecimal = Number(valor);
 
-    if (Number.isNaN(horasDecimal)) {
-      return '0:00';
-    }
+    if (Number.isNaN(horasDecimal)) return '0:00';
 
     const horas = Math.floor(horasDecimal);
     const minutos = Math.round((horasDecimal - horas) * 60);
@@ -572,10 +548,7 @@ export class AdministracionComponent implements OnInit {
       );
 
       this.empleados = [...this.empleados].sort((a, b) => {
-        if (a.activo !== b.activo) {
-          return a.activo ? -1 : 1;
-        }
-
+        if (a.activo !== b.activo) return a.activo ? -1 : 1;
         return a.nombre.localeCompare(b.nombre);
       });
 
@@ -595,9 +568,7 @@ export class AdministracionComponent implements OnInit {
   }
 
   private normalizarTextoOpcional(value: string | null | undefined): string | null {
-    if (!value) {
-      return null;
-    }
+    if (!value) return null;
 
     const limpio = value.trim();
 
