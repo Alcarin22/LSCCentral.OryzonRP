@@ -1,0 +1,213 @@
+<section class="vehiculos-page">
+
+  <header class="vehiculos-header">
+    <div>
+      <h1>Vehículos</h1>
+      <p>Catálogo de vehículos disponibles en el servidor.</p>
+    </div>
+  </header>
+
+  <article class="card filtros-card">
+    <div class="filtros-grid">
+
+      <div class="form-group form-group-search">
+        <label>Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="busqueda"
+          placeholder="Buscar por marca o modelo..."
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Marca</label>
+        <select [(ngModel)]="marcaSeleccionada">
+          <option value="">Todas las marcas</option>
+          <option
+            *ngFor="let marca of marcasDisponibles"
+            [value]="marca"
+          >
+            {{ marca }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Categoría</label>
+        <select [(ngModel)]="categoriaSeleccionada">
+          <option value="">Todas las categorías</option>
+          <option
+            *ngFor="let categoria of categoriasDisponibles"
+            [value]="categoria"
+          >
+            {{ categoria }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Ordenar</label>
+        <select [(ngModel)]="ordenSeleccionado">
+          <option value="marca">Marca</option>
+          <option value="modelo">Modelo</option>
+          <option value="categoria">Categoría</option>
+          <option value="precio-asc">Precio menor a mayor</option>
+          <option value="precio-desc">Precio mayor a menor</option>
+        </select>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="limpiarFiltros()"
+      >
+        Limpiar filtros
+      </button>
+
+    </div>
+  </article>
+
+  <div class="stats-grid">
+    <article class="card stat-card main-stat">
+      <span>Total visibles</span>
+      <strong>{{ vehiculosFiltrados.length }}</strong>
+    </article>
+
+    <article class="card stat-card">
+      <span>Marcas</span>
+      <strong>{{ marcasDisponibles.length }}</strong>
+    </article>
+
+    <article class="card stat-card">
+      <span>Categorías</span>
+      <strong>{{ categoriasDisponibles.length }}</strong>
+    </article>
+  </div>
+
+  <div *ngIf="cargando" class="card loading-card">
+    <p>Cargando vehículos...</p>
+  </div>
+
+  <div *ngIf="error && !cargando" class="error-card">
+    {{ error }}
+  </div>
+
+  <div
+    class="vehiculos-grid"
+    *ngIf="!cargando && !error"
+  >
+    <article
+      class="card vehiculo-card"
+      *ngFor="let vehiculo of vehiculosFiltrados"
+      (click)="abrirDetalle(vehiculo)"
+    >
+      <div class="vehiculo-image">
+        <img
+          *ngIf="vehiculo.imagenUrl"
+          [src]="vehiculo.imagenUrl"
+          [alt]="vehiculo.marca + ' ' + vehiculo.modelo"
+          (error)="ocultarImagenRota(vehiculo)"
+        />
+
+        <span *ngIf="!vehiculo.imagenUrl">
+          🚗
+        </span>
+      </div>
+
+      <div class="vehiculo-content">
+        <span class="categoria-badge">
+          {{ vehiculo.categoria }}
+        </span>
+
+        <h2>
+          {{ vehiculo.marca }} {{ vehiculo.modelo }}
+        </h2>
+
+        <div class="vehiculo-meta">
+          <span>{{ vehiculo.marca }}</span>
+          <strong>{{ vehiculo.precio | currency:'USD':'symbol':'1.0-0' }}</strong>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="abrirDetalle(vehiculo); $event.stopPropagation()"
+        >
+          Ver detalle
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div
+    class="card empty-card"
+    *ngIf="!cargando && !error && vehiculosFiltrados.length === 0"
+  >
+    No hay vehículos que coincidan con los filtros seleccionados.
+  </div>
+
+  <div
+    class="modal-backdrop"
+    *ngIf="vehiculoSeleccionado"
+    (click)="cerrarDetalle()"
+  >
+    <article
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="modal-close"
+        (click)="cerrarDetalle()"
+      >
+        ×
+      </button>
+
+      <div class="modal-image">
+        <img
+          *ngIf="vehiculoSeleccionado.imagenUrl"
+          [src]="vehiculoSeleccionado.imagenUrl"
+          [alt]="vehiculoSeleccionado.marca + ' ' + vehiculoSeleccionado.modelo"
+          (error)="ocultarImagenRota(vehiculoSeleccionado)"
+        />
+
+        <span *ngIf="!vehiculoSeleccionado.imagenUrl">
+          🚗
+        </span>
+      </div>
+
+      <div class="modal-content">
+        <span class="categoria-badge">
+          {{ vehiculoSeleccionado.categoria }}
+        </span>
+
+        <h2>
+          {{ vehiculoSeleccionado.marca }} {{ vehiculoSeleccionado.modelo }}
+        </h2>
+
+        <div class="detalle-grid">
+          <div>
+            <span>Marca</span>
+            <strong>{{ vehiculoSeleccionado.marca }}</strong>
+          </div>
+
+          <div>
+            <span>Modelo</span>
+            <strong>{{ vehiculoSeleccionado.modelo }}</strong>
+          </div>
+
+          <div>
+            <span>Categoría</span>
+            <strong>{{ vehiculoSeleccionado.categoria }}</strong>
+          </div>
+
+          <div>
+            <span>Precio</span>
+            <strong>{{ vehiculoSeleccionado.precio | currency:'USD':'symbol':'1.0-0' }}</strong>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+</section>
