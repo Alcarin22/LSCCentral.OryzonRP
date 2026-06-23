@@ -111,7 +111,10 @@ public class PrimasService {
                 .findByEmpleadoIdAndFechaHoraEntradaBetween(empleadoId, inicioDT, finDT);
 
         List<Factura> facturas = facturaRepository
-                .findByIdEmpleadoAndFechaBetweenOrderByFechaAsc(empleadoId, inicioDT, finDT);
+                .findByIdEmpleadoAndFechaBetweenOrderByFechaAsc(empleadoId, inicioDT, finDT)
+                .stream()
+                .filter(this::esFacturaValidaParaPrima)
+                .toList();
 
         int minutos = sumarMinutos(fichajes);
 
@@ -326,6 +329,7 @@ public class PrimasService {
     private int calcularRecordPersonal(Long idEmpleado) {
         return facturaRepository.findAllByIdEmpleado(idEmpleado)
                 .stream()
+                .filter(this::esFacturaValidaParaPrima)
                 .filter(f -> f.getFecha() != null)
                 .filter(f -> f.getTotal() != null)
                 .collect(
@@ -343,6 +347,7 @@ public class PrimasService {
     private int calcularRecordGlobal() {
         return facturaRepository.findAll()
                 .stream()
+                .filter(this::esFacturaValidaParaPrima)
                 .filter(f -> f.getFecha() != null)
                 .filter(f -> f.getTotal() != null)
                 .collect(
@@ -355,6 +360,14 @@ public class PrimasService {
                 .stream()
                 .max(Integer::compareTo)
                 .orElse(0);
+    }
+
+    private boolean esFacturaValidaParaPrima(Factura factura) {
+        if (factura == null || factura.getTipo() == null) {
+            return true;
+        }
+
+        return !factura.getTipo().equalsIgnoreCase("Items");
     }
 
     private MisPrimasResponse crearRespuestaSinSemana(Empleado e) {
