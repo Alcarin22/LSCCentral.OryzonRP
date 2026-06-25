@@ -58,24 +58,16 @@ export class AdministracionComponent implements OnInit {
 
   categoriasVehiculos: string[] = [
     'Compacto',
-    'Sedán',
-    'SUV',
     'Coupé',
+    'Deportivo Clásico',
     'Deportivo',
-    'Superdeportivo',
-    'Muscle',
-    'Clásico Deportivo',
-    'Clásico',
     'Moto',
+    'Muscle',
+    'Sedán',
+    'Superdeportivo',
+    'SUV',
     'Todoterreno',
-    'Todoterreno extremo',
-    'Industrial',
-    'Comercial',
-    'Servicio',
-    'Emergencia',
-    'Avión',
-    'Helicóptero',
-    'Barco'
+    'Van'
   ];
 
   mostrarInactivos = false;
