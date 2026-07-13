@@ -61,7 +61,15 @@ export class PreciosComponent implements OnInit {
 
     this.kits = [
       { tipo: 'Kit Reparación', precio: '$1.000' },
-      { tipo: 'Kit Reparación Avanz', precio: '$1.400' }
+      { tipo: 'Car play', precio: '$20.000' },
+      { tipo: 'Muñeco Piloto', precio: '$1.000' },
+      { tipo: 'Muñeca Piloto', precio: '$1.000' },
+      { tipo: 'Peluche Torque', precio: '$500' },
+      { tipo: 'Peluche Chispa', precio: '$500' },
+      { tipo: 'Peluche Remache', precio: '$500' },
+      { tipo: 'Peluche Volt', precio: '$500' },
+      { tipo: 'Peluche Piston', precio: '$500' },
+      { tipo: 'Peluche Nitro', precio: '$500' }
     ];
   }
 }
