@@ -1,4 +1,10 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  NgZone,
+  OnInit
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -93,11 +99,13 @@ export class FacturacionComponent implements OnInit {
     this.loadingEmpleados = true;
 
     try {
-      const empleados = await firstValueFrom(this.adminService.listarEmpleados());
+      const empleados = await firstValueFrom(
+        this.adminService.listarEmpleados()
+      );
 
       this.zone.run(() => {
         this.empleadosActivos = (empleados ?? [])
-          .filter(e => e.activo)
+          .filter(empleado => empleado.activo)
           .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         this.loadingEmpleados = false;
@@ -109,7 +117,11 @@ export class FacturacionComponent implements OnInit {
       this.zone.run(() => {
         this.empleadosActivos = [];
         this.loadingEmpleados = false;
-        this.toastService.error('No se pudieron cargar los empleados activos.');
+
+        this.toastService.error(
+          'No se pudieron cargar los empleados activos.'
+        );
+
         this.cdr.detectChanges();
       });
     }
@@ -137,12 +149,15 @@ export class FacturacionComponent implements OnInit {
 
       this.zone.run(() => {
         this.tasacionesPendientes = (response.content ?? [])
-          .filter(f => this.getEstadoTasacion(f) !== 'Enviada');
+          .filter(factura => this.getEstadoTasacion(factura) !== 'Enviada');
 
         this.cdr.detectChanges();
       });
     } catch (error) {
-      console.error('ERROR CARGANDO TASACIONES PENDIENTES:', error);
+      console.error(
+        'ERROR CARGANDO TASACIONES PENDIENTES:',
+        error
+      );
     }
   }
 
@@ -165,13 +180,22 @@ export class FacturacionComponent implements OnInit {
 
       this.zone.run(() => {
         this.facturas = response.content ?? [];
-        this.totalFacturasBackend = response.totalElements ?? 0;
-        this.totalPaginasBackend = response.totalPages ?? 1;
-        this.totalFacturadoBackend = response.totalFacturado ?? 0;
-        this.promedioFacturaBackend = response.promedioFactura ?? 0;
+
+        this.totalFacturasBackend =
+          response.totalElements ?? 0;
+
+        this.totalPaginasBackend =
+          response.totalPages ?? 1;
+
+        this.totalFacturadoBackend =
+          response.totalFacturado ?? 0;
+
+        this.promedioFacturaBackend =
+          response.promedioFactura ?? 0;
 
         this.loading = false;
         this.error = '';
+
         this.cdr.detectChanges();
       });
 
@@ -179,7 +203,10 @@ export class FacturacionComponent implements OnInit {
         this.cargarTasacionesPendientes();
       }
     } catch (error) {
-      console.error('ERROR CARGANDO FACTURACIÓN:', error);
+      console.error(
+        'ERROR CARGANDO FACTURACIÓN:',
+        error
+      );
 
       this.zone.run(() => {
         this.facturas = [];
@@ -189,6 +216,7 @@ export class FacturacionComponent implements OnInit {
         this.promedioFacturaBackend = 0;
         this.error = 'No se pudo cargar la facturación.';
         this.loading = false;
+
         this.cdr.detectChanges();
       });
     }
@@ -215,6 +243,7 @@ export class FacturacionComponent implements OnInit {
 
     this.facturasPorPagina = 10;
     this.paginaActual = 1;
+
     this.buscar();
   }
 
@@ -238,63 +267,103 @@ export class FacturacionComponent implements OnInit {
   }
 
   irAPagina(pagina: number): void {
-    if (pagina >= 1 && pagina <= this.totalPaginas) {
+    if (
+      pagina >= 1 &&
+      pagina <= this.totalPaginas
+    ) {
       this.paginaActual = pagina;
       this.buscar();
     }
   }
 
   toggleDetalle(factura: FacturaListado): void {
-    this.facturaAbiertaId = this.facturaAbiertaId === factura.id ? null : factura.id;
+    this.facturaAbiertaId =
+      this.facturaAbiertaId === factura.id
+        ? null
+        : factura.id;
   }
 
-  abrirFacturaDesdeAlerta(factura: FacturaListado): void {
+  abrirFacturaDesdeAlerta(
+    factura: FacturaListado
+  ): void {
     this.facturaAbiertaId = factura.id;
-    this.toastService.info(`Abierta la tasación #${factura.id}.`);
+
+    this.toastService.info(
+      `Abierta la tasación #${factura.id}.`
+    );
   }
 
-  isFacturaAbierta(factura: FacturaListado): boolean {
+  isFacturaAbierta(
+    factura: FacturaListado
+  ): boolean {
     return this.facturaAbiertaId === factura.id;
   }
 
-  eliminarFactura(factura: FacturaListado, event: MouseEvent): void {
+  eliminarFactura(
+    factura: FacturaListado,
+    event: MouseEvent
+  ): void {
     event.stopPropagation();
 
     if (!this.puedeEliminarFacturas) {
-      this.toastService.error('No tienes permisos para eliminar facturas.');
+      this.toastService.error(
+        'No tienes permisos para eliminar facturas.'
+      );
+
       return;
     }
 
-    const confirmar = confirm(`¿Seguro que quieres eliminar la factura #${factura.id}?`);
+    const confirmar = confirm(
+      `¿Seguro que quieres eliminar la factura #${factura.id}?`
+    );
 
     if (!confirmar) {
       return;
     }
 
-    this.facturacionService.eliminarFactura(factura.id).subscribe({
-      next: () => {
-        this.toastService.success(`Factura #${factura.id} eliminada correctamente.`);
+    this.facturacionService
+      .eliminarFactura(factura.id)
+      .subscribe({
+        next: () => {
+          this.toastService.success(
+            `Factura #${factura.id} eliminada correctamente.`
+          );
 
-        if (this.facturas.length === 1 && this.paginaActual > 1) {
-          this.paginaActual--;
+          if (
+            this.facturas.length === 1 &&
+            this.paginaActual > 1
+          ) {
+            this.paginaActual--;
+          }
+
+          this.buscar();
+        },
+        error: (error) => {
+          console.error(
+            'ERROR ELIMINANDO FACTURA:',
+            error
+          );
+
+          this.toastService.error(
+            'No se pudo eliminar la factura.'
+          );
         }
-
-        this.buscar();
-      },
-      error: (error) => {
-        console.error('ERROR ELIMINANDO FACTURA:', error);
-        this.toastService.error('No se pudo eliminar la factura.');
-      }
-    });
+      });
   }
 
-  marcarTasacionEnviada(factura: FacturaListado, event?: MouseEvent): void {
+  marcarTasacionEnviada(
+    factura: FacturaListado,
+    event?: MouseEvent
+  ): void {
     if (event) {
       event.stopPropagation();
     }
 
     if (!this.puedeGestionarTasaciones) {
-      this.toastService.error('No tienes permisos para cambiar el estado de tasaciones.');
+      this.toastService.error(
+        'No tienes permisos para cambiar el estado de tasaciones.'
+      );
+
       return;
     }
 
@@ -302,30 +371,51 @@ export class FacturacionComponent implements OnInit {
       return;
     }
 
-    if (factura.estadoTasacion === 'Enviada') {
-      this.toastService.info('Esta tasación ya está marcada como enviada.');
+    if (
+      this.getEstadoTasacion(factura) === 'Enviada'
+    ) {
+      this.toastService.info(
+        'Esta tasación ya está marcada como enviada.'
+      );
+
       return;
     }
 
-    this.facturacionService.marcarTasacionEnviada(factura.id).subscribe({
-      next: (actualizada) => {
-        this.zone.run(() => {
-          this.facturas = this.facturas.map(f =>
-            f.id === actualizada.id ? actualizada : f
+    this.facturacionService
+      .marcarTasacionEnviada(factura.id)
+      .subscribe({
+        next: (actualizada) => {
+          this.zone.run(() => {
+            this.facturas = this.facturas.map(facturaLista =>
+              facturaLista.id === actualizada.id
+                ? actualizada
+                : facturaLista
+            );
+
+            this.tasacionesPendientes =
+              this.tasacionesPendientes.filter(
+                facturaPendiente =>
+                  facturaPendiente.id !== actualizada.id
+              );
+
+            this.toastService.success(
+              `Tasación #${actualizada.id} marcada como enviada.`
+            );
+
+            this.cdr.detectChanges();
+          });
+        },
+        error: (error) => {
+          console.error(
+            'ERROR MARCANDO TASACIÓN COMO ENVIADA:',
+            error
           );
 
-          this.tasacionesPendientes = this.tasacionesPendientes
-            .filter(f => f.id !== actualizada.id);
-
-          this.toastService.success(`Tasación #${actualizada.id} marcada como enviada.`);
-          this.cdr.detectChanges();
-        });
-      },
-      error: (error) => {
-        console.error('ERROR MARCANDO TASACIÓN COMO ENVIADA:', error);
-        this.toastService.error('No se pudo cambiar el estado de la tasación.');
-      }
-    });
+          this.toastService.error(
+            'No se pudo cambiar el estado de la tasación.'
+          );
+        }
+      });
   }
 
   get facturasPaginadas(): FacturaListado[] {
@@ -333,7 +423,10 @@ export class FacturacionComponent implements OnInit {
   }
 
   get totalPaginas(): number {
-    return Math.max(1, this.totalPaginasBackend);
+    return Math.max(
+      1,
+      this.totalPaginasBackend
+    );
   }
 
   get paginasVisibles(): number[] {
@@ -341,23 +434,40 @@ export class FacturacionComponent implements OnInit {
     const actual = this.paginaActual;
     const paginas: number[] = [];
 
-    const inicio = Math.max(1, actual - 2);
-    const fin = Math.min(total, actual + 2);
+    const inicio = Math.max(
+      1,
+      actual - 2
+    );
 
-    for (let i = inicio; i <= fin; i++) {
-      paginas.push(i);
+    const fin = Math.min(
+      total,
+      actual + 2
+    );
+
+    for (let pagina = inicio; pagina <= fin; pagina++) {
+      paginas.push(pagina);
     }
 
     return paginas;
   }
 
   get inicioMostrado(): number {
-    if (!this.totalFacturas) return 0;
-    return (this.paginaActual - 1) * this.facturasPorPagina + 1;
+    if (!this.totalFacturas) {
+      return 0;
+    }
+
+    return (
+      (this.paginaActual - 1) *
+      this.facturasPorPagina +
+      1
+    );
   }
 
   get finMostrado(): number {
-    return Math.min(this.paginaActual * this.facturasPorPagina, this.totalFacturas);
+    return Math.min(
+      this.paginaActual * this.facturasPorPagina,
+      this.totalFacturas
+    );
   }
 
   get totalFacturado(): number {
@@ -372,63 +482,144 @@ export class FacturacionComponent implements OnInit {
     return this.promedioFacturaBackend;
   }
 
-  getDescripcion(f: FacturaListado): string {
-    switch (f.tipo) {
+  getDescripcion(
+    factura: FacturaListado
+  ): string {
+    switch (factura.tipo) {
       case 'Reparación':
-        return `${f.gravedad || 'Reparación'}${f.grua ? ' · Grúa' : ''}`;
+        return (
+          `${factura.gravedad || 'Reparación'}` +
+          `${factura.grua ? ' · Grúa' : ''}`
+        );
 
       case 'Items':
-        return `${f.item || 'Item'} x${f.cantidad || 1}`;
+        return (
+          `${factura.item || 'Item'} ` +
+          `x${factura.cantidad || 1}`
+        );
 
       case 'Tasación':
-        return `${f.modelo || 'Modelo'} · ${f.estado || 'Estado'}`;
+        return (
+          `${factura.modelo || 'Modelo'} · ` +
+          `${factura.estado || 'Estado'}`
+        );
 
       case 'Full Tuning':
-        return `${f.categoria || 'Categoría'}${f.matricula ? ' · ' + f.matricula : ''}`;
+        return (
+          `${factura.categoria || 'Categoría'}` +
+          `${factura.matricula ? ' · ' + factura.matricula : ''}`
+        );
 
       case 'Tuneo':
-        return `${f.categoria || 'Categoría'} · ${f.tuneoSeleccionados || 'Tuneo'}`;
+        return (
+          `${factura.categoria || 'Sin categoría'} · ` +
+          `${factura.tuneoSeleccionados || 'Tuneo'}`
+        );
 
       default:
         return '-';
     }
   }
 
-  getMatricula(f: FacturaListado): string {
-    return f.matricula || f.tuneoPlate || '-';
+  getMatricula(
+    factura: FacturaListado
+  ): string {
+    return (
+      factura.matricula ||
+      factura.tuneoPlate ||
+      '-'
+    );
   }
 
-  getEstadoTasacion(f: FacturaListado): string {
-    return f.estadoTasacion || 'Pendiente';
+  getEstadoTasacion(
+    factura: FacturaListado
+  ): string {
+    return factura.estadoTasacion || 'Pendiente';
   }
 
-  getInformeTasacion(f: FacturaListado): string {
+  getInformeTasacion(
+    factura: FacturaListado
+  ): string {
     return [
-      `Modelo: ${f.modelo || '-'}`,
-      `Estado: ${f.estado || '-'}`,
-      `Matricula: ${this.getMatricula(f)}`
+      `Modelo: ${factura.modelo || '-'}`,
+      `Estado: ${factura.estado || '-'}`,
+      `Matricula: ${this.getMatricula(factura)}`
     ].join('\n');
   }
 
-  copiarInformeTasacion(f: FacturaListado, event?: MouseEvent): void {
+  copiarInformeTasacion(
+    factura: FacturaListado,
+    event?: MouseEvent
+  ): void {
     if (event) {
       event.stopPropagation();
     }
 
-    const texto = this.getInformeTasacion(f);
+    const texto =
+      this.getInformeTasacion(factura);
 
-    navigator.clipboard.writeText(texto)
+    navigator.clipboard
+      .writeText(texto)
       .then(() => {
-        this.toastService.success('Plantilla de tasación copiada.');
+        this.toastService.success(
+          'Plantilla de tasación copiada.'
+        );
       })
       .catch(error => {
-        console.error('Error copiando informe:', error);
-        this.toastService.error('No se pudo copiar la plantilla.');
+        console.error(
+          'Error copiando informe:',
+          error
+        );
+
+        this.toastService.error(
+          'No se pudo copiar la plantilla.'
+        );
       });
   }
 
-  formatearFecha(fecha: string): Date | null {
-    if (!fecha) return null;
-    return new Date(fecha);
+  /**
+   * Muestra la fecha recibida del backend como una fecha local literal.
+   *
+   * No utiliza new Date(), porque LocalDateTime no contiene zona horaria
+   * y no debe convertirse a UTC ni ajustarse según la zona del navegador.
+   */
+  formatearFechaHora(
+    fecha: string | null | undefined,
+    incluirSegundos = false
+  ): string {
+    if (!fecha) {
+      return '-';
+    }
+
+    const fechaNormalizada = fecha
+      .trim()
+      .replace(' ', 'T');
+
+    const coincidencia = fechaNormalizada.match(
+      /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/
+    );
+
+    if (!coincidencia) {
+      return fecha;
+    }
+
+    const [
+      ,
+      anio,
+      mes,
+      dia,
+      hora,
+      minuto,
+      segundo
+    ] = coincidencia;
+
+    const fechaBase =
+      `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+
+    if (!incluirSegundos) {
+      return fechaBase;
+    }
+
+    return `${fechaBase}:${segundo ?? '00'}`;
   }
 }

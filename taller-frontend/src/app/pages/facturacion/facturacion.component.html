@@ -3,21 +3,16 @@
   <div class="facturacion-header">
 
     <div class="header-left">
-
-      <h2>
-        Facturación
-      </h2>
+      <h2>Facturación</h2>
 
       <p>
         Historial completo de facturas registradas
       </p>
-
     </div>
 
     <div class="stats-container">
 
       <div class="stat-card">
-
         <span class="stat-label">
           Total Facturas
         </span>
@@ -25,11 +20,9 @@
         <span class="stat-value">
           {{ totalFacturas }}
         </span>
-
       </div>
 
       <div class="stat-card">
-
         <span class="stat-label">
           Total Facturado
         </span>
@@ -37,11 +30,9 @@
         <span class="stat-value">
           {{ totalFacturado | currency:'USD':'symbol':'1.0-0' }}
         </span>
-
       </div>
 
       <div class="stat-card">
-
         <span class="stat-label">
           Media Factura
         </span>
@@ -49,7 +40,6 @@
         <span class="stat-value">
           {{ promedioFactura | currency:'USD':'symbol':'1.0-0' }}
         </span>
-
       </div>
 
     </div>
@@ -113,44 +103,32 @@
   <div class="filtros-container">
 
     <div class="filtro-group">
-
-      <label>
-        Desde
-      </label>
+      <label>Desde</label>
 
       <input
         type="date"
         [(ngModel)]="filtros.fechaInicio"
         (change)="onFiltrosChange()"
       />
-
     </div>
 
     <div class="filtro-group">
-
-      <label>
-        Hasta
-      </label>
+      <label>Hasta</label>
 
       <input
         type="date"
         [(ngModel)]="filtros.fechaFin"
         (change)="onFiltrosChange()"
       />
-
     </div>
 
     <div class="filtro-group">
-
-      <label>
-        Tipo
-      </label>
+      <label>Tipo</label>
 
       <select
         [(ngModel)]="filtros.tipo"
         (change)="onFiltrosChange()"
       >
-
         <option value="">
           Todos
         </option>
@@ -161,22 +139,16 @@
         >
           {{ tipo }}
         </option>
-
       </select>
-
     </div>
 
     <div class="filtro-group">
-
-      <label>
-        Empleado
-      </label>
+      <label>Empleado</label>
 
       <select
         [(ngModel)]="filtros.idEmpleado"
         (change)="onFiltrosChange()"
       >
-
         <option [ngValue]="null">
           Todos
         </option>
@@ -187,34 +159,27 @@
         >
           {{ empleado.nombre }}
         </option>
-
       </select>
-
     </div>
 
     <div class="filtro-group filtro-small">
-
-      <label>
-        Mostrar
-      </label>
+      <label>Mostrar</label>
 
       <select
         [(ngModel)]="facturasPorPagina"
         (change)="cambiarTamanoPagina()"
       >
-
         <option
           *ngFor="let opcion of opcionesPaginacion"
           [value]="opcion"
         >
           {{ opcion }}
         </option>
-
       </select>
-
     </div>
 
     <button
+      type="button"
       class="btn-limpiar"
       (click)="limpiar()"
     >
@@ -227,13 +192,11 @@
     class="loading-container"
     *ngIf="loading"
   >
-
     <div class="loading-spinner"></div>
 
     <span>
       Cargando facturación...
     </span>
-
   </div>
 
   <div
@@ -251,23 +214,14 @@
     <table class="tabla-facturacion">
 
       <thead>
-
         <tr>
-
           <th>ID</th>
-
           <th>Fecha</th>
-
           <th>Empleado</th>
-
           <th>Tipo</th>
-
           <th>Matrícula</th>
-
           <th>Descripción</th>
-
           <th>Total</th>
-
           <th>Estado</th>
 
           <th
@@ -276,9 +230,7 @@
           >
             Acciones
           </th>
-
         </tr>
-
       </thead>
 
       <tbody>
@@ -297,10 +249,7 @@
             </td>
 
             <td>
-              {{
-                formatearFecha(factura.fecha)
-                  | date:'dd/MM/yyyy HH:mm'
-              }}
+              {{ formatearFechaHora(factura.fecha) }}
             </td>
 
             <td>
@@ -308,11 +257,9 @@
             </td>
 
             <td>
-
               <span class="tipo-badge">
                 {{ factura.tipo }}
               </span>
-
             </td>
 
             <td>
@@ -324,12 +271,7 @@
             </td>
 
             <td class="total-column">
-
-              {{
-                factura.total
-                  | currency:'USD':'symbol':'1.0-0'
-              }}
-
+              {{ factura.total | currency:'USD':'symbol':'1.0-0' }}
             </td>
 
             <td>
@@ -363,14 +305,13 @@
               *ngIf="puedeEliminarFacturas"
               class="acciones-column"
             >
-
               <button
+                type="button"
                 class="btn-eliminar"
                 (click)="eliminarFactura(factura, $event)"
               >
                 Eliminar
               </button>
-
             </td>
 
           </tr>
@@ -382,15 +323,12 @@
 
             <td
               class="detalle-container"
-              [attr.colspan]="
-                puedeEliminarFacturas ? 9 : 8
-              "
+              [attr.colspan]="puedeEliminarFacturas ? 9 : 8"
             >
 
               <div class="detalle-grid">
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     ID Factura
                   </span>
@@ -398,11 +336,9 @@
                   <span class="detalle-value">
                     #{{ factura.id }}
                   </span>
-
                 </div>
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     Tipo
                   </span>
@@ -410,11 +346,9 @@
                   <span class="detalle-value">
                     {{ factura.tipo }}
                   </span>
-
                 </div>
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     Empleado
                   </span>
@@ -422,26 +356,19 @@
                   <span class="detalle-value">
                     {{ factura.nombreEmpleado }}
                   </span>
-
                 </div>
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     Fecha
                   </span>
 
                   <span class="detalle-value">
-                    {{
-                      formatearFecha(factura.fecha)
-                        | date:'dd/MM/yyyy HH:mm:ss'
-                    }}
+                    {{ formatearFechaHora(factura.fecha, true) }}
                   </span>
-
                 </div>
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     Matrícula
                   </span>
@@ -449,48 +376,35 @@
                   <span class="detalle-value">
                     {{ getMatricula(factura) }}
                   </span>
-
                 </div>
 
                 <div class="detalle-item">
-
                   <span class="detalle-label">
                     Total
                   </span>
 
                   <span class="detalle-value">
-                    {{
-                      factura.total
-                        | currency:'USD':'symbol':'1.0-0'
-                    }}
+                    {{ factura.total | currency:'USD':'symbol':'1.0-0' }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.tipo !== 'Tasación'"
                 >
-
                   <span class="detalle-label">
                     Convenio
                   </span>
 
                   <span class="detalle-value">
-                    {{
-                      factura.convenio
-                        ? 'Sí'
-                        : 'No'
-                    }}
+                    {{ factura.convenio ? 'Sí' : 'No' }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.tipo === 'Tasación'"
                 >
-
                   <span class="detalle-label">
                     Estado Tasación
                   </span>
@@ -502,14 +416,12 @@
                   >
                     {{ getEstadoTasacion(factura) }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.grua"
                 >
-
                   <span class="detalle-label">
                     Grúa
                   </span>
@@ -517,14 +429,12 @@
                   <span class="detalle-value">
                     Sí
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.gravedad"
                 >
-
                   <span class="detalle-label">
                     Gravedad
                   </span>
@@ -532,14 +442,12 @@
                   <span class="detalle-value">
                     {{ factura.gravedad }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.item"
                 >
-
                   <span class="detalle-label">
                     Item
                   </span>
@@ -547,14 +455,12 @@
                   <span class="detalle-value">
                     {{ factura.item }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.cantidad"
                 >
-
                   <span class="detalle-label">
                     Cantidad
                   </span>
@@ -562,14 +468,12 @@
                   <span class="detalle-value">
                     {{ factura.cantidad }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.categoria"
                 >
-
                   <span class="detalle-label">
                     Categoría
                   </span>
@@ -577,14 +481,12 @@
                   <span class="detalle-value">
                     {{ factura.categoria }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.modelo"
                 >
-
                   <span class="detalle-label">
                     Modelo
                   </span>
@@ -592,14 +494,12 @@
                   <span class="detalle-value">
                     {{ factura.modelo }}
                   </span>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.estado"
                 >
-
                   <span class="detalle-label">
                     Estado
                   </span>
@@ -607,7 +507,6 @@
                   <span class="detalle-value">
                     {{ factura.estado }}
                   </span>
-
                 </div>
 
                 <div
@@ -619,20 +518,17 @@
                   (click)="copiarInformeTasacion(factura, $event)"
                   (keydown.enter)="copiarInformeTasacion(factura)"
                 >
-
                   <span class="detalle-label">
                     Plantilla Tasación
                   </span>
 
                   <pre>{{ getInformeTasacion(factura) }}</pre>
-
                 </div>
 
                 <div
                   class="detalle-item"
                   *ngIf="factura.tipo === 'Tasación' && puedeGestionarTasaciones"
                 >
-
                   <span class="detalle-label">
                     Acción Tasación
                   </span>
@@ -649,14 +545,12 @@
                         : 'Marcar como enviada'
                     }}
                   </button>
-
                 </div>
 
                 <div
                   class="detalle-item detalle-wide"
                   *ngIf="factura.tuneoSeleccionados"
                 >
-
                   <span class="detalle-label">
                     Tuneo Seleccionado
                   </span>
@@ -664,7 +558,6 @@
                   <span class="detalle-value">
                     {{ factura.tuneoSeleccionados }}
                   </span>
-
                 </div>
 
               </div>
@@ -683,9 +576,7 @@
       class="sin-resultados"
       *ngIf="facturas.length === 0"
     >
-
       No hay facturas que coincidan con los filtros.
-
     </div>
 
   </div>
@@ -696,7 +587,6 @@
   >
 
     <div class="paginacion-info">
-
       Mostrando
       {{ inicioMostrado }}
       -
@@ -704,12 +594,12 @@
       de
       {{ totalFacturas }}
       facturas
-
     </div>
 
     <div class="paginacion-controls">
 
       <button
+        type="button"
         class="btn-page"
         [disabled]="paginaActual === 1"
         (click)="paginaAnterior()"
@@ -718,6 +608,7 @@
       </button>
 
       <button
+        type="button"
         class="btn-page"
         *ngFor="let pagina of paginasVisibles"
         [class.active]="pagina === paginaActual"
@@ -727,6 +618,7 @@
       </button>
 
       <button
+        type="button"
         class="btn-page"
         [disabled]="paginaActual === totalPaginas"
         (click)="paginaSiguiente()"
