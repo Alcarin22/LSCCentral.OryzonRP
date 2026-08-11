@@ -77,6 +77,7 @@
               <th>Entrada</th>
               <th>Salida</th>
               <th>Tiempo</th>
+              <th>Servicio</th>
               <th>Estado</th>
             </tr>
           </thead>
@@ -93,15 +94,21 @@
                 <td>{{ fichaje.nombreEmpleado || '-' }}</td>
 
                 <td>
-                  {{ formatearFecha(fichaje.fechaHoraEntrada) | date:'dd/MM/yyyy HH:mm' }}
+                  {{ formatearFechaHora(fichaje.fechaHoraEntrada) }}
                 </td>
 
                 <td>
-                  {{ fichaje.fechaHoraSalida ? (formatearFecha(fichaje.fechaHoraSalida) | date:'dd/MM/yyyy HH:mm') : '-' }}
+                  {{ formatearFechaHora(fichaje.fechaHoraSalida) }}
                 </td>
 
                 <td class="fichaje-time">
                   {{ fichaje.activo ? 'En curso' : formatearDuracion(fichaje.minutosTrabajados) }}
+                </td>
+
+                <td>
+                  <span class="fichaje-status" [class.status-active]="fichaje.tipoServicio === 'SEGURIDAD'">
+                    {{ getTipoServicioTexto(fichaje) }}
+                  </span>
                 </td>
 
                 <td>
@@ -115,7 +122,7 @@
               </tr>
 
               <tr class="fichaje-detail-row" [class.is-open]="isFichajeAbierto(fichaje)">
-                <td colspan="6" class="fichaje-detail-cell">
+                <td colspan="7" class="fichaje-detail-cell">
                   <div class="fichaje-detail-box">
                     <div class="fichaje-detail-grid">
                       <div class="fichaje-detail-item">
@@ -135,19 +142,24 @@
 
                       <div class="fichaje-detail-item">
                         <span>Entrada</span>
-                        <strong>{{ formatearFecha(fichaje.fechaHoraEntrada) | date:'dd/MM/yyyy HH:mm:ss' }}</strong>
+                        <strong>{{ formatearFechaHora(fichaje.fechaHoraEntrada, true) }}</strong>
                       </div>
 
                       <div class="fichaje-detail-item">
                         <span>Salida</span>
                         <strong>
-                          {{ fichaje.fechaHoraSalida ? (formatearFecha(fichaje.fechaHoraSalida) | date:'dd/MM/yyyy HH:mm:ss') : 'Fichaje activo' }}
+                          {{ fichaje.fechaHoraSalida ? formatearFechaHora(fichaje.fechaHoraSalida, true) : 'Fichaje activo' }}
                         </strong>
                       </div>
 
                       <div class="fichaje-detail-item">
                         <span>Tiempo trabajado</span>
                         <strong>{{ fichaje.activo ? 'En curso' : formatearDuracion(fichaje.minutosTrabajados) }}</strong>
+                      </div>
+
+                      <div class="fichaje-detail-item">
+                        <span>Tipo de servicio</span>
+                        <strong>{{ getTipoServicioTexto(fichaje) }}</strong>
                       </div>
                     </div>
                   </div>
@@ -156,7 +168,7 @@
             </ng-container>
 
             <tr *ngIf="fichajes.length === 0">
-              <td colspan="6" class="empty-row">
+              <td colspan="7" class="empty-row">
                 No hay fichajes para los filtros seleccionados.
               </td>
             </tr>

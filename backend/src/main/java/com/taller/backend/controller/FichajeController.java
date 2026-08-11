@@ -8,12 +8,14 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taller.backend.dto.FichajeListadoResponse;
 import com.taller.backend.dto.FichajeResponse;
+import com.taller.backend.dto.FichajeToggleRequest;
 import com.taller.backend.service.FichajeService;
 
 @RestController
@@ -27,8 +29,12 @@ public class FichajeController {
     }
 
     @PostMapping("/toggle/{discordId}")
-    public FichajeResponse toggleFichaje(@PathVariable String discordId) {
-        return fichajeService.toggleFichaje(discordId);
+    public FichajeResponse toggleFichaje(
+            @PathVariable String discordId,
+            @RequestBody(required = false) FichajeToggleRequest request
+    ) {
+        Boolean fichajeSeguridad = request != null ? request.getFichajeSeguridad() : false;
+        return fichajeService.toggleFichaje(discordId, fichajeSeguridad);
     }
 
     @GetMapping("/estado/{discordId}")

@@ -560,3 +560,17 @@
     width: 100%;
   }
 }
+
+.security-permission-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.security-permission-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #f4b400;
+}

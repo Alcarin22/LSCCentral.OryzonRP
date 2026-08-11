@@ -9,6 +9,7 @@ public class SesionEmpleadoResponse {
     private String avatarUrl;
     private String nickServidor;
     private SesionRangoResponse rango;
+    private Boolean puedeTrabajarComoSeguridad;
 
     public Long getId() {
         return id;
@@ -64,5 +65,12 @@ public class SesionEmpleadoResponse {
 
     public void setRango(SesionRangoResponse rango) {
         this.rango = rango;
+    }
+    public Boolean getPuedeTrabajarComoSeguridad() {
+        return puedeTrabajarComoSeguridad;
+    }
+
+    public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
+        this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
 }

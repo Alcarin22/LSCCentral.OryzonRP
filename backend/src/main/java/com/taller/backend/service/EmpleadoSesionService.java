@@ -30,6 +30,7 @@ public class EmpleadoSesionService {
         response.setDiscordId(empleado.getDiscordId());
         response.setNombre(empleado.getNombre());
         response.setActivo(empleado.getActivo());
+        response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
 
         response.setAvatarUrl("");
         response.setNickServidor(empleado.getNombre());

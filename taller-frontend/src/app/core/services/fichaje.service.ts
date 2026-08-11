@@ -9,6 +9,7 @@ export interface FichajeResponse {
   fechaHoraEntrada?: string | null;
   fechaHoraSalida?: string | null;
   minutosTrabajados?: number | null;
+  tipoServicio?: 'MECANICA' | 'SEGURIDAD' | null;
 }
 
 export interface FichajeListado {
@@ -19,6 +20,7 @@ export interface FichajeListado {
   fechaHoraSalida: string | null;
   minutosTrabajados: number | null;
   activo: boolean;
+  tipoServicio: 'MECANICA' | 'SEGURIDAD';
 }
 
 export interface FichajeFiltros {
@@ -34,8 +36,11 @@ export class FichajeService {
 
   constructor(private http: HttpClient) {}
 
-  toggleFichaje(discordId: string): Observable<FichajeResponse> {
-    return this.http.post<FichajeResponse>(`${this.baseUrl}/toggle/${discordId}`, {});
+  toggleFichaje(discordId: string, fichajeSeguridad = false): Observable<FichajeResponse> {
+    return this.http.post<FichajeResponse>(
+      `${this.baseUrl}/toggle/${discordId}`,
+      { fichajeSeguridad }
+    );
   }
 
   obtenerEstadoFichaje(discordId: string): Observable<FichajeResponse> {

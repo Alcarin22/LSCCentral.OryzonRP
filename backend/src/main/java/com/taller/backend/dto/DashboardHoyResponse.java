@@ -5,6 +5,7 @@ public class DashboardHoyResponse {
     private String horaEntrada;
     private Boolean fichajeActivo;
     private Integer serviciosRealizadosHoy;
+    private String tipoServicio;
 
     public String getHoraEntrada() {
         return horaEntrada;
@@ -28,5 +29,12 @@ public class DashboardHoyResponse {
 
     public void setServiciosRealizadosHoy(Integer serviciosRealizadosHoy) {
         this.serviciosRealizadosHoy = serviciosRealizadosHoy;
+    }
+    public String getTipoServicio() {
+        return tipoServicio;
+    }
+
+    public void setTipoServicio(String tipoServicio) {
+        this.tipoServicio = tipoServicio;
     }
 }

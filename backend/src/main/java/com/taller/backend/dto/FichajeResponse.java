@@ -7,6 +7,7 @@ public class FichajeResponse {
     private String fechaHoraEntrada;
     private String fechaHoraSalida;
     private Integer minutosTrabajados;
+    private String tipoServicio;
 
     public Boolean getFichajeActivo() {
         return fichajeActivo;
@@ -46,5 +47,12 @@ public class FichajeResponse {
 
     public void setMinutosTrabajados(Integer minutosTrabajados) {
         this.minutosTrabajados = minutosTrabajados;
+    }
+    public String getTipoServicio() {
+        return tipoServicio;
+    }
+
+    public void setTipoServicio(String tipoServicio) {
+        this.tipoServicio = tipoServicio;
     }
 }

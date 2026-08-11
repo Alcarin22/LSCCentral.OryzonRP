@@ -143,6 +143,20 @@ export class FichajesComponent implements OnInit {
     return new Date(fecha);
   }
 
+  formatearFechaHora(fecha: string | null, incluirSegundos = false): string {
+    if (!fecha) return '-';
+
+    const limpio = fecha.trim().replace(' ', 'T');
+    const match = limpio.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+
+    if (!match) return fecha;
+
+    const [, year, month, day, hour, minute, second] = match;
+    return incluirSegundos
+      ? `${day}/${month}/${year} ${hour}:${minute}:${second ?? '00'}`
+      : `${day}/${month}/${year} ${hour}:${minute}`;
+  }
+
   formatearDuracion(minutos: number | null | undefined): string {
     const total = minutos ?? 0;
     const horas = Math.floor(total / 60);
@@ -153,6 +167,10 @@ export class FichajesComponent implements OnInit {
 
   getEstadoTexto(fichaje: FichajeListado): string {
     return fichaje.activo ? 'Activo' : 'Finalizado';
+  }
+
+  getTipoServicioTexto(fichaje: FichajeListado): string {
+    return fichaje.tipoServicio === 'SEGURIDAD' ? 'Seguridad' : 'Mecánica';
   }
 
   private getLunesSemana(fecha: Date): Date {

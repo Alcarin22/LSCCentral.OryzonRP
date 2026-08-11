@@ -5,6 +5,8 @@ import com.taller.backend.dto.DashboardSemanaResponse;
 import com.taller.backend.dto.DashboardMesResponse;
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Fichaje;
+import com.taller.backend.entity.TipoServicio;
+import com.taller.backend.entity.Prima;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.FichajeRepository;
@@ -26,15 +28,18 @@ public class DashboardService {
     private final EmpleadoRepository empleadoRepository;
     private final FichajeRepository fichajeRepository;
     private final FacturaRepository facturaRepository;
+    private final PrimasService primasService;
 
     public DashboardService(
             EmpleadoRepository empleadoRepository,
             FichajeRepository fichajeRepository,
-            FacturaRepository facturaRepository
+            FacturaRepository facturaRepository,
+            PrimasService primasService
     ) {
         this.empleadoRepository = empleadoRepository;
         this.fichajeRepository = fichajeRepository;
         this.facturaRepository = facturaRepository;
+        this.primasService = primasService;
     }
 
     public DashboardHoyResponse getResumenHoy(String discordId) {
@@ -63,6 +68,13 @@ public class DashboardService {
         );
 
         response.setFichajeActivo(fichajeActivo != null);
+        response.setTipoServicio(
+                fichajeActivo != null
+                        ? (fichajeActivo.getTipoServicio() != null
+                            ? fichajeActivo.getTipoServicio().name()
+                            : TipoServicio.MECANICA.name())
+                        : null
+        );
         response.setServiciosRealizadosHoy(serviciosHoy != null ? serviciosHoy.intValue() : 0);
 
         return response;
@@ -103,7 +115,8 @@ public class DashboardService {
         response.setHorasRegistradas(formatearMinutos(minutosSemana));
         response.setDiasTrabajados(contarDiasTrabajados(fichajesSemana));
         response.setServiciosCompletados(serviciosSemana != null ? serviciosSemana.intValue() : 0);
-        response.setPrimaEstimada("$" + calcularPrimaEstimada(empleado, facturadoSemana != null ? facturadoSemana : 0L));
+        Prima primaSemana = primasService.recalcularPrimaEmpleadoSemana(empleado.getId(), inicio);
+        response.setPrimaEstimada("$" + primaSemana.getTotal().intValue());
 
         return response;
     }

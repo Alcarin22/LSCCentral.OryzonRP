@@ -13,6 +13,7 @@ export interface SessionEmpleado {
   activo: boolean;
   avatarUrl: string;
   nickServidor: string;
+  puedeTrabajarComoSeguridad: boolean;
   rango: {
     id: number;
     nombre: string;

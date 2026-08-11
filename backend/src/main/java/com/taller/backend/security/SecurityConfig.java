@@ -420,6 +420,7 @@ public class SecurityConfig {
         );
         empleado.setActivo(true);
         empleado.setRango(rangoDefault);
+        empleado.setPuedeTrabajarComoSeguridad(false);
 
         return empleadoRepository.save(empleado);
     }
@@ -451,6 +452,7 @@ public class SecurityConfig {
         user.put("discordId", empleado.getDiscordId());
         user.put("nombre", empleado.getNombre());
         user.put("activo", empleado.getActivo());
+        user.put("puedeTrabajarComoSeguridad", Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
         user.put("avatarUrl", avatarUrl);
         user.put(
                 "nickServidor",

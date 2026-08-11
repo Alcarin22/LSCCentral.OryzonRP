@@ -8,6 +8,7 @@ public class FichajeListadoResponse {
     private String fechaHoraEntrada;
     private String fechaHoraSalida;
     private Integer minutosTrabajados;
+    private String tipoServicio;
     private Boolean activo;
 
     public Long getId() {
@@ -64,5 +65,12 @@ public class FichajeListadoResponse {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+    public String getTipoServicio() {
+        return tipoServicio;
+    }
+
+    public void setTipoServicio(String tipoServicio) {
+        this.tipoServicio = tipoServicio;
     }
 }

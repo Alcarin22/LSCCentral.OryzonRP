@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Subscription, forkJoin, interval } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -13,6 +14,7 @@ interface DashboardHoyResponse {
   horaEntrada: string | null;
   fichajeActivo: boolean;
   serviciosRealizadosHoy: number;
+  tipoServicio: 'MECANICA' | 'SEGURIDAD' | null;
 }
 
 interface DashboardSemanaResponse {
@@ -32,7 +34,7 @@ interface DashboardMesResponse {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -49,6 +51,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   horaEntradaFormateada = '--:--';
   tiempoTrabajadoActual = '00:00:00';
   estadoActualTexto = 'Fuera de servicio';
+  fichajeSeguridadSeleccionado = false;
+  tipoServicioActivo: 'MECANICA' | 'SEGURIDAD' | null = null;
 
   resumenHoy = {
     serviciosRealizadosHoy: 0
@@ -98,6 +102,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.timerSub?.unsubscribe();
   }
 
+  get esRangoSeguridad(): boolean {
+    const rango = this.empleado?.rango?.nombre?.trim().toLowerCase() ?? '';
+    return rango === 'seguridad' || rango === 'jefe de seguridad';
+  }
+
+  get puedeSeleccionarFichajeSeguridad(): boolean {
+    return !this.esRangoSeguridad && !!this.empleado?.puedeTrabajarComoSeguridad;
+  }
+
+  get servicioActualTexto(): string {
+    if (!this.fichado || !this.tipoServicioActivo) {
+      return '-';
+    }
+    return this.tipoServicioActivo === 'SEGURIDAD' ? 'Seguridad' : 'Mecánica';
+  }
+
   toggleFichaje(): void {
     if (!this.empleado?.discordId || this.procesandoToggle) {
       return;
@@ -106,7 +126,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.procesandoToggle = true;
     this.cdr.detectChanges();
 
-    this.fichajeService.toggleFichaje(this.empleado.discordId).pipe(
+    this.fichajeService.toggleFichaje(this.empleado.discordId, this.fichajeSeguridadSeleccionado).pipe(
       finalize(() => {
         this.procesandoToggle = false;
         this.cdr.detectChanges();
@@ -182,6 +202,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.fichado) {
       this.estadoActualTexto = 'En servicio';
       this.textoBotonFichaje = 'Finalizar fichaje';
+      this.tipoServicioActivo = response.tipoServicio ?? (this.esRangoSeguridad || this.fichajeSeguridadSeleccionado ? 'SEGURIDAD' : 'MECANICA');
 
       if (response.fechaHoraEntrada) {
         this.fechaEntrada = this.parseBackendLocalDateTime(response.fechaHoraEntrada);
@@ -195,6 +216,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.estadoActualTexto = 'Fuera de servicio';
       this.textoBotonFichaje = 'Iniciar fichaje';
       this.resetEstadoFichajeVisual();
+      this.fichajeSeguridadSeleccionado = false;
     }
   }
 
@@ -213,6 +235,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.fichado && hoy.horaEntrada) {
       this.estadoActualTexto = 'En servicio';
       this.textoBotonFichaje = 'Finalizar fichaje';
+      this.tipoServicioActivo = hoy.tipoServicio ?? (this.esRangoSeguridad ? 'SEGURIDAD' : 'MECANICA');
+      this.fichajeSeguridadSeleccionado = this.tipoServicioActivo === 'SEGURIDAD';
 
       this.fechaEntrada = this.parseBackendLocalDateTime(hoy.horaEntrada);
 
@@ -232,6 +256,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.fechaEntrada = null;
     this.horaEntradaFormateada = '--:--';
     this.tiempoTrabajadoActual = '00:00:00';
+    this.tipoServicioActivo = null;
     this.timerSub?.unsubscribe();
   }
 

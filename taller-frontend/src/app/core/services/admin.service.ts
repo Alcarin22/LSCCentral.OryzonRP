@@ -11,6 +11,7 @@ export interface EmpleadoAdmin {
   rangoId: number;
   rangoNombre: string;
   rangoNivel: number;
+  puedeTrabajarComoSeguridad: boolean;
 }
 
 export interface RangoAdmin {
@@ -22,6 +23,7 @@ export interface RangoAdmin {
 export interface EmpleadoAdminUpdateRequest {
   rangoId: number | null;
   activo: boolean | null;
+  puedeTrabajarComoSeguridad?: boolean | null;
 }
 
 export interface VehiculoAdmin {

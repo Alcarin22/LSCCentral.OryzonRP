@@ -31,6 +31,9 @@ public class Empleado {
     @JoinColumn(name = "rango_id", nullable = false)
     private Rango rango;
 
+    @Column(name = "puede_trabajar_como_seguridad", nullable = false)
+    private Boolean puedeTrabajarComoSeguridad = false;
+
     public Long getId() {
         return id;
     }
@@ -65,5 +68,13 @@ public class Empleado {
 
     public void setRango(Rango rango) {
         this.rango = rango;
+    }
+
+    public Boolean getPuedeTrabajarComoSeguridad() {
+        return puedeTrabajarComoSeguridad;
+    }
+
+    public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
+        this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
 }

@@ -4,6 +4,7 @@ public class EmpleadoAdminUpdateRequest {
 
     private Long rangoId;
     private Boolean activo;
+    private Boolean puedeTrabajarComoSeguridad;
 
     public Long getRangoId() {
         return rangoId;
@@ -19,5 +20,12 @@ public class EmpleadoAdminUpdateRequest {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+    public Boolean getPuedeTrabajarComoSeguridad() {
+        return puedeTrabajarComoSeguridad;
+    }
+
+    public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
+        this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
 }

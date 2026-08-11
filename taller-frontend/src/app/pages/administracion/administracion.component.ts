@@ -278,6 +278,27 @@ export class AdministracionComponent implements OnInit {
     });
   }
 
+  esRangoSeguridadEmpleado(empleado: EmpleadoAdmin): boolean {
+    const rango = empleado.rangoNombre?.trim().toLowerCase() ?? '';
+    return rango === 'seguridad' || rango === 'jefe de seguridad';
+  }
+
+  togglePermisoSeguridad(empleado: EmpleadoAdmin, permitido: boolean): void {
+    this.adminService.actualizarEmpleado(empleado.id, {
+      rangoId: null,
+      activo: null,
+      puedeTrabajarComoSeguridad: permitido
+    }).subscribe({
+      next: (actualizado) => {
+        this.actualizarEmpleadoEnLista(actualizado);
+      },
+      error: (error) => {
+        console.error('Error actualizando permiso de seguridad:', error);
+        alert('No se pudo actualizar el permiso para trabajar como seguridad.');
+      }
+    });
+  }
+
   toggleActivo(empleado: EmpleadoAdmin): void {
     const nuevoEstado = !empleado.activo;
     const accion = nuevoEstado ? 'reactivar' : 'despedir/desactivar';

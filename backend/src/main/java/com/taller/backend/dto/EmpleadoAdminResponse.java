@@ -9,6 +9,7 @@ public class EmpleadoAdminResponse {
     private Long rangoId;
     private String rangoNombre;
     private Integer rangoNivel;
+    private Boolean puedeTrabajarComoSeguridad;
 
     public Long getId() {
         return id;
@@ -64,5 +65,12 @@ public class EmpleadoAdminResponse {
 
     public void setRangoNivel(Integer rangoNivel) {
         this.rangoNivel = rangoNivel;
+    }
+    public Boolean getPuedeTrabajarComoSeguridad() {
+        return puedeTrabajarComoSeguridad;
+    }
+
+    public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
+        this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
 }

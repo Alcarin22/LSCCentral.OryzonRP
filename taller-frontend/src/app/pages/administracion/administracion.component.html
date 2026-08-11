@@ -213,6 +213,22 @@
                             </option>
                           </select>
                         </div>
+
+                        <div class="admin-detail-item">
+                          <span>Puede trabajar como Seguridad</span>
+
+                          <label class="security-permission-toggle" (click)="$event.stopPropagation()">
+                            <input
+                              type="checkbox"
+                              [ngModel]="esRangoSeguridadEmpleado(empleado) || empleado.puedeTrabajarComoSeguridad"
+                              [disabled]="esRangoSeguridadEmpleado(empleado)"
+                              (ngModelChange)="togglePermisoSeguridad(empleado, $event)"
+                            />
+                            <strong>
+                              {{ esRangoSeguridadEmpleado(empleado) ? 'Automático por rango' : (empleado.puedeTrabajarComoSeguridad ? 'Sí' : 'No') }}
+                            </strong>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </td>

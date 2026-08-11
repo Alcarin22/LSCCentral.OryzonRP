@@ -25,6 +25,10 @@ public class Fichaje {
     @JoinColumn(name = "empleado_id", nullable = false)
     private Empleado empleado;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_servicio", nullable = false, length = 20)
+    private TipoServicio tipoServicio = TipoServicio.MECANICA;
+
     public Long getId() {
         return id;
     }
@@ -59,5 +63,13 @@ public class Fichaje {
 
     public void setEmpleado(Empleado empleado) {
         this.empleado = empleado;
+    }
+
+    public TipoServicio getTipoServicio() {
+        return tipoServicio;
+    }
+
+    public void setTipoServicio(TipoServicio tipoServicio) {
+        this.tipoServicio = tipoServicio;
     }
 }

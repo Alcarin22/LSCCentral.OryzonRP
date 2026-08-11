@@ -59,6 +59,10 @@ public class AdministracionEmpleadoService {
             empleado.setActivo(request.getActivo());
         }
 
+        if (request.getPuedeTrabajarComoSeguridad() != null) {
+            empleado.setPuedeTrabajarComoSeguridad(request.getPuedeTrabajarComoSeguridad());
+        }
+
         Empleado actualizado = empleadoRepository.save(empleado);
 
         return mapearEmpleado(actualizado);
@@ -71,6 +75,7 @@ public class AdministracionEmpleadoService {
         response.setDiscordId(empleado.getDiscordId());
         response.setNombre(empleado.getNombre());
         response.setActivo(empleado.getActivo());
+        response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
 
         if (empleado.getRango() != null) {
             response.setRangoId(empleado.getRango().getId());
