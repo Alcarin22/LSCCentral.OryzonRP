@@ -1,10 +1,14 @@
 package com.taller.backend.service;
 
 import com.taller.backend.dto.CreateFacturaRequest;
+import com.taller.backend.dto.CreateFacturacionLoteRequest;
+import com.taller.backend.dto.CreateFacturacionLoteResponse;
+import com.taller.backend.dto.FacturaItemResponse;
 import com.taller.backend.dto.FacturaListadoResponse;
 import com.taller.backend.dto.FacturasPageResponse;
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
+import com.taller.backend.entity.FacturaItem;
 import com.taller.backend.entity.FullTuning;
 import com.taller.backend.entity.Item;
 import com.taller.backend.entity.Reparacion;
@@ -13,6 +17,7 @@ import com.taller.backend.entity.TasacionPrecio;
 import com.taller.backend.entity.Tuneo;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
+import com.taller.backend.repository.FacturaItemRepository;
 import com.taller.backend.repository.FullTuningRepository;
 import com.taller.backend.repository.ItemRepository;
 import com.taller.backend.repository.ReparacionRepository;
@@ -26,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,10 +40,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class FacturaService {
@@ -51,6 +60,7 @@ public class FacturaService {
             ZoneId.of("Europe/Madrid");
 
     private final FacturaRepository facturaRepository;
+    private final FacturaItemRepository facturaItemRepository;
     private final EmpleadoRepository empleadoRepository;
     private final ReparacionRepository reparacionRepository;
     private final ItemRepository itemRepository;
@@ -62,6 +72,7 @@ public class FacturaService {
 
     public FacturaService(
             FacturaRepository facturaRepository,
+            FacturaItemRepository facturaItemRepository,
             EmpleadoRepository empleadoRepository,
             ReparacionRepository reparacionRepository,
             ItemRepository itemRepository,
@@ -72,6 +83,7 @@ public class FacturaService {
             PrimasService primasService
     ) {
         this.facturaRepository = facturaRepository;
+        this.facturaItemRepository = facturaItemRepository;
         this.empleadoRepository = empleadoRepository;
         this.reparacionRepository = reparacionRepository;
         this.itemRepository = itemRepository;
@@ -82,6 +94,7 @@ public class FacturaService {
         this.primasService = primasService;
     }
 
+    @Transactional
     public Factura crearFactura(
             CreateFacturaRequest request
     ) {
@@ -91,76 +104,144 @@ public class FacturaService {
                         new RuntimeException("Empleado no encontrado")
                 );
 
-        int totalCalculado =
-                calcularTotal(request);
+        Factura guardada = crearFacturaInterna(
+                request,
+                empleado
+        );
+
+        recalcularPrimaSeguro(
+                empleado.getId(),
+                guardada.getFecha()
+        );
+
+        return guardada;
+    }
+
+    @Transactional
+    public CreateFacturacionLoteResponse crearFacturacionLote(
+            CreateFacturacionLoteRequest request
+    ) {
+        if (request == null
+                || request.getDiscordId() == null
+                || request.getDiscordId().isBlank()) {
+            throw new RuntimeException("No hay empleado asociado a la facturación");
+        }
+
+        if (request.getElementos() == null
+                || request.getElementos().isEmpty()) {
+            throw new RuntimeException("No hay elementos para facturar");
+        }
+
+        Empleado empleado = empleadoRepository
+                .findByDiscordId(request.getDiscordId())
+                .orElseThrow(() ->
+                        new RuntimeException("Empleado no encontrado")
+                );
+
+        List<CreateFacturaRequest> items = new ArrayList<>();
+        List<CreateFacturaRequest> independientes = new ArrayList<>();
+
+        for (CreateFacturaRequest elemento : request.getElementos()) {
+            if (elemento == null
+                    || elemento.getTipo() == null
+                    || elemento.getTipo().isBlank()) {
+                throw new RuntimeException("Hay un elemento sin tipo de factura");
+            }
+
+            elemento.setDiscordId(request.getDiscordId());
+
+            if ("Items".equals(elemento.getTipo())) {
+                items.add(elemento);
+            } else {
+                independientes.add(elemento);
+            }
+        }
+
+        List<Factura> facturasCreadas = new ArrayList<>();
+
+        for (CreateFacturaRequest elemento : independientes) {
+            facturasCreadas.add(
+                    crearFacturaInterna(
+                            elemento,
+                            empleado
+                    )
+            );
+        }
+
+        if (!items.isEmpty()) {
+            facturasCreadas.add(
+                    crearFacturaItemsAgrupada(
+                            empleado,
+                            items
+                    )
+            );
+        }
+
+        LocalDateTime fechaReferencia = facturasCreadas
+                .stream()
+                .map(Factura::getFecha)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(LocalDateTime.now(ZONA_MADRID));
+
+        recalcularPrimaSeguro(
+                empleado.getId(),
+                fechaReferencia
+        );
+
+        Map<Long, String> nombres = new HashMap<>();
+        nombres.put(empleado.getId(), empleado.getNombre());
+
+        List<FacturaListadoResponse> facturasResponse = facturasCreadas
+                .stream()
+                .map(f -> mapearFactura(f, nombres))
+                .toList();
+
+        long totalGeneral = facturasCreadas
+                .stream()
+                .map(Factura::getTotal)
+                .filter(Objects::nonNull)
+                .mapToLong(Integer::longValue)
+                .sum();
+
+        CreateFacturacionLoteResponse response =
+                new CreateFacturacionLoteResponse();
+
+        response.setTotalFacturas(facturasCreadas.size());
+        response.setTotalGeneral(totalGeneral);
+        response.setFacturas(facturasResponse);
+
+        return response;
+    }
+
+    private Factura crearFacturaInterna(
+            CreateFacturaRequest request,
+            Empleado empleado
+    ) {
+        int totalCalculado = calcularTotal(request);
 
         Factura factura = new Factura();
 
         factura.setIdEmpleado(empleado.getId());
-
-        /*
-         * La fecha se genera expresamente en Europe/Madrid.
-         * No depende de la zona predeterminada de Railway.
-         */
-        factura.setFecha(
-                LocalDateTime.now(ZONA_MADRID)
-        );
-
-        factura.setMatricula(
-                request.getMatricula()
-        );
-
-        factura.setTipo(
-                request.getTipo()
-        );
-
-        factura.setTotal(
-                totalCalculado
-        );
+        factura.setFecha(LocalDateTime.now(ZONA_MADRID));
+        factura.setMatricula(request.getMatricula());
+        factura.setTipo(request.getTipo());
+        factura.setTotal(totalCalculado);
 
         boolean convenioAplicado =
                 Boolean.TRUE.equals(request.getConvenio())
                         && !"Tasación".equals(request.getTipo());
 
-        factura.setConvenio(
-                convenioAplicado
-        );
-
-        factura.setModelo(
-                request.getModelo()
-        );
-
-        factura.setEstado(
-                request.getEstado()
-        );
-
-        factura.setCantidad(
-                request.getCantidad()
-        );
-
-        factura.setItem(
-                request.getItem()
-        );
-
-        factura.setCategoria(
-                request.getCategoria()
-        );
-
-        factura.setGravedad(
-                request.getGravedad()
-        );
-
-        factura.setTuneoPlate(
-                request.getTuneoPlate()
-        );
-
-        factura.setTuneoSeleccionados(
-                request.getTuneoSeleccionados()
-        );
-
-        factura.setGrua(
-                Boolean.TRUE.equals(request.getGrua())
-        );
+        factura.setConvenio(convenioAplicado);
+        factura.setModelo(request.getModelo());
+        factura.setEstado(request.getEstado());
+        factura.setCantidad(request.getCantidad());
+        factura.setItem(request.getItem());
+        factura.setCategoria(request.getCategoria());
+        factura.setGravedad(request.getGravedad());
+        factura.setTuneoPlate(request.getTuneoPlate());
+        factura.setTuneoSeleccionados(request.getTuneoSeleccionados());
+        factura.setGrua(Boolean.TRUE.equals(request.getGrua()));
 
         if ("Tasación".equals(request.getTipo())) {
             factura.setEstadoTasacion("Pendiente");
@@ -168,29 +249,155 @@ public class FacturaService {
             factura.setEstadoTasacion(null);
         }
 
-        Factura guardada =
-                facturaRepository.save(factura);
+        Factura guardada = facturaRepository.save(factura);
 
         if ("Tasación".equals(request.getTipo())) {
-            guardarTasacion(
+            guardarTasacion(guardada, request);
+        }
+
+        if ("Items".equals(request.getTipo())) {
+            guardarLineaItem(
                     guardada,
                     request
             );
         }
 
+        return guardada;
+    }
+
+    private Factura crearFacturaItemsAgrupada(
+            Empleado empleado,
+            List<CreateFacturaRequest> solicitudes
+    ) {
+        LinkedHashMap<String, CreateFacturaRequest> agrupados =
+                new LinkedHashMap<>();
+
+        for (CreateFacturaRequest solicitud : solicitudes) {
+            if (solicitud.getItem() == null
+                    || solicitud.getItem().isBlank()) {
+                throw new RuntimeException("Hay un item sin seleccionar");
+            }
+
+            int cantidad = solicitud.getCantidad() != null
+                    ? solicitud.getCantidad()
+                    : 1;
+
+            if (cantidad <= 0) {
+                throw new RuntimeException("La cantidad del item debe ser mayor que cero");
+            }
+
+            String clave = normalizar(solicitud.getItem())
+                    + "|"
+                    + Boolean.TRUE.equals(solicitud.getLspd());
+
+            CreateFacturaRequest existente = agrupados.get(clave);
+
+            if (existente == null) {
+                CreateFacturaRequest copia = new CreateFacturaRequest();
+                copia.setDiscordId(solicitud.getDiscordId());
+                copia.setTipo("Items");
+                copia.setItem(solicitud.getItem());
+                copia.setCantidad(cantidad);
+                copia.setConvenio(false);
+                copia.setLspd(Boolean.TRUE.equals(solicitud.getLspd()));
+                agrupados.put(clave, copia);
+            } else {
+                existente.setCantidad(
+                        existente.getCantidad() + cantidad
+                );
+            }
+        }
+
+        Factura factura = new Factura();
+        factura.setIdEmpleado(empleado.getId());
+        factura.setFecha(LocalDateTime.now(ZONA_MADRID));
+        factura.setTipo("Items");
+        factura.setTotal(0);
+        factura.setConvenio(false);
+        factura.setGrua(false);
+        factura.setEstadoTasacion(null);
+
+        Factura guardada = facturaRepository.save(factura);
+
+        int total = 0;
+
+        for (CreateFacturaRequest solicitud : agrupados.values()) {
+            FacturaItem linea = crearLineaItem(
+                    guardada,
+                    solicitud
+            );
+
+            facturaItemRepository.save(linea);
+            total += linea.getSubtotal();
+        }
+
+        guardada.setTotal(total);
+
+        return facturaRepository.save(guardada);
+    }
+
+    private void guardarLineaItem(
+            Factura factura,
+            CreateFacturaRequest request
+    ) {
+        facturaItemRepository.save(
+                crearLineaItem(factura, request)
+        );
+    }
+
+    private FacturaItem crearLineaItem(
+            Factura factura,
+            CreateFacturaRequest request
+    ) {
+        Item itemCatalogo = buscarItem(request.getItem());
+
+        int cantidad = request.getCantidad() != null
+                ? request.getCantidad()
+                : 1;
+
+        if (cantidad <= 0) {
+            throw new RuntimeException("La cantidad del item debe ser mayor que cero");
+        }
+
+        int precioUnitario = itemCatalogo
+                .getPrecio()
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+
+        int subtotal = precioUnitario * cantidad;
+
+        boolean lspd = Boolean.TRUE.equals(request.getLspd());
+
+        if (lspd) {
+            subtotal = (int) Math.round(subtotal * 0.90);
+        }
+
+        FacturaItem linea = new FacturaItem();
+        linea.setFactura(factura);
+        linea.setItem(itemCatalogo.getNombre());
+        linea.setCantidad(cantidad);
+        linea.setPrecioUnitario(precioUnitario);
+        linea.setSubtotal(subtotal);
+        linea.setLspd(lspd);
+
+        return linea;
+    }
+
+    private void recalcularPrimaSeguro(
+            Long empleadoId,
+            LocalDateTime fechaReferencia
+    ) {
         try {
             primasService.recalcularPrimaEmpleadoSemana(
-                    empleado.getId(),
-                    guardada.getFecha()
+                    empleadoId,
+                    fechaReferencia
             );
         } catch (Exception e) {
             System.err.println(
-                    "Error recalculando prima tras crear factura: "
+                    "Error recalculando prima tras crear facturación: "
                             + e.getMessage()
             );
         }
-
-        return guardada;
     }
 
     public FacturaListadoResponse marcarTasacionEnviada(
@@ -231,6 +438,7 @@ public class FacturaService {
         );
     }
 
+    @Transactional
     public void eliminarFactura(
             Long id
     ) {
@@ -246,6 +454,7 @@ public class FacturaService {
         LocalDateTime fechaFactura =
                 factura.getFecha();
 
+        facturaItemRepository.deleteByFacturaId(id);
         facturaRepository.delete(factura);
 
         try {
@@ -567,6 +776,14 @@ public class FacturaService {
                 factura.getGrua()
         );
 
+        response.setItems(
+                facturaItemRepository
+                        .findByFacturaIdOrderByIdAsc(factura.getId())
+                        .stream()
+                        .map(this::mapearFacturaItem)
+                        .toList()
+        );
+
         response.setNombreEmpleado(
                 nombresEmpleados.getOrDefault(
                         factura.getIdEmpleado(),
@@ -661,38 +878,63 @@ public class FacturaService {
     private int calcularItems(
             CreateFacturaRequest request
     ) {
-        Item item =
-                itemRepository
-                        .findAll()
-                        .stream()
-                        .filter(itemCatalogo ->
-                                normalizar(
-                                        itemCatalogo.getNombre()
-                                ).equals(
-                                        normalizar(
-                                                request.getItem()
-                                        )
-                                )
-                        )
-                        .findFirst()
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Item no encontrado"
-                                )
-                        );
+        Item item = buscarItem(request.getItem());
 
-        return item
+        int cantidad = request.getCantidad() != null
+                ? request.getCantidad()
+                : 1;
+
+        if (cantidad <= 0) {
+            throw new RuntimeException("La cantidad del item debe ser mayor que cero");
+        }
+
+        int total = item
                 .getPrecio()
                 .multiply(
-                        BigDecimal.valueOf(
-                                request.getCantidad()
-                        )
+                        BigDecimal.valueOf(cantidad)
                 )
                 .setScale(
                         0,
                         RoundingMode.HALF_UP
                 )
                 .intValue();
+
+        if (Boolean.TRUE.equals(request.getLspd())) {
+            total = (int) Math.round(total * 0.90);
+        }
+
+        return total;
+    }
+
+    private Item buscarItem(String nombreItem) {
+        if (nombreItem == null || nombreItem.isBlank()) {
+            throw new RuntimeException("Item no encontrado");
+        }
+
+        return itemRepository
+                .findAll()
+                .stream()
+                .filter(itemCatalogo ->
+                        normalizar(itemCatalogo.getNombre())
+                                .equals(normalizar(nombreItem))
+                )
+                .findFirst()
+                .orElseThrow(() ->
+                        new RuntimeException("Item no encontrado")
+                );
+    }
+
+    private FacturaItemResponse mapearFacturaItem(
+            FacturaItem linea
+    ) {
+        FacturaItemResponse response = new FacturaItemResponse();
+        response.setId(linea.getId());
+        response.setItem(linea.getItem());
+        response.setCantidad(linea.getCantidad());
+        response.setPrecioUnitario(linea.getPrecioUnitario());
+        response.setSubtotal(linea.getSubtotal());
+        response.setLspd(linea.getLspd());
+        return response;
     }
 
     private int calcularTasacion(

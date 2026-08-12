@@ -457,3 +457,41 @@
   }
 
 }
+.factura-items-detalle {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.factura-item-linea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.factura-item-linea > div {
+  display: grid;
+  gap: 4px;
+}
+
+.factura-item-linea span {
+  color: #9aa4b2;
+  font-size: 0.82rem;
+}
+
+.factura-item-subtotal {
+  color: #f4b400;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .factura-item-linea {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

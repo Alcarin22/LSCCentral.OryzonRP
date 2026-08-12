@@ -1,12 +1,14 @@
 <section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8">
-  <div class="mx-auto max-w-5xl space-y-6">
+  <div class="mx-auto max-w-6xl space-y-6">
 
     <div>
-      <h1 class="text-3xl font-bold">Crear factura</h1>
-      <p class="text-[#9aa4b2]">Genera una nueva operación del taller</p>
+      <h1 class="text-3xl font-bold">Crear facturación</h1>
+      <p class="text-[#9aa4b2]">
+        Añade servicios y productos a la facturación actual y genera las facturas necesarias al finalizar.
+      </p>
     </div>
 
-    <div>
+    <div class="rounded-2xl border border-[#2f3748] bg-[#1b2130] p-5 shadow-xl">
       <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de factura</label>
       <select
         [(ngModel)]="tipoSeleccionado"
@@ -22,229 +24,345 @@
       </select>
     </div>
 
-    @if (tipoSeleccionado === 'Reparación') {
-      <div class="grid gap-4">
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
-          <select
-            [(ngModel)]="gravedad"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          >
-            <option value="">Seleccione una opción</option>
-            @for (r of reparaciones; track r.id) {
-              <option [value]="r.tipo">{{ r.tipo }}</option>
-            }
-          </select>
+    @if (tipoSeleccionado) {
+      <div class="rounded-2xl border border-[#2f3748] bg-[#1b2130] p-5 shadow-xl">
+        <div class="mb-5">
+          <h2 class="text-xl font-bold">{{ tipoSeleccionado }}</h2>
+          <p class="text-sm text-[#9aa4b2]">
+            Completa los datos y añádelo a la facturación actual.
+          </p>
         </div>
 
-        <label class="flex items-center gap-3">
-          <input type="checkbox" [(ngModel)]="grua" (change)="actualizarTotal()" />
-          <span>Grúa (+600$)</span>
-        </label>
+        @if (tipoSeleccionado === 'Reparación') {
+          <div class="grid gap-4">
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Tipo de reparación</label>
+              <select
+                [(ngModel)]="gravedad"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                <option value="">Seleccione una opción</option>
+                @for (r of reparaciones; track r.id) {
+                  <option [value]="r.tipo">{{ r.tipo }}</option>
+                }
+              </select>
+            </div>
 
-        <label class="flex items-center gap-3">
-          <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
-          <span>Convenio (-20%)</span>
-        </label>
+            <label class="flex items-center gap-3">
+              <input type="checkbox" [(ngModel)]="grua" (change)="actualizarTotal()" />
+              <span>Grúa (+600$)</span>
+            </label>
+
+            <label class="flex items-center gap-3">
+              <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
+              <span>Convenio (-20%)</span>
+            </label>
+          </div>
+        }
+
+        @if (tipoSeleccionado === 'Items') {
+          <div class="grid gap-4">
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
+              <select
+                [(ngModel)]="item"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                <option value="">Seleccione un item</option>
+                @for (i of itemsDisponibles; track i.id) {
+                  <option [value]="i.nombre">{{ i.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
+              <input
+                type="number"
+                min="1"
+                [(ngModel)]="cantidad"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <label class="flex items-center gap-3">
+              <input
+                type="checkbox"
+                [(ngModel)]="lspd"
+                (change)="actualizarTotal()"
+              />
+              <span>LSPD (-10%)</span>
+            </label>
+          </div>
+        }
+
+        @if (tipoSeleccionado === 'Tasación') {
+          <div class="grid gap-4">
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
+              <input
+                type="text"
+                [(ngModel)]="matricula"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
+              <input
+                type="text"
+                [(ngModel)]="modelo"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
+              <select
+                [(ngModel)]="estado"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                @for (t of tasacionPrecios; track t.id) {
+                  <option [value]="t.estado">{{ t.estado }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Otros</label>
+              <textarea
+                [(ngModel)]="otros"
+                class="min-h-28 w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              ></textarea>
+            </div>
+          </div>
+        }
+
+        @if (tipoSeleccionado === 'Full Tuning') {
+          <div class="grid gap-4">
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
+              <input
+                type="text"
+                [(ngModel)]="matricula"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
+              <select
+                [(ngModel)]="categoria"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                <option value="">Seleccione una categoría</option>
+                @for (ft of fullTuningDisponibles; track ft.id) {
+                  <option [value]="ft.categoria">{{ ft.categoria }}</option>
+                }
+              </select>
+            </div>
+
+            <label class="flex items-center gap-3">
+              <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
+              <span>Convenio (-20%)</span>
+            </label>
+          </div>
+        }
+
+        @if (tipoSeleccionado === 'Tuneo') {
+          <div class="grid gap-4">
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
+              <input
+                type="text"
+                [(ngModel)]="tuneoPlate"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
+              <select
+                [(ngModel)]="categoria"
+                (ngModelChange)="actualizarTotal()"
+                class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
+              >
+                <option value="">Seleccione una categoría</option>
+                @for (ft of fullTuningDisponibles; track ft.id) {
+                  <option [value]="ft.categoria">{{ ft.categoria }}</option>
+                }
+              </select>
+              <p class="mt-2 text-xs text-[#9aa4b2]">
+                Solo es obligatoria si seleccionas alguna mejora de rendimiento.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Mejoras de rendimiento</label>
+
+              <div class="grid gap-2 md:grid-cols-2">
+                @for (opcion of tuneoRendimientoOpciones; track opcion) {
+                  <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#151a26] px-4 py-3">
+                    <input
+                      type="checkbox"
+                      [checked]="isTuneoSelected(opcion)"
+                      (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
+                    />
+                    <span>{{ opcion }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm text-[#9aa4b2]">Piezas estéticas</label>
+
+              <div class="grid gap-2 md:grid-cols-2">
+                @for (opcion of tuneoEsteticaOpciones; track opcion) {
+                  <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#151a26] px-4 py-3">
+                    <input
+                      type="checkbox"
+                      [checked]="isTuneoSelected(opcion)"
+                      (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
+                    />
+                    <span>{{ opcion }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+
+            <label class="flex items-center gap-3">
+              <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
+              <span>Convenio (-20%)</span>
+            </label>
+          </div>
+        }
+
+        <div class="mt-6 rounded-xl bg-[#151a26] p-6 text-center">
+          <p class="text-sm text-[#9aa4b2]">Importe del elemento</p>
+          <p class="text-3xl font-bold text-[#f4b400]">
+            {{ total | currency:'USD':'symbol':'1.0-0' }}
+          </p>
+        </div>
+
+        <div class="mt-5 flex justify-end">
+          <button
+            type="button"
+            (click)="agregarAFacturacion()"
+            class="rounded-xl bg-[#f4b400] px-6 py-3 font-bold text-black transition hover:-translate-y-0.5"
+          >
+            + Añadir a facturación
+          </button>
+        </div>
       </div>
     }
 
-    @if (tipoSeleccionado === 'Items') {
-      <div class="grid gap-4">
+    <article class="rounded-2xl border border-[#2f3748] bg-[#1b2130] shadow-xl">
+      <div class="flex flex-col gap-4 border-b border-white/5 p-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Item</label>
-          <select
-            [(ngModel)]="item"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          >
-            <option value="">Seleccione un item</option>
-            @for (i of itemsDisponibles; track i.id) {
-              <option [value]="i.nombre">{{ i.nombre }}</option>
-            }
-          </select>
+          <h2 class="text-xl font-bold">Facturación actual</h2>
+          <p class="text-sm text-[#9aa4b2]">
+            Los Items se agruparán automáticamente en una única factura. Los demás tipos se generarán como facturas independientes.
+          </p>
         </div>
 
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Cantidad</label>
-          <input
-            type="number"
-            min="1"
-            [(ngModel)]="cantidad"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          />
-        </div>
+        <div class="flex flex-wrap gap-3">
+          <div class="rounded-xl border border-[#3b465c] bg-[#151a26] px-4 py-3">
+            <span class="block text-xs text-[#9aa4b2]">Elementos</span>
+            <strong>{{ cantidadElementos }}</strong>
+          </div>
 
-        <label class="flex items-center gap-3">
-          <input
-            type="checkbox"
-            [(ngModel)]="lspd"
-            (change)="actualizarTotal()"
-          />
-          <span>LSPD (-10%)</span>
-        </label>
-      </div>
-    }
-
-    @if (tipoSeleccionado === 'Tasación') {
-      <div class="grid gap-4">
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
-          <input
-            type="text"
-            [(ngModel)]="matricula"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Modelo</label>
-          <input
-            type="text"
-            [(ngModel)]="modelo"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Estado</label>
-          <select
-            [(ngModel)]="estado"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          >
-            @for (t of tasacionPrecios; track t.id) {
-              <option [value]="t.estado">{{ t.estado }}</option>
-            }
-          </select>
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Otros</label>
-          <textarea
-            [(ngModel)]="otros"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          ></textarea>
-        </div>
-      </div>
-    }
-
-    @if (tipoSeleccionado === 'Full Tuning') {
-      <div class="grid gap-4">
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
-          <input
-            type="text"
-            [(ngModel)]="matricula"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
-          <select
-            [(ngModel)]="categoria"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          >
-            <option value="">Seleccione una categoría</option>
-            @for (ft of fullTuningDisponibles; track ft.id) {
-              <option [value]="ft.categoria">{{ ft.categoria }}</option>
-            }
-          </select>
-        </div>
-
-        <label class="flex items-center gap-3">
-          <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
-          <span>Convenio (-20%)</span>
-        </label>
-      </div>
-    }
-
-    @if (tipoSeleccionado === 'Tuneo') {
-      <div class="grid gap-4">
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Matrícula</label>
-          <input
-            type="text"
-            [(ngModel)]="tuneoPlate"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Categoría</label>
-          <select
-            [(ngModel)]="categoria"
-            (ngModelChange)="actualizarTotal()"
-            class="w-full rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3 text-white outline-none"
-          >
-            <option value="">Seleccione una categoría</option>
-            @for (ft of fullTuningDisponibles; track ft.id) {
-              <option [value]="ft.categoria">{{ ft.categoria }}</option>
-            }
-          </select>
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Mejoras de rendimiento</label>
-
-          <div class="grid gap-2">
-            @for (opcion of tuneoRendimientoOpciones; track opcion) {
-              <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
-                <input
-                  type="checkbox"
-                  [checked]="isTuneoSelected(opcion)"
-                  (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
-                />
-                <span>{{ opcion }}</span>
-              </label>
-            }
+          <div class="rounded-xl border border-[#3b465c] bg-[#151a26] px-4 py-3">
+            <span class="block text-xs text-[#9aa4b2]">Facturas previstas</span>
+            <strong>{{ facturasPrevistas }}</strong>
           </div>
         </div>
+      </div>
 
-        <div>
-          <label class="mb-2 block text-sm text-[#9aa4b2]">Piezas estéticas</label>
+      @if (elementosFacturacion.length > 0) {
+        <div class="divide-y divide-white/5">
+          @for (elemento of elementosFacturacion; track elemento.idTemporal) {
+            <div class="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+              <div class="min-w-0">
+                <div class="mb-1 flex flex-wrap items-center gap-2">
+                  <span class="rounded-full border border-[#f4b400]/25 bg-[#f4b400]/10 px-3 py-1 text-xs font-bold text-[#f4b400]">
+                    {{ elemento.tipo }}
+                  </span>
 
-          <div class="grid gap-2">
-            @for (opcion of tuneoEsteticaOpciones; track opcion) {
-              <label class="flex items-center gap-3 rounded-xl border border-[#3b465c] bg-[#1b2130] px-4 py-3">
-                <input
-                  type="checkbox"
-                  [checked]="isTuneoSelected(opcion)"
-                  (change)="toggleTuneoItem(opcion, $any($event.target).checked)"
-                />
-                <span>{{ opcion }}</span>
-              </label>
-            }
-          </div>
+                  @if (elemento.payload.tipo === 'Items' && elemento.payload.lspd) {
+                    <span class="rounded-full border border-blue-400/25 bg-blue-400/10 px-3 py-1 text-xs font-bold text-blue-300">
+                      LSPD -10%
+                    </span>
+                  }
+
+                  @if (elemento.payload.convenio) {
+                    <span class="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
+                      Convenio -20%
+                    </span>
+                  }
+                </div>
+
+                <p class="font-semibold text-white">
+                  {{ elemento.descripcion }}
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between gap-4 md:justify-end">
+                <strong class="text-lg text-[#f4b400]">
+                  {{ elemento.total | currency:'USD':'symbol':'1.0-0' }}
+                </strong>
+
+                <button
+                  type="button"
+                  (click)="eliminarElemento(elemento.idTemporal)"
+                  class="rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-2 font-bold text-red-300 transition hover:bg-red-400/15"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          }
         </div>
 
-        <label class="flex items-center gap-3">
-          <input type="checkbox" [(ngModel)]="convenio" (change)="actualizarTotal()" />
-          <span>Convenio (-20%)</span>
-        </label>
-      </div>
-    }
+        <div class="grid gap-4 border-t border-white/5 p-5 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <p class="text-sm text-[#9aa4b2]">Total conjunto</p>
+            <p class="text-3xl font-bold text-[#f4b400]">
+              {{ totalFacturacion | currency:'USD':'symbol':'1.0-0' }}
+            </p>
+          </div>
 
-    <div class="mt-6 rounded-xl bg-[#1b2130] p-6 text-center">
-      <p class="text-sm text-[#9aa4b2]">Total</p>
-      <p class="text-3xl font-bold text-[#f4b400]">
-        {{ total | currency:'USD':'symbol':'1.0-0' }}
-      </p>
-    </div>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              (click)="vaciarFacturacion()"
+              [disabled]="enviando"
+              class="rounded-xl border border-[#3b465c] bg-[#151a26] px-5 py-3 font-bold text-white disabled:opacity-50"
+            >
+              Vaciar
+            </button>
 
-    <div class="flex justify-end">
-      <button
-        (click)="enviarFactura()"
-        [disabled]="enviando"
-        class="rounded-xl bg-[#f4b400] px-6 py-3 font-bold text-black disabled:opacity-50"
-      >
-        {{ enviando ? 'Guardando...' : 'Crear factura' }}
-      </button>
-    </div>
+            <button
+              type="button"
+              (click)="generarFacturacion()"
+              [disabled]="enviando"
+              class="rounded-xl bg-[#f4b400] px-6 py-3 font-bold text-black disabled:opacity-50"
+            >
+              {{ enviando ? 'Generando...' : 'Generar facturación' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="p-8 text-center text-[#9aa4b2]">
+          Todavía no has añadido ningún elemento a la facturación.
+        </div>
+      }
+    </article>
 
   </div>
 </section>

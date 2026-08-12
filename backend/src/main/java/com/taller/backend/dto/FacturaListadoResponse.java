@@ -1,5 +1,7 @@
 package com.taller.backend.dto;
 
+import java.util.List;
+
 public class FacturaListadoResponse {
 
     private Long id;
@@ -28,6 +30,7 @@ public class FacturaListadoResponse {
     private String tuneoSeleccionados;
 
     private Boolean grua;
+    private List<FacturaItemResponse> items;
 
     public FacturaListadoResponse() {
     }
@@ -174,5 +177,13 @@ public class FacturaListadoResponse {
 
     public void setGrua(Boolean grua) {
         this.grua = grua;
+    }
+
+    public List<FacturaItemResponse> getItems() {
+        return items;
+    }
+
+    public void setItems(List<FacturaItemResponse> items) {
+        this.items = items;
     }
 }

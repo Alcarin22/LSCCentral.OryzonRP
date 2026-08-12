@@ -445,8 +445,36 @@
                 </div>
 
                 <div
+                  class="detalle-item detalle-wide"
+                  *ngIf="factura.tipo === 'Items' && factura.items && factura.items.length > 0"
+                >
+                  <span class="detalle-label">
+                    Items facturados
+                  </span>
+
+                  <div class="factura-items-detalle">
+                    <div
+                      class="factura-item-linea"
+                      *ngFor="let linea of factura.items"
+                    >
+                      <div>
+                        <strong>{{ linea.item }}</strong>
+                        <span>
+                          x{{ linea.cantidad }} · {{ linea.precioUnitario | currency:'USD':'symbol':'1.0-0' }} ud.
+                          <ng-container *ngIf="linea.lspd"> · LSPD -10%</ng-container>
+                        </span>
+                      </div>
+
+                      <strong class="factura-item-subtotal">
+                        {{ linea.subtotal | currency:'USD':'symbol':'1.0-0' }}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div
                   class="detalle-item"
-                  *ngIf="factura.item"
+                  *ngIf="factura.item && (!factura.items || factura.items.length === 0)"
                 >
                   <span class="detalle-label">
                     Item
@@ -459,7 +487,7 @@
 
                 <div
                   class="detalle-item"
-                  *ngIf="factura.cantidad"
+                  *ngIf="factura.cantidad && (!factura.items || factura.items.length === 0)"
                 >
                   <span class="detalle-label">
                     Cantidad

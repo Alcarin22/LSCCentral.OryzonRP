@@ -7,6 +7,7 @@ public class CreateFacturaRequest {
     private String tipo;
     private Integer total;
     private Boolean convenio;
+    private Boolean lspd;
 
     private String modelo;
     private String estado;
@@ -57,6 +58,14 @@ public class CreateFacturaRequest {
 
     public void setConvenio(Boolean convenio) {
         this.convenio = convenio;
+    }
+
+    public Boolean getLspd() {
+        return lspd;
+    }
+
+    public void setLspd(Boolean lspd) {
+        this.lspd = lspd;
     }
 
     public String getModelo() {

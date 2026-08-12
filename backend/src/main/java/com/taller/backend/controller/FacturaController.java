@@ -1,6 +1,8 @@
 package com.taller.backend.controller;
 
 import com.taller.backend.dto.CreateFacturaRequest;
+import com.taller.backend.dto.CreateFacturacionLoteRequest;
+import com.taller.backend.dto.CreateFacturacionLoteResponse;
 import com.taller.backend.dto.FacturaListadoResponse;
 import com.taller.backend.dto.FacturasPageResponse;
 import com.taller.backend.entity.Factura;
@@ -21,6 +23,13 @@ public class FacturaController {
     @PostMapping
     public Factura crearFactura(@RequestBody CreateFacturaRequest request) {
         return facturaService.crearFactura(request);
+    }
+
+    @PostMapping("/lote")
+    public CreateFacturacionLoteResponse crearFacturacionLote(
+            @RequestBody CreateFacturacionLoteRequest request
+    ) {
+        return facturaService.crearFacturacionLote(request);
     }
 
     @GetMapping

@@ -10,6 +10,7 @@ import {
 import {
   FacturaService,
   CreateFacturaRequest,
+  CreateFacturacionLoteRequest,
   ReparacionDto,
   ItemDto,
   TasacionPrecioDto,
@@ -18,6 +19,14 @@ import {
 } from '../../../app/services/factura.service';
 
 import { ToastService } from '../../core/services/toast.service';
+
+interface ElementoFacturacion {
+  idTemporal: number;
+  tipo: string;
+  descripcion: string;
+  total: number;
+  payload: CreateFacturaRequest;
+}
 
 @Component({
   selector: 'app-factura',
@@ -45,6 +54,9 @@ export class FacturaComponent implements OnInit {
   tuneoPlate = '';
   gravedad = '';
   grua = false;
+
+  elementosFacturacion: ElementoFacturacion[] = [];
+  private siguienteIdTemporal = 1;
 
   tuneoRendimientoOpciones: string[] = [
     'Motor',
@@ -217,22 +229,7 @@ export class FacturaComponent implements OnInit {
 
   onTipoFacturaChange(): void {
     const nuevoTipo = this.tipoSeleccionado;
-
-    this.total = 0;
-    this.matricula = '';
-    this.modelo = '';
-    this.estado = 'SERIE';
-    this.convenio = false;
-    this.lspd = false;
-    this.cantidad = 1;
-    this.item = '';
-    this.otros = '';
-    this.categoria = '';
-    this.tuneoPlate = '';
-    this.gravedad = '';
-    this.grua = false;
-    this.tuneoSeleccionados = [];
-
+    this.resetCamposFormulario();
     this.tipoSeleccionado = nuevoTipo;
     this.actualizarTotal();
   }
@@ -282,7 +279,7 @@ export class FacturaComponent implements OnInit {
           i => this.normalizarClave(i.nombre) === this.normalizarClave(this.item)
         );
 
-        base = (itemSeleccionado?.precio ?? 0) * (this.cantidad || 1);
+        base = (itemSeleccionado?.precio ?? 0) * Math.max(1, Number(this.cantidad) || 1);
 
         if (this.lspd) {
           base = Math.round(base * 0.9);
@@ -354,119 +351,278 @@ export class FacturaComponent implements OnInit {
     this.total = Math.round(base);
   }
 
-  enviarFactura(): void {
+  agregarAFacturacion(): void {
     if (!this.empleado?.discordId) {
       this.toastService.error('No hay sesión de empleado activa.');
       return;
     }
 
-    if (!this.tipoSeleccionado) {
-      this.toastService.warning('Debes seleccionar un tipo de factura.');
+    if (!this.validarFormularioActual()) {
       return;
     }
 
-    if (this.tipoSeleccionado === 'Reparación' && !this.gravedad) {
-      this.toastService.warning('Debes seleccionar un tipo de reparación.');
+    const payload = this.construirPayloadActual();
+
+    if (this.tipoSeleccionado === 'Items') {
+      const existente = this.elementosFacturacion.find(elemento =>
+        elemento.tipo === 'Items'
+        && this.normalizarClave(elemento.payload.item) === this.normalizarClave(payload.item)
+        && Boolean(elemento.payload.lspd) === Boolean(payload.lspd)
+      );
+
+      if (existente) {
+        const cantidadActual = existente.payload.cantidad ?? 1;
+        const cantidadNueva = payload.cantidad ?? 1;
+
+        existente.payload.cantidad = cantidadActual + cantidadNueva;
+        existente.total += this.total;
+        existente.descripcion = this.getDescripcionElemento(existente.payload);
+
+        this.elementosFacturacion = [...this.elementosFacturacion];
+      } else {
+        this.anadirElementoNuevo(payload);
+      }
+    } else {
+      this.anadirElementoNuevo(payload);
+    }
+
+    this.toastService.success('Elemento añadido a la facturación.');
+    this.resetCamposTipoActual();
+  }
+
+  eliminarElemento(idTemporal: number): void {
+    this.elementosFacturacion = this.elementosFacturacion.filter(
+      elemento => elemento.idTemporal !== idTemporal
+    );
+  }
+
+  vaciarFacturacion(): void {
+    if (this.elementosFacturacion.length === 0) {
       return;
     }
 
-    if (this.tipoSeleccionado === 'Items' && !this.item) {
-      this.toastService.warning('Debes seleccionar un item.');
+    const confirmar = confirm('¿Seguro que quieres vaciar toda la facturación actual?');
+
+    if (!confirmar) {
       return;
     }
 
-    if (this.tipoSeleccionado === 'Tasación') {
-      if (!this.matricula.trim()) {
-        this.toastService.warning('Debes indicar la matrícula del vehículo.');
-        return;
-      }
+    this.elementosFacturacion = [];
+  }
 
-      if (!this.estado) {
-        this.toastService.warning('Debes seleccionar un estado para la tasación.');
-        return;
-      }
-
-      if (!this.modelo.trim()) {
-        this.toastService.warning('Debes indicar el modelo del vehículo en la tasación.');
-        return;
-      }
+  generarFacturacion(): void {
+    if (!this.empleado?.discordId) {
+      this.toastService.error('No hay sesión de empleado activa.');
+      return;
     }
 
-    if (this.tipoSeleccionado === 'Full Tuning') {
-      if (!this.matricula.trim()) {
-        this.toastService.warning('Debes indicar la matrícula del vehículo.');
-        return;
-      }
-
-      if (!this.categoria) {
-        this.toastService.warning('Debes seleccionar una categoría de Full Tuning.');
-        return;
-      }
-    }
-
-    if (this.tipoSeleccionado === 'Tuneo') {
-      if (!this.tuneoPlate.trim()) {
-        this.toastService.warning('Debes indicar la matrícula del vehículo.');
-        return;
-      }
-
-      if (this.tuneoSeleccionados.length === 0) {
-        this.toastService.warning('Debes seleccionar al menos una pieza de tuneo.');
-        return;
-      }
-
-      const tieneRendimiento = this.tieneMejorasRendimientoSeleccionadas();
-
-      if (tieneRendimiento && !this.categoria) {
-        this.toastService.warning(
-          'Debes seleccionar la categoría del vehículo para mejoras de rendimiento.'
-        );
-        return;
-      }
+    if (this.elementosFacturacion.length === 0) {
+      this.toastService.warning('Añade al menos un elemento antes de generar la facturación.');
+      return;
     }
 
     if (this.enviando) {
       return;
     }
 
-    const payload: CreateFacturaRequest = {
+    const payload: CreateFacturacionLoteRequest = {
       discordId: this.empleado.discordId,
+      elementos: this.elementosFacturacion.map(elemento => ({
+        ...elemento.payload,
+        discordId: this.empleado!.discordId
+      }))
+    };
+
+    this.enviando = true;
+
+    this.facturaService.crearFacturacionLote(payload).subscribe({
+      next: (response) => {
+        const numeroFacturas = response.totalFacturas ?? 0;
+        const totalGeneral = response.totalGeneral ?? this.totalFacturacion;
+
+        this.toastService.success(
+          `Facturación generada: ${numeroFacturas} factura${numeroFacturas === 1 ? '' : 's'} · Total $${totalGeneral}`
+        );
+
+        this.elementosFacturacion = [];
+        this.resetFormularioCompleto();
+        this.enviando = false;
+      },
+      error: (error) => {
+        console.error('Error generando facturación:', error);
+        this.toastService.error(
+          error?.error?.message || error?.error?.error || 'No se pudo generar la facturación.'
+        );
+        this.enviando = false;
+      }
+    });
+  }
+
+  get totalFacturacion(): number {
+    return this.elementosFacturacion.reduce(
+      (acc, elemento) => acc + Number(elemento.total || 0),
+      0
+    );
+  }
+
+  get facturasPrevistas(): number {
+    const tieneItems = this.elementosFacturacion.some(
+      elemento => elemento.tipo === 'Items'
+    );
+
+    const independientes = this.elementosFacturacion.filter(
+      elemento => elemento.tipo !== 'Items'
+    ).length;
+
+    return independientes + (tieneItems ? 1 : 0);
+  }
+
+  get cantidadElementos(): number {
+    return this.elementosFacturacion.length;
+  }
+
+  private anadirElementoNuevo(payload: CreateFacturaRequest): void {
+    this.elementosFacturacion = [
+      ...this.elementosFacturacion,
+      {
+        idTemporal: this.siguienteIdTemporal++,
+        tipo: payload.tipo,
+        descripcion: this.getDescripcionElemento(payload),
+        total: this.total,
+        payload
+      }
+    ];
+  }
+
+  private validarFormularioActual(): boolean {
+    if (!this.tipoSeleccionado) {
+      this.toastService.warning('Debes seleccionar un tipo de factura.');
+      return false;
+    }
+
+    if (this.tipoSeleccionado === 'Reparación' && !this.gravedad) {
+      this.toastService.warning('Debes seleccionar un tipo de reparación.');
+      return false;
+    }
+
+    if (this.tipoSeleccionado === 'Items') {
+      if (!this.item) {
+        this.toastService.warning('Debes seleccionar un item.');
+        return false;
+      }
+
+      if (!this.cantidad || Number(this.cantidad) < 1) {
+        this.toastService.warning('La cantidad debe ser al menos 1.');
+        return false;
+      }
+    }
+
+    if (this.tipoSeleccionado === 'Tasación') {
+      if (!this.matricula.trim()) {
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
+        return false;
+      }
+
+      if (!this.estado) {
+        this.toastService.warning('Debes seleccionar un estado para la tasación.');
+        return false;
+      }
+
+      if (!this.modelo.trim()) {
+        this.toastService.warning('Debes indicar el modelo del vehículo en la tasación.');
+        return false;
+      }
+    }
+
+    if (this.tipoSeleccionado === 'Full Tuning') {
+      if (!this.matricula.trim()) {
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
+        return false;
+      }
+
+      if (!this.categoria) {
+        this.toastService.warning('Debes seleccionar una categoría de Full Tuning.');
+        return false;
+      }
+    }
+
+    if (this.tipoSeleccionado === 'Tuneo') {
+      if (!this.tuneoPlate.trim()) {
+        this.toastService.warning('Debes indicar la matrícula del vehículo.');
+        return false;
+      }
+
+      if (this.tuneoSeleccionados.length === 0) {
+        this.toastService.warning('Debes seleccionar al menos una pieza de tuneo.');
+        return false;
+      }
+
+      if (this.tieneMejorasRendimientoSeleccionadas() && !this.categoria) {
+        this.toastService.warning(
+          'Debes seleccionar la categoría del vehículo para mejoras de rendimiento.'
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private construirPayloadActual(): CreateFacturaRequest {
+    return {
+      discordId: this.empleado!.discordId,
       matricula: this.obtenerMatriculaParaBackend(),
       tipo: this.tipoSeleccionado,
       total: this.total,
-      convenio: this.tipoSeleccionado === 'Tasación' ? false : this.convenio,
+      convenio: this.tipoSeleccionado === 'Tasación' || this.tipoSeleccionado === 'Items'
+        ? false
+        : this.convenio,
+      lspd: this.tipoSeleccionado === 'Items' ? this.lspd : false,
       modelo: this.tipoSeleccionado === 'Reparación' || this.tipoSeleccionado === 'Items'
         ? null
         : this.normalizarTexto(this.modelo),
-      estado: this.normalizarTexto(this.estado),
-      cantidad: this.tipoSeleccionado === 'Items' ? this.cantidad : null,
+      estado: this.tipoSeleccionado === 'Tasación'
+        ? this.normalizarTexto(this.estado)
+        : null,
+      cantidad: this.tipoSeleccionado === 'Items' ? Number(this.cantidad) : null,
       item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
       categoria: this.tipoSeleccionado === 'Full Tuning' || this.tipoSeleccionado === 'Tuneo'
         ? this.normalizarTexto(this.categoria)
         : null,
-      gravedad: this.tipoSeleccionado === 'Reparación' ? this.normalizarTexto(this.gravedad) : null,
-      tuneoPlate: this.tipoSeleccionado === 'Tuneo' ? this.normalizarTexto(this.tuneoPlate) : null,
+      gravedad: this.tipoSeleccionado === 'Reparación'
+        ? this.normalizarTexto(this.gravedad)
+        : null,
+      tuneoPlate: this.tipoSeleccionado === 'Tuneo'
+        ? this.normalizarTexto(this.tuneoPlate)
+        : null,
       tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'
         ? this.tuneoSeleccionados.join(', ')
         : null,
       grua: this.tipoSeleccionado === 'Reparación' ? this.grua : false,
       otros: this.tipoSeleccionado === 'Tasación' ? this.normalizarTexto(this.otros) : null
     };
+  }
 
-    this.enviando = true;
+  private getDescripcionElemento(payload: CreateFacturaRequest): string {
+    switch (payload.tipo) {
+      case 'Reparación':
+        return `${payload.gravedad || 'Reparación'}${payload.grua ? ' · Grúa' : ''}${payload.convenio ? ' · Convenio' : ''}`;
 
-    this.facturaService.crearFactura(payload).subscribe({
-      next: (response) => {
-        this.toastService.success(`Factura guardada correctamente. Total final: $${response.total ?? this.total}`);
-        this.resetFormulario();
-        this.enviando = false;
-      },
-      error: (error) => {
-        console.error('Error guardando factura:', error);
-        this.toastService.error('No se pudo guardar la factura.');
-        this.enviando = false;
-      }
-    });
+      case 'Items':
+        return `${payload.item || 'Item'} x${payload.cantidad || 1}${payload.lspd ? ' · LSPD' : ''}`;
+
+      case 'Tasación':
+        return `${payload.modelo || 'Modelo'} · ${payload.estado || 'Estado'} · ${payload.matricula || '-'}`;
+
+      case 'Full Tuning':
+        return `${payload.categoria || 'Categoría'} · ${payload.matricula || '-'}${payload.convenio ? ' · Convenio' : ''}`;
+
+      case 'Tuneo':
+        return `${payload.tuneoSeleccionados || 'Tuneo'} · ${payload.tuneoPlate || '-'}${payload.convenio ? ' · Convenio' : ''}`;
+
+      default:
+        return payload.tipo;
+    }
   }
 
   private getClavePrecioTuneo(pieza: string): string {
@@ -514,8 +670,14 @@ export class FacturaComponent implements OnInit {
       .toLowerCase();
   }
 
-  private resetFormulario(): void {
-    this.tipoSeleccionado = '';
+  private resetCamposTipoActual(): void {
+    const tipoActual = this.tipoSeleccionado;
+    this.resetCamposFormulario();
+    this.tipoSeleccionado = tipoActual;
+    this.actualizarTotal();
+  }
+
+  private resetCamposFormulario(): void {
     this.total = 0;
     this.matricula = '';
     this.modelo = '';
@@ -530,5 +692,10 @@ export class FacturaComponent implements OnInit {
     this.gravedad = '';
     this.grua = false;
     this.tuneoSeleccionados = [];
+  }
+
+  private resetFormularioCompleto(): void {
+    this.tipoSeleccionado = '';
+    this.resetCamposFormulario();
   }
 }

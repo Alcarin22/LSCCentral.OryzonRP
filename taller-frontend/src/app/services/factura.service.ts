@@ -9,6 +9,7 @@ export interface CreateFacturaRequest {
   tipo: string;
   total: number;
   convenio: boolean;
+  lspd?: boolean;
   modelo?: string | null;
   estado?: string | null;
   cantidad?: number | null;
@@ -19,6 +20,23 @@ export interface CreateFacturaRequest {
   tuneoSeleccionados?: string | null;
   grua?: boolean | null;
   otros?: string | null;
+}
+
+export interface CreateFacturacionLoteRequest {
+  discordId: string;
+  elementos: CreateFacturaRequest[];
+}
+
+export interface FacturaLoteCreada {
+  id: number;
+  tipo: string;
+  total: number;
+}
+
+export interface CreateFacturacionLoteResponse {
+  totalFacturas: number;
+  totalGeneral: number;
+  facturas: FacturaLoteCreada[];
 }
 
 export interface ReparacionDto {
@@ -67,6 +85,15 @@ export class FacturaService {
 
   crearFactura(payload: CreateFacturaRequest): Observable<any> {
     return this.http.post<any>(this.baseUrl, payload);
+  }
+
+  crearFacturacionLote(
+    payload: CreateFacturacionLoteRequest
+  ): Observable<CreateFacturacionLoteResponse> {
+    return this.http.post<CreateFacturacionLoteResponse>(
+      `${this.baseUrl}/lote`,
+      payload
+    );
   }
 
   getReparaciones(): Observable<ReparacionDto[]> {

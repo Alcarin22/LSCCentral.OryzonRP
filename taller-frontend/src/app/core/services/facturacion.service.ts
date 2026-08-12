@@ -7,6 +7,15 @@ import {
 
 import { Observable } from 'rxjs';
 
+export interface FacturaItemDetalle {
+  id: number;
+  item: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  lspd: boolean;
+}
+
 export interface FacturaListado {
   id: number;
   idEmpleado: number;
@@ -26,6 +35,7 @@ export interface FacturaListado {
   tuneoPlate: string;
   tuneoSeleccionados: string;
   grua: boolean;
+  items?: FacturaItemDetalle[];
 }
 
 export interface FacturacionFiltros {

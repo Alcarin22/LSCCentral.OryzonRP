@@ -492,11 +492,18 @@ export class FacturacionComponent implements OnInit {
           `${factura.grua ? ' · Grúa' : ''}`
         );
 
-      case 'Items':
+      case 'Items': {
+        if (factura.items && factura.items.length > 0) {
+          return factura.items
+            .map(linea => `${linea.item} x${linea.cantidad}`)
+            .join(' · ');
+        }
+
         return (
           `${factura.item || 'Item'} ` +
           `x${factura.cantidad || 1}`
         );
+      }
 
       case 'Tasación':
         return (
