@@ -53,9 +53,13 @@ public class DashboardService {
                 .findFirstByEmpleadoIdAndFechaHoraSalidaIsNullOrderByFechaHoraEntradaDesc(empleado.getId())
                 .orElse(null);
 
-        Fichaje ultimoTurno = fichajeRepository
+        Fichaje ultimoTurnoFinalizado = fichajeRepository
                 .findFirstByEmpleadoIdAndFechaHoraSalidaIsNotNullOrderByFechaHoraEntradaDesc(empleado.getId())
                 .orElse(null);
+
+        Fichaje turnoMostrado = fichajeActivo != null
+                ? fichajeActivo
+                : ultimoTurnoFinalizado;
 
         Long serviciosHoy = facturaRepository.countByIdEmpleadoAndFechaBetween(
                 empleado.getId(),
@@ -81,26 +85,26 @@ public class DashboardService {
         );
         response.setServiciosRealizadosHoy(serviciosHoy != null ? serviciosHoy.intValue() : 0);
 
-        if (ultimoTurno != null) {
+        if (turnoMostrado != null) {
             response.setUltimoTurnoFecha(
-                    ultimoTurno.getFechaHoraEntrada() != null
-                            ? ultimoTurno.getFechaHoraEntrada().toLocalDate().toString()
+                    turnoMostrado.getFechaHoraEntrada() != null
+                            ? turnoMostrado.getFechaHoraEntrada().toLocalDate().toString()
                             : null
             );
 
             response.setUltimoTurnoHoraEntrada(
-                    ultimoTurno.getFechaHoraEntrada() != null
-                            ? ultimoTurno.getFechaHoraEntrada().toString()
+                    turnoMostrado.getFechaHoraEntrada() != null
+                            ? turnoMostrado.getFechaHoraEntrada().toString()
                             : null
             );
 
             response.setUltimoTurnoHoraSalida(
-                    ultimoTurno.getFechaHoraSalida() != null
-                            ? ultimoTurno.getFechaHoraSalida().toString()
+                    turnoMostrado.getFechaHoraSalida() != null
+                            ? turnoMostrado.getFechaHoraSalida().toString()
                             : null
             );
 
-            response.setUltimoTurnoMinutos(ultimoTurno.getMinutosTrabajados());
+            response.setUltimoTurnoMinutos(turnoMostrado.getMinutosTrabajados());
         } else {
             response.setUltimoTurnoFecha(null);
             response.setUltimoTurnoHoraEntrada(null);

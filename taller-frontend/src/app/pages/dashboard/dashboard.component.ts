@@ -141,13 +141,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   copiarUltimoTurno(): void {
     if (!this.ultimoTurno.fecha) {
-      this.toastService.info('Todavía no hay un turno finalizado para copiar.');
+      this.toastService.info('Todavía no hay un turno para copiar.');
       return;
     }
 
     navigator.clipboard.writeText(this.plantillaUltimoTurno)
       .then(() => {
-        this.toastService.success('Último turno copiado al portapapeles.');
+        this.toastService.success('Turno copiado al portapapeles.');
       })
       .catch((error) => {
         console.error('Error copiando el último turno:', error);
@@ -242,6 +242,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.tipoServicioActivo = response.tipoServicio ?? (this.esRangoSeguridad || this.fichajeSeguridadSeleccionado ? 'SEGURIDAD' : 'MECANICA');
 
       if (response.fechaHoraEntrada) {
+        this.ultimoTurno = {
+          fecha: this.extraerFechaBackend(response.fechaHoraEntrada),
+          horaEntrada: response.fechaHoraEntrada,
+          horaSalida: null,
+          minutosTrabajados: null
+        };
+
         this.fechaEntrada = this.parseBackendLocalDateTime(response.fechaHoraEntrada);
 
         if (this.fechaEntrada) {
@@ -250,6 +257,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       }
     } else {
+      if (response.fechaHoraEntrada) {
+        this.ultimoTurno = {
+          fecha: this.extraerFechaBackend(response.fechaHoraEntrada),
+          horaEntrada: response.fechaHoraEntrada,
+          horaSalida: response.fechaHoraSalida ?? null,
+          minutosTrabajados: response.minutosTrabajados ?? null
+        };
+      }
+
       this.estadoActualTexto = 'Fuera de servicio';
       this.textoBotonFichaje = 'Iniciar fichaje';
       this.resetEstadoFichajeVisual();
@@ -336,7 +352,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   formatearFechaUltimoTurno(value: string | null | undefined): string {
     if (!value) {
-      return '-';
+      return '';
     }
 
     const [year, month, day] = value.split('-');
@@ -350,20 +366,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   formatearHoraBackend(value: string | null | undefined): string {
     if (!value) {
-      return '-';
+      return '';
     }
 
     const limpio = value.trim().replace(' ', 'T');
     const partes = limpio.split('T');
 
     if (partes.length < 2) {
-      return '-';
+      return '';
     }
 
     const [hora, minuto] = partes[1].split(':');
 
     if (!hora || !minuto) {
-      return '-';
+      return '';
     }
 
     return `${hora}:${minuto}`;
@@ -371,7 +387,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   formatearMinutosUltimoTurno(minutos: number | null | undefined): string {
     if (minutos === null || minutos === undefined) {
-      return '-';
+      return '';
     }
 
     const totalMinutos = Math.max(0, minutos);
@@ -379,6 +395,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const mins = totalMinutos % 60;
 
     return `${horas}h ${String(mins).padStart(2, '0')}m`;
+  }
+
+  private extraerFechaBackend(value: string | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const limpio = value.trim().replace(' ', 'T');
+    const [fecha] = limpio.split('T');
+
+    return fecha || null;
   }
 
   private parseBackendLocalDateTime(value: string | null | undefined): Date | null {
