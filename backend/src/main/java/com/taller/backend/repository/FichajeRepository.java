@@ -14,6 +14,10 @@ public interface FichajeRepository extends JpaRepository<Fichaje, Long> {
             Long empleadoId
     );
 
+    Optional<Fichaje> findFirstByEmpleadoIdAndFechaHoraSalidaIsNotNullOrderByFechaHoraEntradaDesc(
+            Long empleadoId
+    );
+
     List<Fichaje> findByEmpleadoIdAndFechaHoraEntradaBetween(
             Long empleadoId,
             LocalDateTime inicio,

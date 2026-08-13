@@ -53,6 +53,10 @@ public class DashboardService {
                 .findFirstByEmpleadoIdAndFechaHoraSalidaIsNullOrderByFechaHoraEntradaDesc(empleado.getId())
                 .orElse(null);
 
+        Fichaje ultimoTurno = fichajeRepository
+                .findFirstByEmpleadoIdAndFechaHoraSalidaIsNotNullOrderByFechaHoraEntradaDesc(empleado.getId())
+                .orElse(null);
+
         Long serviciosHoy = facturaRepository.countByIdEmpleadoAndFechaBetween(
                 empleado.getId(),
                 inicio,
@@ -76,6 +80,33 @@ public class DashboardService {
                         : null
         );
         response.setServiciosRealizadosHoy(serviciosHoy != null ? serviciosHoy.intValue() : 0);
+
+        if (ultimoTurno != null) {
+            response.setUltimoTurnoFecha(
+                    ultimoTurno.getFechaHoraEntrada() != null
+                            ? ultimoTurno.getFechaHoraEntrada().toLocalDate().toString()
+                            : null
+            );
+
+            response.setUltimoTurnoHoraEntrada(
+                    ultimoTurno.getFechaHoraEntrada() != null
+                            ? ultimoTurno.getFechaHoraEntrada().toString()
+                            : null
+            );
+
+            response.setUltimoTurnoHoraSalida(
+                    ultimoTurno.getFechaHoraSalida() != null
+                            ? ultimoTurno.getFechaHoraSalida().toString()
+                            : null
+            );
+
+            response.setUltimoTurnoMinutos(ultimoTurno.getMinutosTrabajados());
+        } else {
+            response.setUltimoTurnoFecha(null);
+            response.setUltimoTurnoHoraEntrada(null);
+            response.setUltimoTurnoHoraSalida(null);
+            response.setUltimoTurnoMinutos(null);
+        }
 
         return response;
     }

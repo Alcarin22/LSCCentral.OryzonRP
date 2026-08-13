@@ -15,6 +15,10 @@ interface DashboardHoyResponse {
   fichajeActivo: boolean;
   serviciosRealizadosHoy: number;
   tipoServicio: 'MECANICA' | 'SEGURIDAD' | null;
+  ultimoTurnoFecha: string | null;
+  ultimoTurnoHoraEntrada: string | null;
+  ultimoTurnoHoraSalida: string | null;
+  ultimoTurnoMinutos: number | null;
 }
 
 interface DashboardSemanaResponse {
@@ -56,6 +60,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   resumenHoy = {
     serviciosRealizadosHoy: 0
+  };
+
+  ultimoTurno = {
+    fecha: null as string | null,
+    horaEntrada: null as string | null,
+    horaSalida: null as string | null,
+    minutosTrabajados: null as number | null
   };
 
   resumenSemana = {
@@ -116,6 +127,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return '-';
     }
     return this.tipoServicioActivo === 'SEGURIDAD' ? 'Seguridad' : 'Mecánica';
+  }
+
+
+  get plantillaUltimoTurno(): string {
+    return [
+      `FECHA: ${this.formatearFechaUltimoTurno(this.ultimoTurno.fecha)}`,
+      `HORA DE ENTRADA: ${this.formatearHoraBackend(this.ultimoTurno.horaEntrada)}`,
+      `HORA DE SALIDA: ${this.formatearHoraBackend(this.ultimoTurno.horaSalida)}`,
+      `HORAS TOTALES: ${this.formatearMinutosUltimoTurno(this.ultimoTurno.minutosTrabajados)}`
+    ].join('\n');
+  }
+
+  copiarUltimoTurno(): void {
+    if (!this.ultimoTurno.fecha) {
+      this.toastService.info('Todavía no hay un turno finalizado para copiar.');
+      return;
+    }
+
+    navigator.clipboard.writeText(this.plantillaUltimoTurno)
+      .then(() => {
+        this.toastService.success('Último turno copiado al portapapeles.');
+      })
+      .catch((error) => {
+        console.error('Error copiando el último turno:', error);
+        this.toastService.error('No se pudo copiar el último turno.');
+      });
   }
 
   toggleFichaje(): void {
@@ -230,6 +267,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       serviciosRealizadosHoy: hoy.serviciosRealizadosHoy ?? 0
     };
 
+    this.ultimoTurno = {
+      fecha: hoy.ultimoTurnoFecha ?? null,
+      horaEntrada: hoy.ultimoTurnoHoraEntrada ?? null,
+      horaSalida: hoy.ultimoTurnoHoraSalida ?? null,
+      minutosTrabajados: hoy.ultimoTurnoMinutos ?? null
+    };
+
     this.fichado = !!hoy.fichajeActivo;
 
     if (this.fichado && hoy.horaEntrada) {
@@ -287,6 +331,54 @@ export class DashboardComponent implements OnInit, OnDestroy {
     );
 
     this.tiempoTrabajadoActual = this.formatearDuracion(segundos);
+  }
+
+
+  formatearFechaUltimoTurno(value: string | null | undefined): string {
+    if (!value) {
+      return '-';
+    }
+
+    const [year, month, day] = value.split('-');
+
+    if (!year || !month || !day) {
+      return value;
+    }
+
+    return `${day}/${month}/${year}`;
+  }
+
+  formatearHoraBackend(value: string | null | undefined): string {
+    if (!value) {
+      return '-';
+    }
+
+    const limpio = value.trim().replace(' ', 'T');
+    const partes = limpio.split('T');
+
+    if (partes.length < 2) {
+      return '-';
+    }
+
+    const [hora, minuto] = partes[1].split(':');
+
+    if (!hora || !minuto) {
+      return '-';
+    }
+
+    return `${hora}:${minuto}`;
+  }
+
+  formatearMinutosUltimoTurno(minutos: number | null | undefined): string {
+    if (minutos === null || minutos === undefined) {
+      return '-';
+    }
+
+    const totalMinutos = Math.max(0, minutos);
+    const horas = Math.floor(totalMinutos / 60);
+    const mins = totalMinutos % 60;
+
+    return `${horas}h ${String(mins).padStart(2, '0')}m`;
   }
 
   private parseBackendLocalDateTime(value: string | null | undefined): Date | null {

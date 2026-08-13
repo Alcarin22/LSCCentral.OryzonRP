@@ -69,10 +69,44 @@
             <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenHoy.serviciosRealizadosHoy }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Estado actual</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ estadoActualTexto }}</strong>
-          </div>
+          <button
+            type="button"
+            class="w-full rounded-[16px] border border-[rgba(244,180,0,0.18)] bg-[rgba(244,180,0,0.045)] p-[14px] text-left transition duration-200 hover:-translate-y-[1px] hover:border-[rgba(244,180,0,0.38)] hover:bg-[rgba(244,180,0,0.075)] disabled:cursor-default disabled:opacity-70 disabled:hover:translate-y-0"
+            [disabled]="!ultimoTurno.fecha"
+            (click)="copiarUltimoTurno()"
+            title="Pulsa para copiar el último turno"
+          >
+            <span class="mb-[10px] block text-[0.84rem] font-semibold text-[#f4b400]">Último turno</span>
+
+            <div class="grid gap-[6px] text-[0.9rem] leading-[1.45] text-[#f5f7fb]">
+              <div>
+                <span class="font-semibold text-[#9aa4b2]">FECHA:</span>
+                {{ formatearFechaUltimoTurno(ultimoTurno.fecha) }}
+              </div>
+
+              <div>
+                <span class="font-semibold text-[#9aa4b2]">HORA DE ENTRADA:</span>
+                {{ formatearHoraBackend(ultimoTurno.horaEntrada) }}
+              </div>
+
+              <div>
+                <span class="font-semibold text-[#9aa4b2]">HORA DE SALIDA:</span>
+                {{ formatearHoraBackend(ultimoTurno.horaSalida) }}
+              </div>
+
+              <div>
+                <span class="font-semibold text-[#9aa4b2]">HORAS TOTALES:</span>
+                {{ formatearMinutosUltimoTurno(ultimoTurno.minutosTrabajados) }}
+              </div>
+            </div>
+
+            <span
+              *ngIf="ultimoTurno.fecha"
+              class="mt-[10px] block text-[0.76rem] text-[#9aa4b2]"
+            >
+              Pulsa para copiar
+            </span>
+          </button>
         </div>
       </article>
 
