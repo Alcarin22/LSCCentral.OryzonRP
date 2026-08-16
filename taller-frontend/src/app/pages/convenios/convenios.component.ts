@@ -16,7 +16,7 @@ import {
   ConvenioRequest,
   ConvenioService,
   EstadoConvenio
-} from '../../core/services/convenio.service';
+} from '../../services/convenio.service';
 
 import {
   SessionEmpleado,
@@ -99,7 +99,7 @@ export class ConveniosComponent implements OnInit {
     });
 
     this.convenioService.listar().subscribe({
-      next: (data) => {
+      next: (data: Convenio[]) => {
         this.zone.run(() => {
           this.convenios = (data ?? []).sort((a, b) =>
             a.local.localeCompare(b.local, 'es', {
@@ -112,7 +112,7 @@ export class ConveniosComponent implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error cargando convenios:', error);
 
         this.zone.run(() => {
@@ -218,7 +218,7 @@ export class ConveniosComponent implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error eliminando convenio:', error);
 
         this.zone.run(() => {
@@ -317,7 +317,7 @@ export class ConveniosComponent implements OnInit {
         );
 
     request$.subscribe({
-      next: (convenio) => {
+      next: (convenio: Convenio) => {
         this.zone.run(() => {
           const estabaEditando = this.convenioEditandoId !== null;
 
@@ -335,7 +335,7 @@ export class ConveniosComponent implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error guardando convenio:', error);
 
         this.zone.run(() => {
@@ -364,7 +364,7 @@ export class ConveniosComponent implements OnInit {
     const ventana = window.open('', '_blank');
 
     this.convenioService.obtenerArchivo(convenio.id).subscribe({
-      next: (blob) => {
+      next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);
 
         if (ventana) {
@@ -377,7 +377,7 @@ export class ConveniosComponent implements OnInit {
           URL.revokeObjectURL(url);
         }, 60000);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error abriendo archivo de convenio:', error);
 
         if (ventana) {
