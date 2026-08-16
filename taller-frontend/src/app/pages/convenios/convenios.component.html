@@ -136,6 +136,33 @@
                 </div>
               </ng-template>
             </div>
+
+            <div
+              class="convenio-admin-actions"
+              *ngIf="puedeAdministrarConvenios()"
+            >
+              <button
+                type="button"
+                class="btn btn-edit"
+                [disabled]="eliminandoId !== null"
+                (click)="editarConvenio(convenio)"
+              >
+                Editar
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-delete"
+                [disabled]="eliminandoId !== null"
+                (click)="eliminarConvenio(convenio)"
+              >
+                {{
+                  eliminandoId === convenio.id
+                    ? 'Eliminando...'
+                    : 'Eliminar'
+                }}
+              </button>
+            </div>
           </article>
         </div>
 
@@ -160,15 +187,13 @@
       class="modal-card"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="nuevo-convenio-title"
+      aria-labelledby="convenio-modal-title"
     >
       <div class="modal-header">
         <div>
-          <span class="modal-kicker">Nuevo acuerdo</span>
-          <h2 id="nuevo-convenio-title">Añadir Convenio</h2>
-          <p>
-            Introduce la información y las condiciones del nuevo convenio.
-          </p>
+          <span class="modal-kicker">{{ modalKicker }}</span>
+          <h2 id="convenio-modal-title">{{ modalTitulo }}</h2>
+          <p>{{ modalDescripcion }}</p>
         </div>
 
         <button
@@ -252,7 +277,24 @@
           </div>
 
           <div class="form-group form-group-wide">
-            <label for="convenio-archivo">Añadir archivo</label>
+            <label for="convenio-archivo">
+              {{
+                convenioEditandoId !== null
+                  ? 'Sustituir archivo'
+                  : 'Añadir archivo'
+              }}
+            </label>
+
+            <div
+              class="archivo-existente"
+              *ngIf="convenioEditandoId !== null && archivoExistenteNombre && !archivoSeleccionado"
+            >
+              <span>📎</span>
+              <div>
+                <strong>Archivo actual</strong>
+                <small>{{ archivoExistenteNombre }}</small>
+              </div>
+            </div>
 
             <label class="file-picker" for="convenio-archivo">
               <span class="file-picker-icon">📎</span>
@@ -265,7 +307,9 @@
                   {{
                     archivoSeleccionado
                       ? 'Archivo preparado para subir'
-                      : 'PDF, imagen u otro documento · máximo 10 MB'
+                      : convenioEditandoId !== null && archivoExistenteNombre
+                        ? 'Selecciona uno nuevo solo si quieres sustituir el actual'
+                        : 'PDF, imagen u otro documento · máximo 10 MB'
                   }}
                 </small>
               </div>
@@ -289,7 +333,7 @@
               [disabled]="guardando"
               (click)="quitarArchivo()"
             >
-              Quitar archivo
+              Quitar archivo nuevo
             </button>
           </div>
         </div>
@@ -309,9 +353,9 @@
           type="button"
           class="btn btn-primary"
           [disabled]="guardando"
-          (click)="crearConvenio()"
+          (click)="guardarConvenio()"
         >
-          {{ guardando ? 'Guardando...' : 'Guardar convenio' }}
+          {{ textoBotonGuardar }}
         </button>
       </div>
     </section>

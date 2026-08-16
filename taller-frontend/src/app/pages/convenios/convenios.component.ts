@@ -55,9 +55,12 @@ export class ConveniosComponent implements OnInit {
 
   loading = false;
   guardando = false;
+  eliminandoId: number | null = null;
   error = '';
 
   modalAbierto = false;
+  convenioEditandoId: number | null = null;
+  archivoExistenteNombre: string | null = null;
 
   nuevoLocal = '';
   nuevaCategoria: CategoriaConvenio = 'Estado';
@@ -82,6 +85,10 @@ export class ConveniosComponent implements OnInit {
 
   puedeGestionarConvenios(): boolean {
     return (this.empleado?.rango?.nivel ?? 0) >= 3;
+  }
+
+  puedeAdministrarConvenios(): boolean {
+    return (this.empleado?.rango?.nivel ?? 0) >= 4;
   }
 
   cargarConvenios(): void {
@@ -146,6 +153,89 @@ export class ConveniosComponent implements OnInit {
     this.modalAbierto = true;
   }
 
+  editarConvenio(convenio: Convenio): void {
+    if (!this.puedeAdministrarConvenios()) {
+      this.toastService.error(
+        'No tienes permisos para editar convenios.'
+      );
+      return;
+    }
+
+    this.convenioEditandoId = convenio.id;
+    this.nuevoLocal = convenio.local;
+    this.nuevaCategoria = convenio.categoria;
+    this.nuevoEstado = convenio.estado;
+    this.nuevasCondicionesLsc = convenio.condicionesLsc ?? '';
+    this.nuevasCondicionesLocal = convenio.condicionesLocal ?? '';
+    this.archivoSeleccionado = null;
+    this.archivoExistenteNombre = convenio.tieneArchivo
+      ? convenio.archivoNombre
+      : null;
+
+    if (this.archivoInput?.nativeElement) {
+      this.archivoInput.nativeElement.value = '';
+    }
+
+    this.modalAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  eliminarConvenio(convenio: Convenio): void {
+    if (!this.puedeAdministrarConvenios()) {
+      this.toastService.error(
+        'No tienes permisos para eliminar convenios.'
+      );
+      return;
+    }
+
+    if (this.eliminandoId !== null) {
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `¿Seguro que quieres eliminar el convenio con "${convenio.local}"?\n\nEsta acción eliminará también el archivo asociado y no se puede deshacer.`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.eliminandoId = convenio.id;
+    this.cdr.detectChanges();
+
+    this.convenioService.eliminar(convenio.id).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.eliminandoId = null;
+          this.convenios = this.convenios.filter(
+            item => item.id !== convenio.id
+          );
+
+          this.toastService.success(
+            `Convenio con ${convenio.local} eliminado correctamente.`
+          );
+
+          this.cdr.detectChanges();
+        });
+      },
+      error: (error) => {
+        console.error('Error eliminando convenio:', error);
+
+        this.zone.run(() => {
+          this.eliminandoId = null;
+
+          this.toastService.error(
+            error?.error?.message ||
+            error?.error?.error ||
+            'No se pudo eliminar el convenio.'
+          );
+
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
   cerrarModal(): void {
     if (this.guardando) {
       return;
@@ -186,7 +276,7 @@ export class ConveniosComponent implements OnInit {
     }
   }
 
-  crearConvenio(): void {
+  guardarConvenio(): void {
     if (this.guardando) {
       return;
     }
@@ -215,39 +305,52 @@ export class ConveniosComponent implements OnInit {
     this.guardando = true;
     this.cdr.detectChanges();
 
-    this.convenioService
-      .crear(payload, this.archivoSeleccionado)
-      .subscribe({
-        next: (convenio) => {
-          this.zone.run(() => {
-            this.guardando = false;
-            this.modalAbierto = false;
-            this.resetFormulario();
+    const request$ = this.convenioEditandoId !== null
+      ? this.convenioService.actualizar(
+          this.convenioEditandoId,
+          payload,
+          this.archivoSeleccionado
+        )
+      : this.convenioService.crear(
+          payload,
+          this.archivoSeleccionado
+        );
 
-            this.toastService.success(
-              `Convenio con ${convenio.local} añadido correctamente.`
-            );
+    request$.subscribe({
+      next: (convenio) => {
+        this.zone.run(() => {
+          const estabaEditando = this.convenioEditandoId !== null;
 
-            this.cargarConvenios();
-            this.cdr.detectChanges();
-          });
-        },
-        error: (error) => {
-          console.error('Error creando convenio:', error);
+          this.guardando = false;
+          this.modalAbierto = false;
+          this.resetFormulario();
 
-          this.zone.run(() => {
-            this.guardando = false;
+          this.toastService.success(
+            estabaEditando
+              ? `Convenio con ${convenio.local} actualizado correctamente.`
+              : `Convenio con ${convenio.local} añadido correctamente.`
+          );
 
-            this.toastService.error(
-              error?.error?.message ||
-              error?.error?.error ||
-              'No se pudo crear el convenio.'
-            );
+          this.cargarConvenios();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (error) => {
+        console.error('Error guardando convenio:', error);
 
-            this.cdr.detectChanges();
-          });
-        }
-      });
+        this.zone.run(() => {
+          this.guardando = false;
+
+          this.toastService.error(
+            error?.error?.message ||
+            error?.error?.error ||
+            'No se pudo guardar el convenio.'
+          );
+
+          this.cdr.detectChanges();
+        });
+      }
+    });
   }
 
   verArchivo(convenio: Convenio): void {
@@ -296,13 +399,45 @@ export class ConveniosComponent implements OnInit {
       : 'Condiciones [Local]';
   }
 
+  get modalTitulo(): string {
+    return this.convenioEditandoId !== null
+      ? 'Editar Convenio'
+      : 'Añadir Convenio';
+  }
+
+  get modalKicker(): string {
+    return this.convenioEditandoId !== null
+      ? 'Modificar acuerdo'
+      : 'Nuevo acuerdo';
+  }
+
+  get modalDescripcion(): string {
+    return this.convenioEditandoId !== null
+      ? 'Modifica la información y las condiciones del convenio.'
+      : 'Introduce la información y las condiciones del nuevo convenio.';
+  }
+
+  get textoBotonGuardar(): string {
+    if (this.guardando) {
+      return this.convenioEditandoId !== null
+        ? 'Actualizando...'
+        : 'Guardando...';
+    }
+
+    return this.convenioEditandoId !== null
+      ? 'Guardar cambios'
+      : 'Guardar convenio';
+  }
+
   private resetFormulario(): void {
+    this.convenioEditandoId = null;
     this.nuevoLocal = '';
     this.nuevaCategoria = 'Estado';
     this.nuevoEstado = 'Activo';
     this.nuevasCondicionesLsc = '';
     this.nuevasCondicionesLocal = '';
     this.archivoSeleccionado = null;
+    this.archivoExistenteNombre = null;
 
     if (this.archivoInput?.nativeElement) {
       this.archivoInput.nativeElement.value = '';

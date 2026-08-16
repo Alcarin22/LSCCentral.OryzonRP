@@ -370,6 +370,71 @@
   font-size: 0.86rem;
 }
 
+
+.convenio-admin-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.btn-edit {
+  background: #1d212b;
+  color: #f5f7fb;
+  border: 1px solid #3a4357;
+}
+
+.btn-edit:not(:disabled):hover {
+  border-color: rgba(244, 180, 0, 0.45);
+  background: rgba(244, 180, 0, 0.07);
+}
+
+.btn-delete {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ffb4b4;
+  border: 1px solid rgba(239, 68, 68, 0.26);
+}
+
+.btn-delete:not(:disabled):hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.42);
+}
+
+.archivo-existente {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.14);
+}
+
+.archivo-existente > span {
+  font-size: 1rem;
+}
+
+.archivo-existente strong,
+.archivo-existente small {
+  display: block;
+}
+
+.archivo-existente strong {
+  color: #dff9ee;
+  font-size: 0.8rem;
+}
+
+.archivo-existente small {
+  margin-top: 2px;
+  color: #9aa4b2;
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Modal */
 .modal-backdrop {
   position: fixed;
