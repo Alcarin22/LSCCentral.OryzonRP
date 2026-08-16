@@ -1,18 +1,11 @@
 package com.taller.backend.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,45 +16,41 @@ public class Convenio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nombre", nullable = false)
-    private String nombre;
+    @Column(name = "nombre", nullable = false, length = 150)
+    private String local;
 
-    @Column(name = "categoria", nullable = false)
+    @Column(name = "categoria", nullable = false, length = 50)
     private String categoria;
 
-    @Column(name = "estado", nullable = false)
+    @Column(name = "estado", nullable = false, length = 20)
     private String estado;
 
-    @Column(name = "descuento")
-    private String descuento;
+    @Column(name = "condiciones_lsc", columnDefinition = "TEXT")
+    private String condicionesLsc;
 
-    @Column(name = "contacto")
-    private String contacto;
+    @Column(name = "condiciones_local", columnDefinition = "TEXT")
+    private String condicionesLocal;
 
-    @Column(name = "descripcion", columnDefinition = "TEXT")
-    private String descripcion;
+    @Column(name = "archivo_nombre", length = 255)
+    private String archivoNombre;
 
-    @Column(name = "documento_url", length = 500)
-    private String documentoUrl;
+    @Column(name = "archivo_tipo_mime", length = 150)
+    private String archivoTipoMime;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "convenio_condiciones",
-            joinColumns = @JoinColumn(name = "convenio_id")
-    )
-    @Column(name = "condicion", columnDefinition = "TEXT", nullable = false)
-    private List<String> condiciones = new ArrayList<>();
+    @Lob
+    @Column(name = "archivo_contenido", columnDefinition = "LONGBLOB")
+    private byte[] archivoContenido;
 
     public Long getId() {
         return id;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getLocal() {
+        return local;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setLocal(String local) {
+        this.local = local;
     }
 
     public String getCategoria() {
@@ -80,43 +69,43 @@ public class Convenio {
         this.estado = estado;
     }
 
-    public String getDescuento() {
-        return descuento;
+    public String getCondicionesLsc() {
+        return condicionesLsc;
     }
 
-    public void setDescuento(String descuento) {
-        this.descuento = descuento;
+    public void setCondicionesLsc(String condicionesLsc) {
+        this.condicionesLsc = condicionesLsc;
     }
 
-    public String getContacto() {
-        return contacto;
+    public String getCondicionesLocal() {
+        return condicionesLocal;
     }
 
-    public void setContacto(String contacto) {
-        this.contacto = contacto;
+    public void setCondicionesLocal(String condicionesLocal) {
+        this.condicionesLocal = condicionesLocal;
     }
 
-    public String getDescripcion() {
-        return descripcion;
+    public String getArchivoNombre() {
+        return archivoNombre;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+    public void setArchivoNombre(String archivoNombre) {
+        this.archivoNombre = archivoNombre;
     }
 
-    public String getDocumentoUrl() {
-        return documentoUrl;
+    public String getArchivoTipoMime() {
+        return archivoTipoMime;
     }
 
-    public void setDocumentoUrl(String documentoUrl) {
-        this.documentoUrl = documentoUrl;
+    public void setArchivoTipoMime(String archivoTipoMime) {
+        this.archivoTipoMime = archivoTipoMime;
     }
 
-    public List<String> getCondiciones() {
-        return condiciones;
+    public byte[] getArchivoContenido() {
+        return archivoContenido;
     }
 
-    public void setCondiciones(List<String> condiciones) {
-        this.condiciones = condiciones;
+    public void setArchivoContenido(byte[] archivoContenido) {
+        this.archivoContenido = archivoContenido;
     }
 }

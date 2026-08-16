@@ -15,82 +15,52 @@
 }
 
 .convenios-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 4px 0 6px;
 }
 
 .convenios-header h1 {
+  margin: 0 0 8px;
   font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: 800;
-  margin: 0 0 8px;
 }
 
 .convenios-header p {
-  color: #9aa4b2;
   margin: 0;
+  color: #9aa4b2;
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
+  background: linear-gradient(
+    180deg,
+    rgba(35, 41, 56, 0.92),
+    rgba(26, 30, 40, 0.95)
+  );
   border: 1px solid #2f3748;
   border-radius: 18px;
   padding: 18px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
-.convenios-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.convenio-stat-card {
-  display: grid;
-  gap: 8px;
-}
-
-.convenio-stat-card span {
-  color: #9aa4b2;
-  font-size: 0.84rem;
-}
-
-.convenio-stat-card strong {
-  font-size: 1.6rem;
-  color: #f5f7fb;
-}
-
-.convenio-stat-card.main-stat {
-  background: #2a54d6;
-}
-
-.convenio-stat-card.main-stat span {
-  color: rgba(255,255,255,0.8);
-}
-
-.convenios-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-}
-
-.convenios-toolbar h3 {
-  margin: 0;
-  font-size: 1.05rem;
-}
-
-.convenios-toolbar p {
-  margin: 4px 0 0;
-  color: #9aa4b2;
-  font-size: 0.84rem;
-}
-
 .btn {
   border: 0;
   border-radius: 14px;
-  padding: 12px 18px;
+  padding: 11px 16px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
   transition: 0.2s ease;
+}
+
+.btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn-primary {
@@ -104,207 +74,411 @@
   border: 1px solid #2f3748;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 18px;
+  white-space: nowrap;
 }
 
-.btn-delete {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid rgba(239,68,68,0.3);
-  background: rgba(239,68,68,0.12);
-  color: #ffb4b4;
-  font-size: 0.9rem;
-  cursor: pointer;
+.btn-add-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.loading-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.2s ease;
+  gap: 12px;
+  color: #9aa4b2;
 }
 
-.btn-delete:hover {
-  background: rgba(239,68,68,0.25);
-  transform: scale(1.05);
+.loading-card p {
+  margin: 0;
 }
 
-.convenios-categories-grid {
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #f4b400;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-card {
+  border-radius: 18px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.15);
+  padding: 18px;
+  text-align: center;
+  color: #ffb4b4;
+}
+
+.categoria-block {
   display: grid;
   gap: 18px;
 }
 
-.convenio-category-card {
-  display: grid;
-  gap: 14px;
-}
-
-.card-header {
+.categoria-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  gap: 14px;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.card-header h3 {
-  margin: 0;
-  font-size: 1.05rem;
-}
-
-.card-header p {
-  margin: 4px 0 0;
+.categoria-kicker,
+.convenio-local-label,
+.modal-kicker {
+  display: block;
+  margin-bottom: 5px;
   color: #9aa4b2;
-  font-size: 0.84rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.convenio-list {
-  display: grid;
-  gap: 10px;
-}
-
-.convenio-item {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.convenio-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px;
-  cursor: pointer;
-  background: rgba(255,255,255,0.02);
-}
-
-.convenio-summary:hover {
-  background: rgba(255,255,255,0.05);
-}
-
-.convenio-summary h4 {
+.categoria-header h2 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.35rem;
 }
 
-.convenio-summary span {
-  font-size: 0.75rem;
-  color: #9aa4b2;
-}
-
-.convenio-summary-actions {
+.categoria-resumen {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  color: #9aa4b2;
+  font-size: 0.82rem;
 }
 
-.convenio-status {
-  padding: 4px 10px;
+.categoria-resumen strong {
+  padding: 6px 10px;
   border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #9ff3cf;
+}
+
+.convenios-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.convenio-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: 0.2s ease;
+}
+
+.convenio-card:hover {
+  border-color: rgba(244, 180, 0, 0.22);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.convenio-card.convenio-inactivo {
+  opacity: 0.76;
+}
+
+.convenio-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.convenio-card-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .status-active {
-  background: rgba(16,185,129,0.15);
-  border: 1px solid rgba(16,185,129,0.25);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.22);
   color: #9ff3cf;
 }
 
 .status-inactive {
-  background: rgba(239,68,68,0.15);
-  border: 1px solid rgba(239,68,68,0.25);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.22);
   color: #ffb4b4;
 }
 
-.convenio-arrow {
-  font-size: 0.7rem;
-  color: #9aa4b2;
-}
-
-.convenio-details {
-  padding: 14px;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  display: grid;
-  gap: 12px;
-}
-
-.convenio-detail-grid {
+.convenio-info-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.convenio-detail-item {
-  padding: 10px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.convenio-detail-item span {
-  font-size: 0.75rem;
-  color: #9aa4b2;
-}
-
-.convenio-detail-item strong {
-  display: block;
-  font-size: 0.85rem;
-  margin-top: 4px;
-}
-
-.convenio-conditions {
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(244,180,0,0.06);
-  border: 1px solid rgba(244,180,0,0.12);
-}
-
-.convenio-conditions span {
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.convenio-conditions ul {
-  margin: 8px 0 0;
-  padding-left: 18px;
-}
-
-.convenio-conditions li {
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.convenio-actions {
-  display: flex;
   gap: 10px;
-  justify-content: flex-end;
 }
 
-.convenio-edit-grid {
+.info-box {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-box span {
+  color: #9aa4b2;
+  font-size: 0.75rem;
+}
+
+.info-box strong {
+  font-size: 0.88rem;
+}
+
+.condiciones-box {
+  padding: 13px;
+  border-radius: 13px;
+  background: rgba(244, 180, 0, 0.055);
+  border: 1px solid rgba(244, 180, 0, 0.13);
+}
+
+.condiciones-local-box {
+  background: rgba(42, 84, 214, 0.06);
+  border-color: rgba(78, 113, 224, 0.16);
+}
+
+.condiciones-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.condiciones-title strong {
+  font-size: 0.86rem;
+}
+
+.condiciones-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background: rgba(244, 180, 0, 0.14);
+  color: #f4b400;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.condiciones-icon.local-icon {
+  background: rgba(78, 113, 224, 0.15);
+  color: #9db0ff;
+  font-size: 0.9rem;
+}
+
+.condiciones-box p {
+  margin: 0;
+  color: #d9dee8;
+  font-size: 0.87rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.condiciones-box .empty-text {
+  color: #788395;
+  font-style: italic;
+}
+
+.archivo-area {
+  padding-top: 2px;
+}
+
+.btn-file {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  background: #1d212b;
+  color: #f5f7fb;
+  border: 1px solid #2f3748;
+}
+
+.btn-file small {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aa4b2;
+  font-weight: 600;
+}
+
+.sin-archivo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px dashed rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  color: #778295;
+  font-size: 0.82rem;
+}
+
+.categoria-vacia {
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #788395;
+}
+
+.categoria-vacia span {
+  font-size: 1.45rem;
+}
+
+.categoria-vacia p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 6, 10, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.modal-card {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #232938, #1a1e28);
+  border: 1px solid #343c4f;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58);
+}
+
+.modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+  background: rgba(31, 36, 49, 0.98);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.modal-header h2 {
+  margin: 0 0 5px;
+  font-size: 1.35rem;
+}
+
+.modal-header p {
+  margin: 0;
+  color: #9aa4b2;
+  font-size: 0.85rem;
+}
+
+.modal-close {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid #394154;
+  border-radius: 12px;
+  background: #1a1e28;
+  color: #f5f7fb;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-body {
+  padding: 22px;
+}
+
+.modal-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 15px;
 }
 
 .form-group {
+  min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 7px;
+}
+
+.form-group-wide {
+  grid-column: span 2;
 }
 
 .form-group label {
-  color: #9aa4b2;
-  font-size: 0.84rem;
+  color: #b2bac8;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.03);
+  box-sizing: border-box;
+  border: 1px solid #343c4f;
+  background: rgba(255, 255, 255, 0.03);
   color: #f5f7fb;
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 13px;
+  padding: 11px 13px;
   outline: none;
+  transition: 0.18s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: rgba(244, 180, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(244, 180, 0, 0.08);
 }
 
 .form-group select option {
@@ -315,94 +489,153 @@
 .form-group textarea {
   resize: vertical;
   min-height: 120px;
+  line-height: 1.45;
 }
 
-.form-group-full {
-  grid-column: 1 / -1;
+.file-input-hidden {
+  display: none;
 }
 
-.empty-category {
-  text-align: center;
-  color: #9aa4b2;
-  padding: 10px;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: grid;
-  place-items: center;
-  z-index: 1000;
-  padding: 24px;
-}
-
-.modal-card {
-  width: 700px;
-  max-width: 95%;
-  background: #1d212b;
-  border-radius: 16px;
-  padding: 18px;
-  border: 1px solid #2f3748;
-  display: grid;
-  gap: 14px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.modal-header h3 {
-  margin: 0;
-}
-
-.modal-header p {
-  margin: 4px 0 0;
-  color: #9aa4b2;
-  font-size: 0.84rem;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: #f5f7fb;
-  font-size: 1.4rem;
+.file-picker {
+  width: 100%;
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px dashed #445067;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
   cursor: pointer;
 }
 
-.modal-form-grid {
+.file-picker:hover {
+  border-color: rgba(244, 180, 0, 0.45);
+  background: rgba(244, 180, 0, 0.035);
+}
+
+.file-picker-icon {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(244, 180, 0, 0.1);
+  font-size: 1rem;
+}
+
+.file-picker strong,
+.file-picker small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-picker strong {
+  color: #f5f7fb;
+  font-size: 0.86rem;
+}
+
+.file-picker small {
+  margin-top: 3px;
+  color: #8d98aa;
+  font-size: 0.73rem;
+}
+
+.file-picker-action {
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #1b202b;
+  border: 1px solid #343c4f;
+  color: #dfe4ee;
+  font-size: 0.77rem;
+  font-weight: 800;
+}
+
+.btn-remove-file {
+  justify-self: start;
+  margin-top: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ff9b9b;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  padding: 16px 22px;
+  background: rgba(26, 30, 40, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-@media (max-width: 900px) {
-  .convenios-stats-grid {
+@media (max-width: 1100px) {
+  .convenios-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .convenios-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 760px) {
+  .convenios-page {
+    padding: 18px;
   }
 
-  .convenio-detail-grid,
-  .convenio-edit-grid,
+  .convenios-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .btn-add {
+    justify-content: center;
+  }
+
+  .categoria-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .convenio-info-grid,
   .modal-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .convenio-actions,
+  .form-group-wide {
+    grid-column: span 1;
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 24px);
+    border-radius: 18px;
+  }
+
   .modal-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  .file-picker {
+    grid-template-columns: auto 1fr;
+  }
+
+  .file-picker-action {
+    display: none;
   }
 }

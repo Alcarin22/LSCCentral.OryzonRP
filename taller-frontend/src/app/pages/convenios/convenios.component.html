@@ -2,270 +2,318 @@
   <div class="convenios-view">
 
     <header class="convenios-header">
-      <h1>Convenios</h1>
-      <p>Consulta categorizada de acuerdos activos e inactivos del taller.</p>
-    </header>
-
-    <div class="convenios-stats-grid">
-      <article class="card convenio-stat-card main-stat">
-        <span>Total convenios</span>
-        <strong>{{ totalConvenios }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Activos</span>
-        <strong>{{ totalActivos }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Inactivos</span>
-        <strong>{{ totalInactivos }}</strong>
-      </article>
-
-      <article class="card convenio-stat-card">
-        <span>Categorías</span>
-        <strong>{{ categorias.length }}</strong>
-      </article>
-    </div>
-
-    <article class="card convenios-toolbar" *ngIf="puedeEditar()">
       <div>
-        <h3>Gestión de convenios</h3>
-        <p>Añade nuevos acuerdos y clasifícalos automáticamente por categoría.</p>
+        <h1>Convenios</h1>
+        <p>
+          Acuerdos vigentes y condiciones de colaboración de LSC Central.
+        </p>
       </div>
 
-      <button type="button" class="btn btn-primary" (click)="abrirModalNuevo()">
-        Nuevo
+      <button
+        *ngIf="puedeGestionarConvenios()"
+        type="button"
+        class="btn btn-primary btn-add"
+        (click)="abrirModal()"
+      >
+        <span class="btn-add-icon">+</span>
+        Añadir Convenio
       </button>
-    </article>
+    </header>
 
-    <div class="convenios-categories-grid">
-      <article class="card convenio-category-card" *ngFor="let categoria of categorias">
-        <div class="card-header">
+    <div *ngIf="loading" class="card loading-card">
+      <div class="loading-spinner"></div>
+      <p>Cargando convenios...</p>
+    </div>
+
+    <div *ngIf="error && !loading" class="error-card">
+      {{ error }}
+    </div>
+
+    <ng-container *ngIf="!loading && !error">
+      <article
+        class="card categoria-block"
+        *ngFor="let categoria of categorias"
+      >
+        <div class="categoria-header">
           <div>
-            <h3>{{ categoria }}</h3>
-            <p>
-              {{ getConveniosPorCategoria(categoria).length }} locales ·
+            <span class="categoria-kicker">Categoría</span>
+            <h2>{{ categoria }}</h2>
+          </div>
+
+          <div class="categoria-resumen">
+            <span>
+              {{ getConveniosPorCategoria(categoria).length }} convenios
+            </span>
+            <strong>
               {{ getActivosPorCategoria(categoria) }} activos
-            </p>
+            </strong>
           </div>
         </div>
 
-        <div class="convenio-list">
-          <div
-            class="convenio-item"
+        <div
+          class="convenios-grid"
+          *ngIf="getConveniosPorCategoria(categoria).length > 0"
+        >
+          <article
+            class="convenio-card"
             *ngFor="let convenio of getConveniosPorCategoria(categoria)"
-            [class.is-open]="isConvenioAbierto(convenio)"
+            [class.convenio-inactivo]="convenio.estado === 'Inactivo'"
           >
-            <div class="convenio-summary" (click)="toggleConvenio(convenio)">
+            <div class="convenio-card-header">
               <div>
-                <h4>{{ convenio.nombre }}</h4>
-                <span>{{ convenio.descuento !== '-' ? 'Descuento ' + convenio.descuento : 'Sin descuento activo' }}</span>
+                <span class="convenio-local-label">Local</span>
+                <h3>{{ convenio.local }}</h3>
               </div>
 
-              <div class="convenio-summary-actions">
-                <button
-                  *ngIf="puedeEditar()"
-                  type="button"
-                  class="btn-delete"
-                  title="Eliminar convenio"
-                  (click)="eliminarConvenio($event, convenio)"
-                >
-                  ✖
-                </button>
+              <span
+                class="status-badge"
+                [class.status-active]="convenio.estado === 'Activo'"
+                [class.status-inactive]="convenio.estado === 'Inactivo'"
+              >
+                {{ convenio.estado }}
+              </span>
+            </div>
 
-                <span
-                  class="convenio-status"
-                  [class.status-active]="convenio.estado === 'Activo'"
-                  [class.status-inactive]="convenio.estado === 'Inactivo'"
-                >
-                  {{ convenio.estado }}
-                </span>
+            <div class="convenio-info-grid">
+              <div class="info-box">
+                <span>Categoría</span>
+                <strong>{{ convenio.categoria }}</strong>
+              </div>
 
-                <span class="convenio-arrow">
-                  {{ isConvenioAbierto(convenio) ? '▲' : '▼' }}
-                </span>
+              <div class="info-box">
+                <span>Estado</span>
+                <strong>{{ convenio.estado }}</strong>
               </div>
             </div>
 
-            <div class="convenio-details" *ngIf="isConvenioAbierto(convenio)">
-              <ng-container *ngIf="!isEditando(convenio); else modoEdicion">
-                <div class="convenio-detail-grid">
-                  <div class="convenio-detail-item">
-                    <span>Local</span>
-                    <strong>{{ convenio.nombre }}</strong>
-                  </div>
+            <div class="condiciones-box">
+              <div class="condiciones-title">
+                <span class="condiciones-icon">LSC</span>
+                <strong>Condiciones LSC</strong>
+              </div>
 
-                  <div class="convenio-detail-item">
-                    <span>Categoría</span>
-                    <strong>{{ convenio.categoria }}</strong>
-                  </div>
-                </div>
+              <p *ngIf="convenio.condicionesLsc; else sinCondicionesLsc">
+                {{ convenio.condicionesLsc }}
+              </p>
 
-                <div class="convenio-conditions">
-                  <span>Condiciones</span>
+              <ng-template #sinCondicionesLsc>
+                <p class="empty-text">Sin condiciones indicadas.</p>
+              </ng-template>
+            </div>
 
-                  <ul>
-                    <li *ngFor="let condicion of convenio.condiciones">
-                      {{ condicion }}
-                    </li>
-                  </ul>
-                </div>
+            <div class="condiciones-box condiciones-local-box">
+              <div class="condiciones-title">
+                <span class="condiciones-icon local-icon">↔</span>
+                <strong>Condiciones {{ convenio.local }}</strong>
+              </div>
 
-                <div class="convenio-actions">
-                  <button
-                    *ngIf="puedeEditar()"
-                    type="button"
-                    class="btn btn-secondary"
-                    (click)="iniciarEdicion($event, convenio)"
-                  >
-                    Editar
-                  </button>
+              <p *ngIf="convenio.condicionesLocal; else sinCondicionesLocal">
+                {{ convenio.condicionesLocal }}
+              </p>
 
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    (click)="abrirDocumento($event, convenio)"
-                  >
-                    Ver documento
-                  </button>
-                </div>
-              </ng-container>
+              <ng-template #sinCondicionesLocal>
+                <p class="empty-text">Sin condiciones indicadas.</p>
+              </ng-template>
+            </div>
 
-              <ng-template #modoEdicion>
-                <div
-                  class="convenio-edit-grid"
-                  (click)="$event.stopPropagation()"
-                  (keydown)="$event.stopPropagation()"
-                >
-                  <div class="form-group">
-                    <label>Local</label>
-                    <input type="text" [(ngModel)]="editNombre" />
-                  </div>
+            <div class="archivo-area">
+              <button
+                *ngIf="convenio.tieneArchivo; else sinArchivo"
+                type="button"
+                class="btn btn-file"
+                (click)="verArchivo(convenio)"
+              >
+                <span>📎</span>
+                Ver archivo
+                <small *ngIf="convenio.archivoNombre">
+                  {{ convenio.archivoNombre }}
+                </small>
+              </button>
 
-                  <div class="form-group">
-                    <label>Categoría</label>
-                    <select [(ngModel)]="editCategoria">
-                      <option *ngFor="let categoriaOption of categorias" [value]="categoriaOption">
-                        {{ categoriaOption }}
-                      </option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Estado</label>
-                    <select [(ngModel)]="editEstado">
-                      <option *ngFor="let estado of estados" [value]="estado">
-                        {{ estado }}
-                      </option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>URL documento</label>
-                    <input type="text" [(ngModel)]="editDocumentoUrl" />
-                  </div>
-
-                  <div class="form-group form-group-full">
-                    <label>Condiciones</label>
-                    <textarea
-                      rows="5"
-                      [(ngModel)]="editCondiciones"
-                      placeholder="Una condición por línea"
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div class="convenio-actions" (click)="$event.stopPropagation()">
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    (click)="cancelarEdicion($event)"
-                  >
-                    Cancelar
-                  </button>
-
-                  <button
-                    type="button"
-                    class="btn btn-primary"
-                    (click)="guardarEdicion($event, convenio)"
-                  >
-                    Guardar
-                  </button>
+              <ng-template #sinArchivo>
+                <div class="sin-archivo">
+                  Sin archivo asociado
                 </div>
               </ng-template>
             </div>
-          </div>
+          </article>
+        </div>
 
-          <div class="empty-category" *ngIf="getConveniosPorCategoria(categoria).length === 0">
-            No hay convenios en esta categoría.
-          </div>
+        <div
+          class="categoria-vacia"
+          *ngIf="getConveniosPorCategoria(categoria).length === 0"
+        >
+          <span>🤝</span>
+          <p>No hay convenios registrados en {{ categoria }}.</p>
         </div>
       </article>
-    </div>
+    </ng-container>
+
   </div>
 
-  <div class="modal-backdrop" *ngIf="modalNuevoAbierto" (click)="cerrarModalNuevo()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
+  <div
+    class="modal-backdrop"
+    *ngIf="modalAbierto"
+    (click)="cerrarModalDesdeFondo($event)"
+  >
+    <section
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nuevo-convenio-title"
+    >
       <div class="modal-header">
         <div>
-          <h3>Nuevo convenio</h3>
-          <p>Rellena los datos básicos del acuerdo.</p>
+          <span class="modal-kicker">Nuevo acuerdo</span>
+          <h2 id="nuevo-convenio-title">Añadir Convenio</h2>
+          <p>
+            Introduce la información y las condiciones del nuevo convenio.
+          </p>
         </div>
 
-        <button type="button" class="modal-close" (click)="cerrarModalNuevo()">
+        <button
+          type="button"
+          class="modal-close"
+          [disabled]="guardando"
+          (click)="cerrarModal()"
+          aria-label="Cerrar modal"
+        >
           ×
         </button>
       </div>
 
-      <div class="modal-form-grid">
-        <div class="form-group">
-          <label>Local</label>
-          <input type="text" [(ngModel)]="nuevoNombre" />
-        </div>
+      <div class="modal-body">
+        <div class="modal-form-grid">
+          <div class="form-group form-group-wide">
+            <label for="convenio-local">Local</label>
+            <input
+              id="convenio-local"
+              type="text"
+              [(ngModel)]="nuevoLocal"
+              placeholder="Nombre del local"
+              [disabled]="guardando"
+            />
+          </div>
 
-        <div class="form-group">
-          <label>Categoría</label>
-          <select [(ngModel)]="nuevoCategoria">
-            <option *ngFor="let categoria of categorias" [value]="categoria">
-              {{ categoria }}
-            </option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="convenio-categoria">Categoría</label>
+            <select
+              id="convenio-categoria"
+              [(ngModel)]="nuevaCategoria"
+              [disabled]="guardando"
+            >
+              <option
+                *ngFor="let categoria of categorias"
+                [value]="categoria"
+              >
+                {{ categoria }}
+              </option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label>Estado</label>
-          <select [(ngModel)]="nuevoEstado">
-            <option *ngFor="let estado of estados" [value]="estado">
-              {{ estado }}
-            </option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="convenio-estado">Estado</label>
+            <select
+              id="convenio-estado"
+              [(ngModel)]="nuevoEstado"
+              [disabled]="guardando"
+            >
+              <option
+                *ngFor="let estado of estados"
+                [value]="estado"
+              >
+                {{ estado }}
+              </option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label>URL documento</label>
-          <input type="text" [(ngModel)]="nuevoDocumentoUrl" />
-        </div>
+          <div class="form-group form-group-wide">
+            <label for="condiciones-lsc">Condiciones LSC</label>
+            <textarea
+              id="condiciones-lsc"
+              rows="6"
+              [(ngModel)]="nuevasCondicionesLsc"
+              placeholder="Condiciones que LSC debe cumplir dentro del convenio..."
+              [disabled]="guardando"
+            ></textarea>
+          </div>
 
-        <div class="form-group form-group-full">
-          <label>Condiciones</label>
-          <textarea
-            rows="5"
-            [(ngModel)]="nuevoCondiciones"
-            placeholder="Una condición por línea"
-          ></textarea>
+          <div class="form-group form-group-wide">
+            <label for="condiciones-local">
+              {{ condicionesLocalLabel }}
+            </label>
+            <textarea
+              id="condiciones-local"
+              rows="6"
+              [(ngModel)]="nuevasCondicionesLocal"
+              placeholder="Condiciones que debe cumplir el otro local..."
+              [disabled]="guardando"
+            ></textarea>
+          </div>
+
+          <div class="form-group form-group-wide">
+            <label for="convenio-archivo">Añadir archivo</label>
+
+            <label class="file-picker" for="convenio-archivo">
+              <span class="file-picker-icon">📎</span>
+
+              <div>
+                <strong>
+                  {{ archivoSeleccionado?.name || 'Seleccionar archivo' }}
+                </strong>
+                <small>
+                  {{
+                    archivoSeleccionado
+                      ? 'Archivo preparado para subir'
+                      : 'PDF, imagen u otro documento · máximo 10 MB'
+                  }}
+                </small>
+              </div>
+
+              <span class="file-picker-action">Examinar</span>
+            </label>
+
+            <input
+              #archivoInput
+              id="convenio-archivo"
+              class="file-input-hidden"
+              type="file"
+              [disabled]="guardando"
+              (change)="onArchivoSeleccionado($event)"
+            />
+
+            <button
+              *ngIf="archivoSeleccionado"
+              type="button"
+              class="btn-remove-file"
+              [disabled]="guardando"
+              (click)="quitarArchivo()"
+            >
+              Quitar archivo
+            </button>
+          </div>
         </div>
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModalNuevo()">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="guardando"
+          (click)="cerrarModal()"
+        >
           Cancelar
         </button>
 
-        <button type="button" class="btn btn-primary" (click)="crearConvenio()">
-          Crear convenio
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="guardando"
+          (click)="crearConvenio()"
+        >
+          {{ guardando ? 'Guardando...' : 'Guardar convenio' }}
         </button>
       </div>
-    </div>
+    </section>
   </div>
 </section>

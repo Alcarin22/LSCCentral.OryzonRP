@@ -8,5 +8,5 @@ import com.taller.backend.entity.Convenio;
 
 public interface ConvenioRepository extends JpaRepository<Convenio, Long> {
 
-    List<Convenio> findAllByOrderByCategoriaAscNombreAsc();
+    List<Convenio> findAllByOrderByCategoriaAscLocalAsc();
 }

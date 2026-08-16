@@ -4,29 +4,31 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export type EstadoConvenio = 'Activo' | 'Inactivo';
-export type CategoriaConvenio = 'Estado' | 'Talleres' | 'Ocio' | 'Alimentación';
+export type CategoriaConvenio =
+  | 'Estado'
+  | 'Talleres'
+  | 'Ocio'
+  | 'Alimentación'
+  | 'Otros';
 
 export interface Convenio {
   id: number;
-  nombre: string;
+  local: string;
   categoria: CategoriaConvenio;
   estado: EstadoConvenio;
-  descuento: string | null;
-  contacto: string | null;
-  descripcion: string | null;
-  condiciones: string[];
-  documentoUrl: string | null;
+  condicionesLsc: string | null;
+  condicionesLocal: string | null;
+  tieneArchivo: boolean;
+  archivoNombre: string | null;
+  archivoTipoMime: string | null;
 }
 
 export interface ConvenioRequest {
-  nombre: string;
+  local: string;
   categoria: CategoriaConvenio;
   estado: EstadoConvenio;
-  descuento: string | null;
-  contacto: string | null;
-  descripcion: string | null;
-  condiciones: string[];
-  documentoUrl: string | null;
+  condicionesLsc: string | null;
+  condicionesLocal: string | null;
 }
 
 @Injectable({
@@ -41,15 +43,31 @@ export class ConvenioService {
     return this.http.get<Convenio[]>(this.baseUrl);
   }
 
-  crear(payload: ConvenioRequest): Observable<Convenio> {
-    return this.http.post<Convenio>(this.baseUrl, payload);
+  crear(
+    payload: ConvenioRequest,
+    archivo: File | null
+  ): Observable<Convenio> {
+    const formData = new FormData();
+
+    formData.append(
+      'datos',
+      new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+      )
+    );
+
+    if (archivo) {
+      formData.append('archivo', archivo, archivo.name);
+    }
+
+    return this.http.post<Convenio>(this.baseUrl, formData);
   }
 
-  actualizar(id: number, payload: ConvenioRequest): Observable<Convenio> {
-    return this.http.put<Convenio>(`${this.baseUrl}/${id}`, payload);
-  }
-
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  obtenerArchivo(id: number): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/${id}/archivo`,
+      { responseType: 'blob' }
+    );
   }
 }

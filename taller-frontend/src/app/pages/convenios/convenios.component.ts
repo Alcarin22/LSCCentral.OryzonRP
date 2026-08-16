@@ -1,25 +1,29 @@
 import {
   ChangeDetectorRef,
   Component,
+  ElementRef,
   NgZone,
-  OnInit
+  OnInit,
+  ViewChild
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import {
+  CategoriaConvenio,
+  Convenio,
+  ConvenioRequest,
+  ConvenioService,
+  EstadoConvenio
+} from '../../core/services/convenio.service';
+
+import {
   SessionEmpleado,
   SessionService
 } from '../../core/services/session.service';
 
-import {
-  Convenio,
-  ConvenioRequest,
-  ConvenioService,
-  CategoriaConvenio,
-  EstadoConvenio
-} from '../../core/services/convenio.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-convenios',
@@ -29,38 +33,43 @@ import {
   styleUrls: ['./convenios.component.css']
 })
 export class ConveniosComponent implements OnInit {
+  @ViewChild('archivoInput')
+  archivoInput?: ElementRef<HTMLInputElement>;
+
   empleado: SessionEmpleado | null = null;
 
-  categorias: CategoriaConvenio[] = ['Estado', 'Talleres', 'Ocio', 'Alimentación'];
-  estados: EstadoConvenio[] = ['Activo', 'Inactivo'];
+  readonly categorias: CategoriaConvenio[] = [
+    'Estado',
+    'Talleres',
+    'Ocio',
+    'Alimentación',
+    'Otros'
+  ];
+
+  readonly estados: EstadoConvenio[] = [
+    'Activo',
+    'Inactivo'
+  ];
 
   convenios: Convenio[] = [];
 
   loading = false;
+  guardando = false;
   error = '';
 
-  convenioAbiertoId: number | null = null;
-  convenioEditandoId: number | null = null;
+  modalAbierto = false;
 
-  modalNuevoAbierto = false;
-
-  editNombre = '';
-  editCategoria: CategoriaConvenio = 'Estado';
-  editEstado: EstadoConvenio = 'Activo';
-  editCondiciones = '';
-  editDocumentoUrl = '';
-  editDescuento = '';
-
-  nuevoNombre = '';
-  nuevoCategoria: CategoriaConvenio = 'Estado';
+  nuevoLocal = '';
+  nuevaCategoria: CategoriaConvenio = 'Estado';
   nuevoEstado: EstadoConvenio = 'Activo';
-  nuevoCondiciones = '';
-  nuevoDocumentoUrl = '';
-  nuevoDescuento = '';
+  nuevasCondicionesLsc = '';
+  nuevasCondicionesLocal = '';
+  archivoSeleccionado: File | null = null;
 
   constructor(
-    private sessionService: SessionService,
     private convenioService: ConvenioService,
+    private sessionService: SessionService,
+    private toastService: ToastService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {
@@ -69,6 +78,10 @@ export class ConveniosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarConvenios();
+  }
+
+  puedeGestionarConvenios(): boolean {
+    return (this.empleado?.rango?.nivel ?? 0) >= 3;
   }
 
   cargarConvenios(): void {
@@ -81,7 +94,12 @@ export class ConveniosComponent implements OnInit {
     this.convenioService.listar().subscribe({
       next: (data) => {
         this.zone.run(() => {
-          this.convenios = data ?? [];
+          this.convenios = (data ?? []).sort((a, b) =>
+            a.local.localeCompare(b.local, 'es', {
+              sensitivity: 'base'
+            })
+          );
+
           this.loading = false;
           this.error = '';
           this.cdr.detectChanges();
@@ -92,169 +110,212 @@ export class ConveniosComponent implements OnInit {
 
         this.zone.run(() => {
           this.convenios = [];
-          this.error = 'No se pudieron cargar los convenios.';
           this.loading = false;
+          this.error = 'No se pudieron cargar los convenios.';
           this.cdr.detectChanges();
         });
       }
     });
   }
 
-  get totalConvenios(): number {
-    return this.convenios.length;
+  getConveniosPorCategoria(
+    categoria: CategoriaConvenio
+  ): Convenio[] {
+    return this.convenios.filter(
+      convenio => convenio.categoria === categoria
+    );
   }
 
-  get totalActivos(): number {
-    return this.convenios.filter(c => c.estado === 'Activo').length;
+  getActivosPorCategoria(
+    categoria: CategoriaConvenio
+  ): number {
+    return this.getConveniosPorCategoria(categoria)
+      .filter(convenio => convenio.estado === 'Activo')
+      .length;
   }
 
-  get totalInactivos(): number {
-    return this.convenios.filter(c => c.estado === 'Inactivo').length;
-  }
-
-  puedeEditar(): boolean {
-    return (this.empleado?.rango?.nivel ?? 0) >= 3;
-  }
-
-  getConveniosPorCategoria(categoria: CategoriaConvenio): Convenio[] {
-    return this.convenios.filter(c => c.categoria === categoria);
-  }
-
-  getActivosPorCategoria(categoria: CategoriaConvenio): number {
-    return this.getConveniosPorCategoria(categoria).filter(c => c.estado === 'Activo').length;
-  }
-
-  toggleConvenio(convenio: Convenio): void {
-    if (this.convenioEditandoId === convenio.id) {
+  abrirModal(): void {
+    if (!this.puedeGestionarConvenios()) {
+      this.toastService.error(
+        'No tienes permisos para añadir convenios.'
+      );
       return;
     }
 
-    this.convenioAbiertoId =
-      this.convenioAbiertoId === convenio.id ? null : convenio.id;
+    this.resetFormulario();
+    this.modalAbierto = true;
+  }
 
-    if (this.convenioAbiertoId !== convenio.id) {
-      this.cancelarEdicion();
+  cerrarModal(): void {
+    if (this.guardando) {
+      return;
+    }
+
+    this.modalAbierto = false;
+    this.resetFormulario();
+  }
+
+  cerrarModalDesdeFondo(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.cerrarModal();
     }
   }
 
-  isConvenioAbierto(convenio: Convenio): boolean {
-    return this.convenioAbiertoId === convenio.id;
+  onArchivoSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0] ?? null;
+
+    if (archivo && archivo.size > 10 * 1024 * 1024) {
+      this.toastService.error(
+        'El archivo no puede superar los 10 MB.'
+      );
+
+      input.value = '';
+      this.archivoSeleccionado = null;
+      return;
+    }
+
+    this.archivoSeleccionado = archivo;
   }
 
-  isEditando(convenio: Convenio): boolean {
-    return this.convenioEditandoId === convenio.id;
-  }
+  quitarArchivo(): void {
+    this.archivoSeleccionado = null;
 
-  iniciarEdicion(event: MouseEvent, convenio: Convenio): void {
-    event.stopPropagation();
-
-    if (!this.puedeEditar()) return;
-
-    this.convenioAbiertoId = convenio.id;
-    this.convenioEditandoId = convenio.id;
-
-    this.editNombre = convenio.nombre;
-    this.editCategoria = convenio.categoria;
-    this.editEstado = convenio.estado;
-    this.editCondiciones = (convenio.condiciones ?? []).join('\n');
-    this.editDocumentoUrl = convenio.documentoUrl ?? '';
-    this.editDescuento = convenio.descuento ?? '';
-  }
-
-  guardarEdicion(event: MouseEvent, convenio: Convenio): void {
-    event.stopPropagation();
-
-    if (!this.puedeEditar()) return;
-
-    const payload: ConvenioRequest = {
-      nombre: this.editNombre,
-      categoria: this.editCategoria,
-      estado: this.editEstado,
-      descuento: this.normalizarTexto(this.editDescuento),
-      contacto: '',
-      descripcion: '',
-      documentoUrl: this.normalizarTexto(this.editDocumentoUrl),
-      condiciones: this.convertirTextoACondiciones(this.editCondiciones)
-    };
-
-    this.convenioService.actualizar(convenio.id, payload).subscribe({
-      next: () => {
-        this.cargarConvenios();
-        this.cancelarEdicion();
-      },
-      error: () => alert('Error actualizando')
-    });
-  }
-
-  cancelarEdicion(event?: MouseEvent): void {
-    event?.stopPropagation();
-    this.convenioEditandoId = null;
-  }
-
-  eliminarConvenio(event: MouseEvent, convenio: Convenio): void {
-    event.stopPropagation();
-
-    if (!this.puedeEditar()) return;
-
-    if (!confirm(`¿Eliminar "${convenio.nombre}"?`)) return;
-
-    this.convenioService.eliminar(convenio.id).subscribe({
-      next: () => this.cargarConvenios(),
-      error: () => alert('Error eliminando')
-    });
-  }
-
-  abrirModalNuevo(): void {
-    if (!this.puedeEditar()) return;
-
-    this.modalNuevoAbierto = true;
-  }
-
-  cerrarModalNuevo(): void {
-    this.modalNuevoAbierto = false;
+    if (this.archivoInput?.nativeElement) {
+      this.archivoInput.nativeElement.value = '';
+    }
   }
 
   crearConvenio(): void {
-    const payload: ConvenioRequest = {
-      nombre: this.nuevoNombre,
-      categoria: this.nuevoCategoria,
-      estado: this.nuevoEstado,
-      descuento: this.normalizarTexto(this.nuevoDescuento) ?? 'Pendiente',
-      contacto: '',
-      descripcion: '',
-      documentoUrl: this.normalizarTexto(this.nuevoDocumentoUrl),
-      condiciones: this.convertirTextoACondiciones(this.nuevoCondiciones)
-    };
-
-    this.convenioService.crear(payload).subscribe({
-      next: () => {
-        this.cargarConvenios();
-        this.cerrarModalNuevo();
-      },
-      error: () => alert('Error creando convenio')
-    });
-  }
-
-  abrirDocumento(event: MouseEvent, convenio: Convenio): void {
-    event.stopPropagation();
-
-    if (!convenio.documentoUrl) {
-      alert('Sin documento');
+    if (this.guardando) {
       return;
     }
 
-    window.open(convenio.documentoUrl, '_blank');
+    const local = this.nuevoLocal.trim();
+
+    if (!local) {
+      this.toastService.error(
+        'Debes indicar el nombre del local.'
+      );
+      return;
+    }
+
+    const payload: ConvenioRequest = {
+      local,
+      categoria: this.nuevaCategoria,
+      estado: this.nuevoEstado,
+      condicionesLsc: this.normalizarTexto(
+        this.nuevasCondicionesLsc
+      ),
+      condicionesLocal: this.normalizarTexto(
+        this.nuevasCondicionesLocal
+      )
+    };
+
+    this.guardando = true;
+    this.cdr.detectChanges();
+
+    this.convenioService
+      .crear(payload, this.archivoSeleccionado)
+      .subscribe({
+        next: (convenio) => {
+          this.zone.run(() => {
+            this.guardando = false;
+            this.modalAbierto = false;
+            this.resetFormulario();
+
+            this.toastService.success(
+              `Convenio con ${convenio.local} añadido correctamente.`
+            );
+
+            this.cargarConvenios();
+            this.cdr.detectChanges();
+          });
+        },
+        error: (error) => {
+          console.error('Error creando convenio:', error);
+
+          this.zone.run(() => {
+            this.guardando = false;
+
+            this.toastService.error(
+              error?.error?.message ||
+              error?.error?.error ||
+              'No se pudo crear el convenio.'
+            );
+
+            this.cdr.detectChanges();
+          });
+        }
+      });
   }
 
-  private convertirTextoACondiciones(texto: string): string[] {
-    return texto
-      .split('\n')
-      .map(c => c.trim())
-      .filter(Boolean);
+  verArchivo(convenio: Convenio): void {
+    if (!convenio.tieneArchivo) {
+      this.toastService.info(
+        'Este convenio no tiene ningún archivo asociado.'
+      );
+      return;
+    }
+
+    const ventana = window.open('', '_blank');
+
+    this.convenioService.obtenerArchivo(convenio.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+
+        if (ventana) {
+          ventana.location.href = url;
+        } else {
+          window.open(url, '_blank');
+        }
+
+        window.setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 60000);
+      },
+      error: (error) => {
+        console.error('Error abriendo archivo de convenio:', error);
+
+        if (ventana) {
+          ventana.close();
+        }
+
+        this.toastService.error(
+          'No se pudo abrir el archivo del convenio.'
+        );
+      }
+    });
   }
 
-  private normalizarTexto(valor: string | null | undefined): string | null {
-    if (!valor) return null;
+  get condicionesLocalLabel(): string {
+    const local = this.nuevoLocal.trim();
+
+    return local
+      ? `Condiciones ${local}`
+      : 'Condiciones [Local]';
+  }
+
+  private resetFormulario(): void {
+    this.nuevoLocal = '';
+    this.nuevaCategoria = 'Estado';
+    this.nuevoEstado = 'Activo';
+    this.nuevasCondicionesLsc = '';
+    this.nuevasCondicionesLocal = '';
+    this.archivoSeleccionado = null;
+
+    if (this.archivoInput?.nativeElement) {
+      this.archivoInput.nativeElement.value = '';
+    }
+  }
+
+  private normalizarTexto(
+    valor: string | null | undefined
+  ): string | null {
+    if (!valor) {
+      return null;
+    }
+
     const limpio = valor.trim();
     return limpio.length ? limpio : null;
   }

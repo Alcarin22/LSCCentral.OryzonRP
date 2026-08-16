@@ -1,24 +1,19 @@
 package com.taller.backend.dto;
 
-import java.util.List;
-
 public class ConvenioRequest {
 
-    private String nombre;
+    private String local;
     private String categoria;
     private String estado;
-    private String descuento;
-    private String contacto;
-    private String descripcion;
-    private String documentoUrl;
-    private List<String> condiciones;
+    private String condicionesLsc;
+    private String condicionesLocal;
 
-    public String getNombre() {
-        return nombre;
+    public String getLocal() {
+        return local;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setLocal(String local) {
+        this.local = local;
     }
 
     public String getCategoria() {
@@ -37,43 +32,19 @@ public class ConvenioRequest {
         this.estado = estado;
     }
 
-    public String getDescuento() {
-        return descuento;
+    public String getCondicionesLsc() {
+        return condicionesLsc;
     }
 
-    public void setDescuento(String descuento) {
-        this.descuento = descuento;
+    public void setCondicionesLsc(String condicionesLsc) {
+        this.condicionesLsc = condicionesLsc;
     }
 
-    public String getContacto() {
-        return contacto;
+    public String getCondicionesLocal() {
+        return condicionesLocal;
     }
 
-    public void setContacto(String contacto) {
-        this.contacto = contacto;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getDocumentoUrl() {
-        return documentoUrl;
-    }
-
-    public void setDocumentoUrl(String documentoUrl) {
-        this.documentoUrl = documentoUrl;
-    }
-
-    public List<String> getCondiciones() {
-        return condiciones;
-    }
-
-    public void setCondiciones(List<String> condiciones) {
-        this.condiciones = condiciones;
+    public void setCondicionesLocal(String condicionesLocal) {
+        this.condicionesLocal = condicionesLocal;
     }
 }

@@ -1,18 +1,16 @@
 package com.taller.backend.dto;
 
-import java.util.List;
-
 public class ConvenioResponse {
 
     private Long id;
-    private String nombre;
+    private String local;
     private String categoria;
     private String estado;
-    private String descuento;
-    private String contacto;
-    private String descripcion;
-    private String documentoUrl;
-    private List<String> condiciones;
+    private String condicionesLsc;
+    private String condicionesLocal;
+    private Boolean tieneArchivo;
+    private String archivoNombre;
+    private String archivoTipoMime;
 
     public Long getId() {
         return id;
@@ -22,12 +20,12 @@ public class ConvenioResponse {
         this.id = id;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getLocal() {
+        return local;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setLocal(String local) {
+        this.local = local;
     }
 
     public String getCategoria() {
@@ -46,43 +44,43 @@ public class ConvenioResponse {
         this.estado = estado;
     }
 
-    public String getDescuento() {
-        return descuento;
+    public String getCondicionesLsc() {
+        return condicionesLsc;
     }
 
-    public void setDescuento(String descuento) {
-        this.descuento = descuento;
+    public void setCondicionesLsc(String condicionesLsc) {
+        this.condicionesLsc = condicionesLsc;
     }
 
-    public String getContacto() {
-        return contacto;
+    public String getCondicionesLocal() {
+        return condicionesLocal;
     }
 
-    public void setContacto(String contacto) {
-        this.contacto = contacto;
+    public void setCondicionesLocal(String condicionesLocal) {
+        this.condicionesLocal = condicionesLocal;
     }
 
-    public String getDescripcion() {
-        return descripcion;
+    public Boolean getTieneArchivo() {
+        return tieneArchivo;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
+    public void setTieneArchivo(Boolean tieneArchivo) {
+        this.tieneArchivo = tieneArchivo;
     }
 
-    public String getDocumentoUrl() {
-        return documentoUrl;
+    public String getArchivoNombre() {
+        return archivoNombre;
     }
 
-    public void setDocumentoUrl(String documentoUrl) {
-        this.documentoUrl = documentoUrl;
+    public void setArchivoNombre(String archivoNombre) {
+        this.archivoNombre = archivoNombre;
     }
 
-    public List<String> getCondiciones() {
-        return condiciones;
+    public String getArchivoTipoMime() {
+        return archivoTipoMime;
     }
 
-    public void setCondiciones(List<String> condiciones) {
-        this.condiciones = condiciones;
+    public void setArchivoTipoMime(String archivoTipoMime) {
+        this.archivoTipoMime = archivoTipoMime;
     }
 }
