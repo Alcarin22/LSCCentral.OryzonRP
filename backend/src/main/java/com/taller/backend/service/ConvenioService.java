@@ -56,11 +56,41 @@ public class ConvenioService {
 
         Convenio convenio = new Convenio();
         aplicarDatos(convenio, request);
-        aplicarArchivo(convenio, archivo);
+
+        if (archivo != null && !archivo.isEmpty()) {
+            aplicarArchivo(convenio, archivo);
+        }
 
         return mapearResponse(
                 convenioRepository.save(convenio)
         );
+    }
+
+    @Transactional
+    public ConvenioResponse actualizar(
+            Long id,
+            ConvenioRequest request,
+            MultipartFile archivo
+    ) {
+        validarRequest(request);
+
+        Convenio convenio = obtenerEntidad(id);
+        aplicarDatos(convenio, request);
+
+        // Si no llega un archivo nuevo, se conserva el archivo existente.
+        if (archivo != null && !archivo.isEmpty()) {
+            aplicarArchivo(convenio, archivo);
+        }
+
+        return mapearResponse(
+                convenioRepository.save(convenio)
+        );
+    }
+
+    @Transactional
+    public void eliminar(Long id) {
+        Convenio convenio = obtenerEntidad(id);
+        convenioRepository.delete(convenio);
     }
 
     @Transactional(readOnly = true)
@@ -87,13 +117,6 @@ public class ConvenioService {
             Convenio convenio,
             MultipartFile archivo
     ) {
-        if (archivo == null || archivo.isEmpty()) {
-            convenio.setArchivoNombre(null);
-            convenio.setArchivoTipoMime(null);
-            convenio.setArchivoContenido(null);
-            return;
-        }
-
         if (archivo.getSize() > TAMANO_MAXIMO_ARCHIVO) {
             throw new RuntimeException(
                     "El archivo no puede superar los 10 MB"

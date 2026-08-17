@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export type EstadoConvenio = 'Activo' | 'Inactivo';
+
 export type CategoriaConvenio =
   | 'Estado'
   | 'Talleres'
@@ -47,27 +48,67 @@ export class ConvenioService {
     payload: ConvenioRequest,
     archivo: File | null
   ): Observable<Convenio> {
+    const formData = this.crearFormData(payload, archivo);
+
+    return this.http.post<Convenio>(
+      this.baseUrl,
+      formData
+    );
+  }
+
+  actualizar(
+    id: number,
+    payload: ConvenioRequest,
+    archivo: File | null
+  ): Observable<Convenio> {
+    const formData = this.crearFormData(payload, archivo);
+
+    return this.http.post<Convenio>(
+      `${this.baseUrl}/${id}/actualizar`,
+      formData
+    );
+  }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/${id}/eliminar`,
+      {}
+    );
+  }
+
+  obtenerArchivo(id: number): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/${id}/archivo`,
+      {
+        responseType: 'blob'
+      }
+    );
+  }
+
+  private crearFormData(
+    payload: ConvenioRequest,
+    archivo: File | null
+  ): FormData {
     const formData = new FormData();
 
     formData.append(
       'datos',
       new Blob(
         [JSON.stringify(payload)],
-        { type: 'application/json' }
+        {
+          type: 'application/json'
+        }
       )
     );
 
     if (archivo) {
-      formData.append('archivo', archivo, archivo.name);
+      formData.append(
+        'archivo',
+        archivo,
+        archivo.name
+      );
     }
 
-    return this.http.post<Convenio>(this.baseUrl, formData);
-  }
-
-  obtenerArchivo(id: number): Observable<Blob> {
-    return this.http.get(
-      `${this.baseUrl}/${id}/archivo`,
-      { responseType: 'blob' }
-    );
+    return formData;
   }
 }
