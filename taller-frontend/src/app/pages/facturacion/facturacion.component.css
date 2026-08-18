@@ -263,10 +263,6 @@
     box-shadow 0.18s ease;
 }
 
-.factura-row:nth-child(4n + 3) {
-  background: #f7f9fb;
-}
-
 .factura-row:hover {
   background: var(--brand-primary-soft);
   box-shadow: inset 4px 0 0 var(--brand-primary);
