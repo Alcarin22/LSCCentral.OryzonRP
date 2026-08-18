@@ -2,7 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RESET BASE */
+/* =========================================================
+   LSC CENTRAL - SISTEMA GLOBAL DE COLORES
+   TEMA CLARO
+   ========================================================= */
+
+:root {
+  /* Fondos */
+  --bg-main: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-secondary: #e9ecef;
+  --bg-hover: #f7f9fb;
+
+  /* Branding LSC */
+  --brand-primary: #003366;
+  --brand-primary-hover: #004a8f;
+  --brand-primary-dark: #00264d;
+  --brand-primary-soft: #dce8f3;
+  --brand-primary-soft-hover: #ceddea;
+
+  /* Grises */
+  --gray-dark: #2b2f33;
+  --gray-medium: #5e6872;
+  --gray-soft: #8b949d;
+
+  /* Texto */
+  --text-primary: #1e2328;
+  --text-secondary: #68717a;
+  --text-muted: #8a949e;
+  --text-inverse: #ffffff;
+
+  /* Bordes */
+  --border-color: #d4d8dd;
+  --border-soft: #e5e8eb;
+
+  /* Estados */
+  --success: #16875d;
+  --success-soft: #e4f4ed;
+  --danger: #c7434d;
+  --danger-soft: #f9e7e9;
+  --warning: #c58a22;
+  --warning-soft: #fbf1df;
+
+  /* Sombras */
+  --shadow-soft: 0 8px 24px rgba(31, 41, 55, 0.07);
+  --shadow-card: 0 14px 32px rgba(31, 41, 55, 0.08);
+  --shadow-brand: 0 10px 24px rgba(0, 51, 102, 0.18);
+
+  /* Radios */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+}
+
+/* =========================================================
+   RESET BASE
+   ========================================================= */
+
 * {
   box-sizing: border-box;
 }
@@ -11,41 +69,73 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
-  background: #0f131a;
-  color: #f5f7fb;
+  min-height: 100%;
+  background: var(--bg-main);
+  color: var(--text-primary);
   overflow-x: hidden;
 }
 
-/* LAYOUT PRINCIPAL */
-.main-content {
-  margin-left: 260px;
+html {
+  height: 100%;
+}
+
+body {
   min-height: 100vh;
 }
 
-/* SCROLL GLOBAL */
-::-webkit-scrollbar {
-  width: 8px;
+/* =========================================================
+   LAYOUT PRINCIPAL
+   ========================================================= */
+
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  background: var(--bg-main);
 }
 
-::-webkit-scrollbar-track {
-  background: #11141a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #2f3748;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #3a445a;
-}
+/* =========================================================
+   ELEMENTOS GLOBALES
+   ========================================================= */
 
 a {
   text-decoration: none;
   color: inherit;
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+::selection {
+  background: var(--brand-primary);
+  color: var(--text-inverse);
+}
+
+/* =========================================================
+   SCROLL GLOBAL
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e9ecef;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #b6bdc5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ba5af;
 }
