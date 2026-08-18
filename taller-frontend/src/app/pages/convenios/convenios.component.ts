@@ -56,6 +56,7 @@ export class ConveniosComponent implements OnInit {
   loading = false;
   guardando = false;
   eliminandoId: number | null = null;
+  convenioAbiertoId: number | null = null;
   error = '';
 
   modalAbierto = false;
@@ -68,11 +69,6 @@ export class ConveniosComponent implements OnInit {
   nuevasCondicionesLsc = '';
   nuevasCondicionesLocal = '';
   archivoSeleccionado: File | null = null;
-
-  visorAbierto = false;
-  visorCargando = false;
-  visorImagenUrl: string | null = null;
-  visorTitulo = '';
 
   constructor(
     private convenioService: ConvenioService,
@@ -146,6 +142,17 @@ export class ConveniosComponent implements OnInit {
       .length;
   }
 
+  toggleConvenio(convenio: Convenio): void {
+    this.convenioAbiertoId =
+      this.convenioAbiertoId === convenio.id
+        ? null
+        : convenio.id;
+  }
+
+  isConvenioAbierto(convenio: Convenio): boolean {
+    return this.convenioAbiertoId === convenio.id;
+  }
+
   abrirModal(): void {
     if (!this.puedeGestionarConvenios()) {
       this.toastService.error(
@@ -216,6 +223,10 @@ export class ConveniosComponent implements OnInit {
             item => item.id !== convenio.id
           );
 
+          if (this.convenioAbiertoId === convenio.id) {
+            this.convenioAbiertoId = null;
+          }
+
           this.toastService.success(
             `Convenio con ${convenio.local} eliminado correctamente.`
           );
@@ -260,22 +271,11 @@ export class ConveniosComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0] ?? null;
 
-    if (!archivo) {
-      this.archivoSeleccionado = null;
-      return;
-    }
+    if (archivo && archivo.size > 10 * 1024 * 1024) {
+      this.toastService.error(
+        'El archivo no puede superar los 10 MB.'
+      );
 
-    if (archivo.size > 10 * 1024 * 1024) {
-      this.toastService.error('La imagen no puede superar los 10 MB.');
-      input.value = '';
-      this.archivoSeleccionado = null;
-      return;
-    }
-
-    const esPng = archivo.type === 'image/png' && archivo.name.toLowerCase().endsWith('.png');
-
-    if (!esPng) {
-      this.toastService.error('Solo se permiten imágenes en formato PNG.');
       input.value = '';
       this.archivoSeleccionado = null;
       return;
@@ -371,50 +371,40 @@ export class ConveniosComponent implements OnInit {
 
   verArchivo(convenio: Convenio): void {
     if (!convenio.tieneArchivo) {
-      this.toastService.info('Este convenio no tiene ninguna imagen asociada.');
+      this.toastService.info(
+        'Este convenio no tiene ningún archivo asociado.'
+      );
       return;
     }
 
-    this.cerrarVisor();
-    this.visorAbierto = true;
-    this.visorCargando = true;
-    this.visorTitulo = convenio.local;
-    this.cdr.detectChanges();
+    const ventana = window.open('', '_blank');
 
     this.convenioService.obtenerArchivo(convenio.id).subscribe({
       next: (blob: Blob) => {
-        this.zone.run(() => {
-          this.visorImagenUrl = URL.createObjectURL(blob);
-          this.visorCargando = false;
-          this.cdr.detectChanges();
-        });
+        const url = URL.createObjectURL(blob);
+
+        if (ventana) {
+          ventana.location.href = url;
+        } else {
+          window.open(url, '_blank');
+        }
+
+        window.setTimeout(() => {
+          URL.revokeObjectURL(url);
+        }, 60000);
       },
       error: (error: any) => {
-        console.error('Error abriendo imagen de convenio:', error);
-        this.zone.run(() => {
-          this.visorCargando = false;
-          this.visorAbierto = false;
-          this.toastService.error('No se pudo abrir la imagen del convenio.');
-          this.cdr.detectChanges();
-        });
+        console.error('Error abriendo archivo de convenio:', error);
+
+        if (ventana) {
+          ventana.close();
+        }
+
+        this.toastService.error(
+          'No se pudo abrir el archivo del convenio.'
+        );
       }
     });
-  }
-
-  cerrarVisor(): void {
-    if (this.visorImagenUrl) {
-      URL.revokeObjectURL(this.visorImagenUrl);
-    }
-    this.visorImagenUrl = null;
-    this.visorAbierto = false;
-    this.visorCargando = false;
-    this.visorTitulo = '';
-  }
-
-  cerrarVisorDesdeFondo(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
-      this.cerrarVisor();
-    }
   }
 
   get condicionesLocalLabel(): string {

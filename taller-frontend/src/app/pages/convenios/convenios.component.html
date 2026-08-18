@@ -58,11 +58,27 @@
             class="convenio-card"
             *ngFor="let convenio of getConveniosPorCategoria(categoria)"
             [class.convenio-inactivo]="convenio.estado === 'Inactivo'"
+            [class.convenio-abierto]="isConvenioAbierto(convenio)"
           >
-            <div class="convenio-card-header">
-              <div>
-                <span class="convenio-local-label">Local</span>
-                <h3>{{ convenio.local }}</h3>
+            <button
+              type="button"
+              class="convenio-summary"
+              (click)="toggleConvenio(convenio)"
+              [attr.aria-expanded]="isConvenioAbierto(convenio)"
+            >
+              <div class="convenio-summary-main">
+                <span
+                  class="convenio-chevron"
+                  [class.open]="isConvenioAbierto(convenio)"
+                  aria-hidden="true"
+                >
+                  ›
+                </span>
+
+                <div class="convenio-summary-text">
+                  <span class="convenio-local-label">Local</span>
+                  <strong>{{ convenio.local }}</strong>
+                </div>
               </div>
 
               <span
@@ -72,96 +88,101 @@
               >
                 {{ convenio.estado }}
               </span>
-            </div>
-
-            <div class="convenio-info-grid">
-              <div class="info-box">
-                <span>Categoría</span>
-                <strong>{{ convenio.categoria }}</strong>
-              </div>
-
-              <div class="info-box">
-                <span>Estado</span>
-                <strong>{{ convenio.estado }}</strong>
-              </div>
-            </div>
-
-            <div class="condiciones-box">
-              <div class="condiciones-title">
-                <span class="condiciones-icon">LSC</span>
-                <strong>Condiciones LSC</strong>
-              </div>
-
-              <p *ngIf="convenio.condicionesLsc; else sinCondicionesLsc">
-                {{ convenio.condicionesLsc }}
-              </p>
-
-              <ng-template #sinCondicionesLsc>
-                <p class="empty-text">Sin condiciones indicadas.</p>
-              </ng-template>
-            </div>
-
-            <div class="condiciones-box condiciones-local-box">
-              <div class="condiciones-title">
-                <span class="condiciones-icon local-icon">↔</span>
-                <strong>Condiciones {{ convenio.local }}</strong>
-              </div>
-
-              <p *ngIf="convenio.condicionesLocal; else sinCondicionesLocal">
-                {{ convenio.condicionesLocal }}
-              </p>
-
-              <ng-template #sinCondicionesLocal>
-                <p class="empty-text">Sin condiciones indicadas.</p>
-              </ng-template>
-            </div>
-
-            <div class="archivo-area">
-              <button
-                *ngIf="convenio.tieneArchivo; else sinArchivo"
-                type="button"
-                class="btn btn-file"
-                (click)="verArchivo(convenio)"
-              >
-                <span>📎</span>
-                Ver imagen
-                <small *ngIf="convenio.archivoNombre">
-                  {{ convenio.archivoNombre }}
-                </small>
-              </button>
-
-              <ng-template #sinArchivo>
-                <div class="sin-archivo">
-                  Sin imagen asociada
-                </div>
-              </ng-template>
-            </div>
+            </button>
 
             <div
-              class="convenio-admin-actions"
-              *ngIf="puedeAdministrarConvenios()"
+              class="convenio-detail"
+              *ngIf="isConvenioAbierto(convenio)"
             >
-              <button
-                type="button"
-                class="btn btn-edit"
-                [disabled]="eliminandoId !== null"
-                (click)="editarConvenio(convenio)"
-              >
-                Editar
-              </button>
+              <div class="convenio-info-grid">
+                <div class="info-box">
+                  <span>Categoría</span>
+                  <strong>{{ convenio.categoria }}</strong>
+                </div>
 
-              <button
-                type="button"
-                class="btn btn-delete"
-                [disabled]="eliminandoId !== null"
-                (click)="eliminarConvenio(convenio)"
+                <div class="info-box">
+                  <span>Estado</span>
+                  <strong>{{ convenio.estado }}</strong>
+                </div>
+              </div>
+
+              <div class="condiciones-box">
+                <div class="condiciones-title">
+                  <span class="condiciones-icon">LSC</span>
+                  <strong>Condiciones LSC</strong>
+                </div>
+
+                <p *ngIf="convenio.condicionesLsc; else sinCondicionesLsc">
+                  {{ convenio.condicionesLsc }}
+                </p>
+
+                <ng-template #sinCondicionesLsc>
+                  <p class="empty-text">Sin condiciones indicadas.</p>
+                </ng-template>
+              </div>
+
+              <div class="condiciones-box condiciones-local-box">
+                <div class="condiciones-title">
+                  <span class="condiciones-icon local-icon">↔</span>
+                  <strong>Condiciones {{ convenio.local }}</strong>
+                </div>
+
+                <p *ngIf="convenio.condicionesLocal; else sinCondicionesLocal">
+                  {{ convenio.condicionesLocal }}
+                </p>
+
+                <ng-template #sinCondicionesLocal>
+                  <p class="empty-text">Sin condiciones indicadas.</p>
+                </ng-template>
+              </div>
+
+              <div class="archivo-area">
+                <button
+                  *ngIf="convenio.tieneArchivo; else sinArchivo"
+                  type="button"
+                  class="btn btn-file"
+                  (click)="verArchivo(convenio); $event.stopPropagation()"
+                >
+                  <span>📎</span>
+                  Ver archivo
+                  <small *ngIf="convenio.archivoNombre">
+                    {{ convenio.archivoNombre }}
+                  </small>
+                </button>
+
+                <ng-template #sinArchivo>
+                  <div class="sin-archivo">
+                    Sin archivo asociado
+                  </div>
+                </ng-template>
+              </div>
+
+              <div
+                class="convenio-admin-actions"
+                *ngIf="puedeAdministrarConvenios()"
               >
-                {{
-                  eliminandoId === convenio.id
-                    ? 'Eliminando...'
-                    : 'Eliminar'
-                }}
-              </button>
+                <button
+                  type="button"
+                  class="btn btn-edit"
+                  [disabled]="eliminandoId !== null"
+                  (click)="editarConvenio(convenio); $event.stopPropagation()"
+                >
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-delete"
+                  [disabled]="eliminandoId !== null"
+                  (click)="eliminarConvenio(convenio); $event.stopPropagation()"
+                >
+                  {{
+                    eliminandoId === convenio.id
+                      ? 'Eliminando...'
+                      : 'Eliminar'
+                  }}
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -309,7 +330,7 @@
                       ? 'Archivo preparado para subir'
                       : convenioEditandoId !== null && archivoExistenteNombre
                         ? 'Selecciona uno nuevo solo si quieres sustituir el actual'
-                        : 'Imagen PNG · máximo 10 MB'
+                        : 'PDF, imagen u otro documento · máximo 10 MB'
                   }}
                 </small>
               </div>
@@ -322,7 +343,6 @@
               id="convenio-archivo"
               class="file-input-hidden"
               type="file"
-              accept="image/png,.png"
               [disabled]="guardando"
               (change)="onArchivoSeleccionado($event)"
             />
@@ -361,24 +381,4 @@
       </div>
     </section>
   </div>
-
-  <div class="visor-backdrop" *ngIf="visorAbierto" (click)="cerrarVisorDesdeFondo($event)">
-    <section class="visor-card" role="dialog" aria-modal="true" aria-labelledby="visor-convenio-title">
-      <div class="visor-header">
-        <div>
-          <span class="modal-kicker">Imagen del convenio</span>
-          <h2 id="visor-convenio-title">{{ visorTitulo }}</h2>
-        </div>
-        <button type="button" class="modal-close" (click)="cerrarVisor()" aria-label="Cerrar imagen">×</button>
-      </div>
-      <div class="visor-body">
-        <div *ngIf="visorCargando" class="visor-loading">
-          <div class="loading-spinner"></div>
-          <span>Cargando imagen...</span>
-        </div>
-        <img *ngIf="!visorCargando && visorImagenUrl" class="visor-imagen" [src]="visorImagenUrl" [alt]="'Imagen del convenio con ' + visorTitulo" />
-      </div>
-    </section>
-  </div>
-
 </section>
