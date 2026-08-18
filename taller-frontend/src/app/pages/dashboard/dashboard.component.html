@@ -1,19 +1,19 @@
-<section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8 lg:py-6">
+<section class="min-h-screen px-6 py-6 text-[var(--text-primary)] lg:px-8 lg:py-6">
   <div class="flex min-h-[calc(100vh-48px)] flex-col justify-center gap-7">
     <div class="px-3 pb-2 pt-4 text-center">
       <h1 class="mb-[10px] text-[clamp(2.2rem,4vw,4rem)] font-extrabold leading-[1.08]">
         Bienvenido a LSC Central
       </h1>
 
-      <p class="mb-6 text-base text-[#9aa4b2]">
-        <span class="font-semibold text-white">{{ nombreVisible }}</span>
+      <p class="mb-6 text-base text-[var(--text-secondary)]">
+        <span class="font-semibold text-[var(--text-primary)]">{{ nombreVisible }}</span>
         ·
         <span>{{ rangoVisible }}</span>
       </p>
 
       <div class="flex flex-wrap justify-center gap-3">
         <button
-          class="min-w-[220px] rounded-[14px] border-0 bg-[#f4b400] px-[18px] py-3 font-bold text-[#111] transition duration-200 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+          class="min-w-[220px] rounded-[14px] border-0 bg-[var(--brand-primary)] px-[18px] py-3 font-bold text-[var(--text-inverse)] transition duration-200 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
           [disabled]="procesandoToggle"
           (click)="toggleFichaje()">
           {{ textoBotonFichaje }}
@@ -22,87 +22,87 @@
 
       <label
         *ngIf="puedeSeleccionarFichajeSeguridad"
-        class="mx-auto mt-3 flex w-fit items-center gap-2 text-sm font-semibold text-[#c7ced9]"
+        class="mx-auto mt-3 flex w-fit items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]"
         [class.opacity-60]="fichado || procesandoToggle"
       >
         <input
           type="checkbox"
-          class="h-4 w-4 accent-[#f4b400]"
+          class="h-4 w-4 accent-[var(--brand-primary)]"
           [(ngModel)]="fichajeSeguridadSeleccionado"
           [disabled]="fichado || procesandoToggle"
         />
         Fichaje Seguridad
       </label>
 
-      <div *ngIf="fichado" class="mt-3 text-sm font-semibold text-[#9aa4b2]">
+      <div *ngIf="fichado" class="mt-3 text-sm font-semibold text-[var(--text-secondary)]">
         Servicio actual:
-        <span [class.text-[#f4b400]]="tipoServicioActivo === 'SEGURIDAD'" class="text-white">
+        <span [class.text-[var(--brand-primary)]]="tipoServicioActivo === 'SEGURIDAD'" class="text-[var(--text-primary)]">
           {{ servicioActualTexto }}
         </span>
       </div>
     </div>
 
     <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-3">
-      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+      <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <div class="mb-[18px] flex items-start justify-between gap-[14px]">
           <div>
             <h3 class="text-[1.05rem] font-semibold">Resumen de hoy</h3>
-            <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+            <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
               Actividad individual del día actual.
             </p>
           </div>
         </div>
 
         <div class="grid gap-[14px]">
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Hora de entrada</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ horaEntradaFormateada }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Hora de entrada</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ horaEntradaFormateada }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Tiempo trabajado</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ tiempoTrabajadoActual }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Tiempo trabajado</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ tiempoTrabajadoActual }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Servicios realizados</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenHoy.serviciosRealizadosHoy }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Servicios realizados</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenHoy.serviciosRealizadosHoy }}</strong>
           </div>
 
           <button
             type="button"
-            class="w-full rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px] text-left transition duration-200 hover:-translate-y-[1px] hover:border-[rgba(255,255,255,0.10)] hover:bg-[rgba(255,255,255,0.035)] disabled:cursor-default disabled:opacity-70 disabled:hover:translate-y-0"
+            class="w-full rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px] text-left transition duration-200 hover:-translate-y-[1px] hover:border-[var(--border-color)] hover:bg-[var(--brand-primary-soft)] disabled:cursor-default disabled:opacity-70 disabled:hover:translate-y-0"
             [disabled]="!ultimoTurno.fecha"
             (click)="copiarUltimoTurno()"
             title="Pulsa para copiar el turno"
           >
-            <span class="mb-[10px] block text-[0.84rem] text-[#9aa4b2]">Último turno</span>
+            <span class="mb-[10px] block text-[0.84rem] text-[var(--text-secondary)]">Último turno</span>
 
-            <div class="grid gap-[6px] text-[0.9rem] leading-[1.45] text-[#f5f7fb]">
+            <div class="grid gap-[6px] text-[0.9rem] leading-[1.45] text-[var(--text-primary)]">
               <div>
-                <span class="font-semibold text-[#9aa4b2]">FECHA:</span>
+                <span class="font-semibold text-[var(--text-secondary)]">FECHA:</span>
                 {{ formatearFechaUltimoTurno(ultimoTurno.fecha) }}
               </div>
 
               <div>
-                <span class="font-semibold text-[#9aa4b2]">HORA DE ENTRADA:</span>
+                <span class="font-semibold text-[var(--text-secondary)]">HORA DE ENTRADA:</span>
                 {{ formatearHoraBackend(ultimoTurno.horaEntrada) }}
               </div>
 
               <div>
-                <span class="font-semibold text-[#9aa4b2]">HORA DE SALIDA:</span>
+                <span class="font-semibold text-[var(--text-secondary)]">HORA DE SALIDA:</span>
                 {{ formatearHoraBackend(ultimoTurno.horaSalida) }}
               </div>
 
               <div>
-                <span class="font-semibold text-[#9aa4b2]">HORAS TOTALES:</span>
+                <span class="font-semibold text-[var(--text-secondary)]">HORAS TOTALES:</span>
                 {{ formatearMinutosUltimoTurno(ultimoTurno.minutosTrabajados) }}
               </div>
             </div>
 
             <span
               *ngIf="ultimoTurno.fecha"
-              class="mt-[10px] block text-[0.76rem] text-[#9aa4b2]"
+              class="mt-[10px] block text-[0.76rem] text-[var(--text-secondary)]"
             >
               Pulsa para copiar
             </span>
@@ -110,68 +110,68 @@
         </div>
       </article>
 
-      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+      <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <div class="mb-[18px] flex items-start justify-between gap-[14px]">
           <div>
             <h3 class="text-[1.05rem] font-semibold">Resumen semanal</h3>
-            <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+            <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
               Datos acumulados de la semana actual.
             </p>
           </div>
         </div>
 
         <div class="grid gap-[14px]">
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Horas registradas</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenSemana.horasRegistradas }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Horas registradas</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenSemana.horasRegistradas }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Días trabajados</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenSemana.diasTrabajados }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Días trabajados</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenSemana.diasTrabajados }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Servicios completados</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenSemana.serviciosCompletados }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Servicios completados</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenSemana.serviciosCompletados }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Prima estimada</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenSemana.primaEstimada }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Prima estimada</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenSemana.primaEstimada }}</strong>
           </div>
         </div>
       </article>
 
-      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+      <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
         <div class="mb-[18px] flex items-start justify-between gap-[14px]">
           <div>
             <h3 class="text-[1.05rem] font-semibold">Resumen mensual</h3>
-            <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+            <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
               Información consolidada del mes actual.
             </p>
           </div>
         </div>
 
         <div class="grid gap-[14px]">
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Horas totales</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenMes.horasTotales }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Horas totales</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenMes.horasTotales }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Jornadas completadas</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenMes.jornadasCompletadas }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Jornadas completadas</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenMes.jornadasCompletadas }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Servicios realizados</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenMes.serviciosRealizados }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Servicios realizados</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenMes.serviciosRealizados }}</strong>
           </div>
 
-          <div class="rounded-[16px] border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] p-[14px]">
-            <span class="mb-[6px] block text-[0.84rem] text-[#9aa4b2]">Rendimiento</span>
-            <strong class="text-[1.2rem] text-[#f5f7fb]">{{ resumenMes.rendimiento }}</strong>
+          <div class="rounded-[16px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-[14px]">
+            <span class="mb-[6px] block text-[0.84rem] text-[var(--text-secondary)]">Rendimiento</span>
+            <strong class="text-[1.2rem] text-[var(--text-primary)]">{{ resumenMes.rendimiento }}</strong>
           </div>
         </div>
       </article>

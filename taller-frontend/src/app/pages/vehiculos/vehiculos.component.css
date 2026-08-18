@@ -7,7 +7,7 @@
   width: 100%;
   min-height: 100vh;
   padding: 24px;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .vehiculos-header {
@@ -22,15 +22,15 @@
 
 .vehiculos-header p {
   margin: 0;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
 }
 
 .filtros-card {
@@ -50,7 +50,7 @@
 }
 
 .form-group label {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -58,17 +58,17 @@
 .form-group input,
 .form-group select {
   width: 100%;
-  border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.03);
-  color: #f5f7fb;
+  border: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  color: var(--text-primary);
   border-radius: 14px;
   padding: 12px 14px;
   outline: none;
 }
 
 .form-group select option {
-  color: #111;
-  background: #fff;
+  color: var(--text-inverse);
+  background: var(--bg-surface);
 }
 
 .btn {
@@ -82,14 +82,14 @@
 }
 
 .btn-primary {
-  background: #f4b400;
-  color: #111;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
 }
 
 .btn-secondary {
-  background: #1d212b;
-  color: #f5f7fb;
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn:hover {
@@ -109,7 +109,7 @@
 }
 
 .stat-card span {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.84rem;
 }
 
@@ -118,7 +118,7 @@
 }
 
 .main-stat {
-  background: #2a54d6;
+  background: var(--brand-primary);
 }
 
 .main-stat span {
@@ -134,18 +134,18 @@
 
 .loading-card p {
   margin: 0;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .error-card {
   border-radius: 18px;
   border: 1px solid rgba(239,68,68,0.28);
   background: rgba(239,68,68,0.15);
-  color: #ffb4b4;
+  color: var(--danger);
 }
 
 .empty-card {
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .vehiculos-grid {
@@ -163,13 +163,13 @@
 
 .vehiculo-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(244,180,0,0.35);
+  border-color: var(--brand-primary-soft);
 }
 
 .vehiculo-image {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-hover);
   display: grid;
   place-items: center;
   font-size: 3rem;
@@ -194,9 +194,9 @@
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(244,180,0,0.12);
+  background: var(--brand-primary-soft);
   border: 1px solid rgba(244,180,0,0.2);
-  color: #f5f7fb;
+  color: var(--text-primary);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -211,11 +211,11 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .vehiculo-meta strong {
-  color: #f4b400;
+  color: var(--brand-primary);
 }
 
 .modal-backdrop {
@@ -233,8 +233,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 22px;
-  background: linear-gradient(180deg, rgba(35,41,56,0.98), rgba(26,30,40,1));
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   box-shadow: 0 22px 60px rgba(0,0,0,0.5);
 }
 
@@ -248,7 +248,7 @@
   border: 0;
   border-radius: 12px;
   background: rgba(0,0,0,0.55);
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.6rem;
   cursor: pointer;
 }
@@ -258,7 +258,7 @@
   aspect-ratio: 16 / 9;
   display: grid;
   place-items: center;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-hover);
   font-size: 4rem;
 }
 
@@ -290,17 +290,17 @@
   gap: 6px;
   padding: 14px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-soft);
 }
 
 .detalle-grid span {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.8rem;
 }
 
 .detalle-grid strong {
-  color: #f5f7fb;
+  color: var(--text-primary);
   word-break: break-word;
 }
 

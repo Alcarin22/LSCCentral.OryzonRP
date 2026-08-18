@@ -7,7 +7,7 @@
   width: 100%;
   min-height: 100vh;
   padding: 24px;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .facturacion-header {
@@ -26,7 +26,7 @@
 
 .header-left p {
   margin: 0;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .stats-container {
@@ -37,16 +37,16 @@
 }
 
 .stat-card {
-  background: linear-gradient(180deg, rgba(35,41,56,0.95), rgba(26,30,40,0.98));
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 16px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--shadow-card);
 }
 
 .stat-label {
   display: block;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.82rem;
   margin-bottom: 8px;
 }
@@ -55,7 +55,7 @@
   display: block;
   font-size: 1.45rem;
   font-weight: 900;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .alertas-tasaciones-container {
@@ -73,10 +73,10 @@
   border-radius: 18px;
   background: linear-gradient(
     180deg,
-    rgba(244, 180, 0, 0.16),
-    rgba(244, 180, 0, 0.09)
+    var(--brand-primary-soft),
+    var(--brand-primary-soft)
   );
-  border: 1px solid rgba(244, 180, 0, 0.35);
+  border: 1px solid var(--brand-primary-soft);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
@@ -86,8 +86,8 @@
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(244, 180, 0, 0.16);
-  border: 1px solid rgba(244, 180, 0, 0.35);
+  background: var(--brand-primary-soft);
+  border: 1px solid var(--brand-primary-soft);
   font-size: 1.25rem;
 }
 
@@ -103,7 +103,7 @@
 }
 
 .alerta-content span {
-  color: #f5f7fb;
+  color: var(--text-primary);
   font-size: 0.88rem;
   font-weight: 700;
 }
@@ -125,9 +125,9 @@
 }
 
 .btn-alerta-secundario {
-  border: 1px solid #2f3748;
-  background: #1d212b;
-  color: #f5f7fb;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .btn-alerta-secundario:hover {
@@ -137,7 +137,7 @@
 .btn-alerta-principal {
   border: 1px solid rgba(16, 185, 129, 0.35);
   background: rgba(16, 185, 129, 0.14);
-  color: #9ff3cf;
+  color: var(--success);
 }
 
 .btn-alerta-principal:hover {
@@ -150,8 +150,8 @@
   grid-template-columns: repeat(5, minmax(140px, 1fr)) auto;
   gap: 14px;
   align-items: end;
-  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 18px;
   margin-bottom: 18px;
@@ -164,7 +164,7 @@
 }
 
 .filtro-group label {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -173,25 +173,25 @@
 .filtro-group select {
   width: 100%;
   min-height: 44px;
-  border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.04);
-  color: #f5f7fb;
+  border: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  color: var(--text-primary);
   border-radius: 14px;
   padding: 10px 12px;
   outline: none;
 }
 
 .filtro-group select option {
-  background: #1d212b;
-  color: #f5f7fb;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .btn-limpiar {
   min-height: 44px;
   border: none;
   border-radius: 14px;
-  background: #f4b400;
-  color: #111;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
   font-weight: 900;
   cursor: pointer;
 }
@@ -207,7 +207,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-hover);
 }
 
 .error-container {
@@ -219,7 +219,7 @@
   width: 24px;
   height: 24px;
   border: 3px solid rgba(255,255,255,0.2);
-  border-top-color: #f4b400;
+  border-top-color: var(--brand-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -246,17 +246,17 @@
 }
 
 .tabla-facturacion thead {
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-hover);
 }
 
 .factura-row {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--bg-hover);
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .factura-row:hover {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-hover);
 }
 
 .tipo-badge,
@@ -273,14 +273,14 @@
 
 .estado-badge.tasacion.pendiente,
 .estado-tasacion-badge.pendiente {
-  background: rgba(244, 180, 0, 0.14);
+  background: var(--brand-primary-soft);
   color: #ffd66b;
 }
 
 .estado-badge.tasacion.enviada,
 .estado-tasacion-badge.enviada {
   background: rgba(16, 185, 129, 0.14);
-  color: #9ff3cf;
+  color: var(--success);
 }
 
 .estado-badge.convenio {
@@ -289,7 +289,7 @@
 }
 
 .estado-badge.normal {
-  background: rgba(255,255,255,0.08);
+  background: var(--border-soft);
 }
 
 .total-column {
@@ -306,13 +306,13 @@
   border-radius: 12px;
   padding: 8px 12px;
   background: rgba(239,68,68,0.18);
-  color: #ffb4b4;
+  color: var(--danger);
   font-weight: 800;
   cursor: pointer;
 }
 
 .detalle-row {
-  background: rgba(255,255,255,0.025);
+  background: var(--bg-hover);
 }
 
 .detalle-container {
@@ -332,7 +332,7 @@
   gap: 8px;
   padding: 14px;
   border-radius: 16px;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-hover);
 }
 
 .detalle-wide {
@@ -340,7 +340,7 @@
 }
 
 .detalle-label {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -355,7 +355,7 @@
 }
 
 .tasacion-template:hover {
-  background: rgba(244,180,0,0.08);
+  background: var(--brand-primary-soft);
 }
 
 .tasacion-template pre {
@@ -371,7 +371,7 @@
   border-radius: 12px;
   padding: 10px 14px;
   background: rgba(16,185,129,0.18);
-  color: #9ff3cf;
+  color: var(--success);
   font-weight: 900;
   cursor: pointer;
 }
@@ -384,7 +384,7 @@
 .sin-resultados {
   padding: 30px;
   text-align: center;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .paginacion-container {
@@ -404,15 +404,15 @@
   height: 40px;
   border-radius: 12px;
   border: none;
-  background: rgba(255,255,255,0.06);
-  color: #f5f7fb;
+  background: var(--border-soft);
+  color: var(--text-primary);
   cursor: pointer;
   font-weight: 800;
 }
 
 .btn-page.active {
-  background: #f4b400;
-  color: #111;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
 }
 
 @media (max-width: 1200px) {
@@ -470,8 +470,8 @@
   gap: 16px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-hover);
+  border: 1px solid var(--bg-hover);
 }
 
 .factura-item-linea > div {
@@ -480,12 +480,12 @@
 }
 
 .factura-item-linea span {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.82rem;
 }
 
 .factura-item-subtotal {
-  color: #f4b400;
+  color: var(--brand-primary);
   white-space: nowrap;
 }
 

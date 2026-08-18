@@ -5,7 +5,7 @@
 .convenios-page {
   min-height: 100vh;
   padding: 24px;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .convenios-view {
@@ -30,19 +30,15 @@
 
 .convenios-header p {
   margin: 0;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .card {
-  background: linear-gradient(
-    180deg,
-    rgba(35, 41, 56, 0.92),
-    rgba(26, 30, 40, 0.95)
-  );
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
 }
 
 .btn {
@@ -64,14 +60,14 @@
 }
 
 .btn-primary {
-  background: #f4b400;
-  color: #111;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
 }
 
 .btn-secondary {
-  background: #1d212b;
-  color: #f5f7fb;
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-add {
@@ -92,7 +88,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 .loading-card p {
@@ -104,7 +100,7 @@
   height: 20px;
   border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  border-top-color: #f4b400;
+  border-top-color: var(--brand-primary);
   animation: spin 0.8s linear infinite;
 }
 
@@ -120,7 +116,7 @@
   background: rgba(239, 68, 68, 0.15);
   padding: 18px;
   text-align: center;
-  color: #ffb4b4;
+  color: var(--danger);
 }
 
 .categoria-block {
@@ -134,7 +130,7 @@
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .categoria-kicker,
@@ -142,7 +138,7 @@
 .modal-kicker {
   display: block;
   margin-bottom: 5px;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -158,7 +154,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.82rem;
 }
 
@@ -167,7 +163,7 @@
   border-radius: 999px;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.2);
-  color: #9ff3cf;
+  color: var(--success);
 }
 
 .convenios-grid {
@@ -182,14 +178,14 @@
   min-width: 0;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-soft);
   transition: 0.2s ease;
 }
 
 .convenio-card:hover {
-  border-color: rgba(244, 180, 0, 0.22);
-  background: rgba(255, 255, 255, 0.035);
+  border-color: var(--brand-primary-soft);
+  background: var(--bg-hover);
 }
 
 .convenio-card.convenio-inactivo {
@@ -223,13 +219,13 @@
 .status-active {
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.22);
-  color: #9ff3cf;
+  color: var(--success);
 }
 
 .status-inactive {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.22);
-  color: #ffb4b4;
+  color: var(--danger);
 }
 
 .convenio-info-grid {
@@ -243,12 +239,12 @@
   gap: 5px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-hover);
+  border: 1px solid var(--bg-hover);
 }
 
 .info-box span {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.75rem;
 }
 
@@ -287,8 +283,8 @@
   height: 24px;
   padding: 0 7px;
   border-radius: 7px;
-  background: rgba(244, 180, 0, 0.14);
-  color: #f4b400;
+  background: var(--brand-primary-soft);
+  color: var(--brand-primary);
   font-size: 0.68rem;
   font-weight: 900;
 }
@@ -309,7 +305,7 @@
 }
 
 .condiciones-box .empty-text {
-  color: #788395;
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -324,9 +320,9 @@
   align-items: center;
   gap: 8px;
   justify-content: center;
-  background: #1d212b;
-  color: #f5f7fb;
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-file small {
@@ -334,7 +330,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
@@ -343,9 +339,9 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  border: 1px dashed rgba(255, 255, 255, 0.09);
+  border: 1px dashed var(--border-soft);
   border-radius: 12px;
-  color: #778295;
+  color: var(--text-muted);
   font-size: 0.82rem;
 }
 
@@ -356,9 +352,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border: 1px dashed var(--border-soft);
   border-radius: 14px;
-  color: #788395;
+  color: var(--text-muted);
 }
 
 .categoria-vacia span {
@@ -376,23 +372,23 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid var(--border-soft);
 }
 
 .btn-edit {
-  background: #1d212b;
-  color: #f5f7fb;
-  border: 1px solid #3a4357;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-edit:not(:disabled):hover {
-  border-color: rgba(244, 180, 0, 0.45);
+  border-color: var(--brand-primary-soft);
   background: rgba(244, 180, 0, 0.07);
 }
 
 .btn-delete {
   background: rgba(239, 68, 68, 0.12);
-  color: #ffb4b4;
+  color: var(--danger);
   border: 1px solid rgba(239, 68, 68, 0.26);
 }
 
@@ -428,7 +424,7 @@
 
 .archivo-existente small {
   margin-top: 2px;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.74rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -453,8 +449,8 @@
   max-height: calc(100vh - 48px);
   overflow: auto;
   border-radius: 20px;
-  background: linear-gradient(180deg, #232938, #1a1e28);
-  border: 1px solid #343c4f;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.58);
 }
 
@@ -466,8 +462,8 @@
   justify-content: space-between;
   gap: 18px;
   padding: 20px 22px;
-  background: rgba(31, 36, 49, 0.98);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .modal-header h2 {
@@ -477,7 +473,7 @@
 
 .modal-header p {
   margin: 0;
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.85rem;
 }
 
@@ -485,10 +481,10 @@
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  border: 1px solid #394154;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  background: #1a1e28;
-  color: #f5f7fb;
+  background: var(--bg-card-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 1.5rem;
   line-height: 1;
@@ -530,9 +526,9 @@
 .form-group textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #343c4f;
-  background: rgba(255, 255, 255, 0.03);
-  color: #f5f7fb;
+  border: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  color: var(--text-primary);
   border-radius: 13px;
   padding: 11px 13px;
   outline: none;
@@ -542,13 +538,13 @@
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: rgba(244, 180, 0, 0.55);
-  box-shadow: 0 0 0 3px rgba(244, 180, 0, 0.08);
+  border-color: var(--brand-primary-soft);
+  box-shadow: 0 0 0 3px var(--brand-primary-soft);
 }
 
 .form-group select option {
-  color: #111;
-  background: #fff;
+  color: var(--text-inverse);
+  background: var(--bg-surface);
 }
 
 .form-group textarea {
@@ -571,12 +567,12 @@
   padding: 13px;
   border: 1px dashed #445067;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--bg-hover);
   cursor: pointer;
 }
 
 .file-picker:hover {
-  border-color: rgba(244, 180, 0, 0.45);
+  border-color: var(--brand-primary-soft);
   background: rgba(244, 180, 0, 0.035);
 }
 
@@ -600,13 +596,13 @@
 }
 
 .file-picker strong {
-  color: #f5f7fb;
+  color: var(--text-primary);
   font-size: 0.86rem;
 }
 
 .file-picker small {
   margin-top: 3px;
-  color: #8d98aa;
+  color: var(--text-muted);
   font-size: 0.73rem;
 }
 
@@ -614,7 +610,7 @@
   padding: 7px 10px;
   border-radius: 9px;
   background: #1b202b;
-  border: 1px solid #343c4f;
+  border: 1px solid var(--border-color);
   color: #dfe4ee;
   font-size: 0.77rem;
   font-weight: 800;
@@ -626,7 +622,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #ff9b9b;
+  color: var(--danger);
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 700;
@@ -640,8 +636,8 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 22px;
-  background: rgba(26, 30, 40, 0.98);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-soft);
 }
 
 @media (max-width: 1100px) {
@@ -731,19 +727,19 @@
   padding: 15px 16px;
   border: 0;
   background: transparent;
-  color: #f5f7fb;
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
   transition: 0.18s ease;
 }
 
 .convenio-summary:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--bg-hover);
 }
 
 .convenio-card.convenio-abierto .convenio-summary {
   background: rgba(244, 180, 0, 0.035);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .convenio-summary-main {
@@ -760,9 +756,9 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #9aa4b2;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
   font-size: 1.45rem;
   line-height: 1;
   transform: rotate(0deg);
@@ -774,8 +770,8 @@
 
 .convenio-chevron.open {
   transform: rotate(90deg);
-  color: #f4b400;
-  border-color: rgba(244, 180, 0, 0.22);
+  color: var(--brand-primary);
+  border-color: var(--brand-primary-soft);
 }
 
 .convenio-summary-text {
@@ -789,7 +785,7 @@
 .convenio-summary-text strong {
   display: block;
   overflow: hidden;
-  color: #f5f7fb;
+  color: var(--text-primary);
   font-size: 1rem;
   line-height: 1.25;
   text-overflow: ellipsis;

@@ -1,29 +1,29 @@
-<section class="min-h-screen px-6 py-6 text-[#f5f7fb] lg:px-8 lg:py-6">
+<section class="min-h-screen px-6 py-6 text-[var(--text-primary)] lg:px-8 lg:py-6">
   <div class="grid gap-[18px]">
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <h1 class="mb-2 text-[clamp(2rem,3vw,2.8rem)] font-extrabold">
           Primas
         </h1>
-        <p class="text-[#9aa4b2]">
+        <p class="text-[var(--text-secondary)]">
           {{ nombreVisible }} · {{ rangoVisible }}
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         <button
-          class="h-11 w-11 rounded-[14px] border border-[#2f3748] bg-[#1d212b] text-lg font-bold text-white transition duration-200 hover:-translate-y-[1px] hover:bg-[#232938]"
+          class="h-11 w-11 rounded-[14px] border border-[var(--border-color)] bg-[var(--bg-card)] text-lg font-bold text-[var(--text-primary)] transition duration-200 hover:-translate-y-[1px] hover:bg-[var(--brand-primary-soft)]"
           (click)="semanaAnterior()">
           ←
         </button>
 
         <div class="min-w-[170px] text-center">
-          <div class="text-[1rem] font-bold text-white">{{ data.semana }}</div>
-          <div class="text-[0.82rem] text-[#9aa4b2]">{{ data.rangoFechas }}</div>
+          <div class="text-[1rem] font-bold text-[var(--text-primary)]">{{ data.semana }}</div>
+          <div class="text-[0.82rem] text-[var(--text-secondary)]">{{ data.rangoFechas }}</div>
         </div>
 
         <button
-          class="h-11 w-11 rounded-[14px] border border-[#2f3748] bg-[#1d212b] text-lg font-bold text-white transition duration-200 hover:-translate-y-[1px] hover:bg-[#232938] disabled:cursor-not-allowed disabled:opacity-50"
+          class="h-11 w-11 rounded-[14px] border border-[var(--border-color)] bg-[var(--bg-card)] text-lg font-bold text-[var(--text-primary)] transition duration-200 hover:-translate-y-[1px] hover:bg-[var(--brand-primary-soft)] disabled:cursor-not-allowed disabled:opacity-50"
           [disabled]="weekOffset === 0"
           (click)="semanaMasReciente()">
           →
@@ -33,8 +33,8 @@
 
     <div
       *ngIf="loading"
-      class="rounded-[18px] border border-[#2f3748] bg-[#1d212b] p-8 text-center shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-      <p class="text-[#9aa4b2]">Cargando primas...</p>
+      class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 text-center shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+      <p class="text-[var(--text-secondary)]">Cargando primas...</p>
     </div>
 
     <ng-container *ngIf="!loading">
@@ -45,42 +45,42 @@
       </div>
 
       <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-2">
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
           <div class="mb-4 flex items-start justify-between gap-3">
             <div>
-              <span class="block text-[0.84rem] text-[#9aa4b2]">Récord global de facturación semanal</span>
-              <strong class="mt-1 block text-[1.8rem] font-extrabold text-[#f5f7fb]">
+              <span class="block text-[0.84rem] text-[var(--text-secondary)]">Récord global de facturación semanal</span>
+              <strong class="mt-1 block text-[1.8rem] font-extrabold text-[var(--text-primary)]">
                 {{ data.recordGlobalFacturacion | currency:'USD':'symbol':'1.0-0' }}
               </strong>
             </div>
 
-            <div class="text-right text-[2rem] font-extrabold text-[#f4b400]">
+            <div class="text-right text-[2rem] font-extrabold text-[var(--brand-primary)]">
               {{ progresoRecordGlobal }}%
             </div>
           </div>
 
-          <div class="mb-4 h-3 overflow-hidden rounded-full border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)]">
+          <div class="mb-4 h-3 overflow-hidden rounded-full border border-[var(--border-soft)] bg-[var(--bg-hover)]">
             <div
-              class="h-full rounded-full bg-[#f4b400] transition-all duration-300"
+              class="h-full rounded-full bg-[var(--brand-primary)] transition-all duration-300"
               [style.width.%]="progresoRecordGlobal">
             </div>
           </div>
 
           <div class="flex items-center justify-between gap-3 text-[0.84rem]">
-            <span class="text-[#9aa4b2]">
+            <span class="text-[var(--text-secondary)]">
               Esta semana: {{ data.facturacionSemanal | currency:'USD':'symbol':'1.0-0' }}
             </span>
-            <span class="text-[#9aa4b2]">
+            <span class="text-[var(--text-secondary)]">
               Restante: {{ restanteRecordGlobal | currency:'USD':'symbol':'1.0-0' }}
             </span>
           </div>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
           <div class="mb-4 flex items-start justify-between gap-3">
             <div>
-              <span class="block text-[0.84rem] text-[#9aa4b2]">Récord personal de facturación semanal</span>
-              <strong class="mt-1 block text-[1.8rem] font-extrabold text-[#f5f7fb]">
+              <span class="block text-[0.84rem] text-[var(--text-secondary)]">Récord personal de facturación semanal</span>
+              <strong class="mt-1 block text-[1.8rem] font-extrabold text-[var(--text-primary)]">
                 {{ data.recordPersonalFacturacion | currency:'USD':'symbol':'1.0-0' }}
               </strong>
             </div>
@@ -90,7 +90,7 @@
             </div>
           </div>
 
-          <div class="mb-4 h-3 overflow-hidden rounded-full border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)]">
+          <div class="mb-4 h-3 overflow-hidden rounded-full border border-[var(--border-soft)] bg-[var(--bg-hover)]">
             <div
               class="h-full rounded-full bg-[#10b981] transition-all duration-300"
               [style.width.%]="progresoRecordPersonal">
@@ -98,10 +98,10 @@
           </div>
 
           <div class="flex items-center justify-between gap-3 text-[0.84rem]">
-            <span class="text-[#9aa4b2]">
+            <span class="text-[var(--text-secondary)]">
               Esta semana: {{ data.facturacionSemanal | currency:'USD':'symbol':'1.0-0' }}
             </span>
-            <span class="text-[#9aa4b2]">
+            <span class="text-[var(--text-secondary)]">
               Restante: {{ restanteRecordPersonal | currency:'USD':'symbol':'1.0-0' }}
             </span>
           </div>
@@ -109,70 +109,70 @@
       </div>
 
       <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-8">
-        <article class="rounded-[18px] border border-[#2f3748] bg-[#2a54d6] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--brand-primary)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
           <span class="mb-[8px] block text-[0.84rem] text-[rgba(255,255,255,0.78)]">Prima total</span>
-          <strong class="text-[2rem] font-extrabold text-white">
+          <strong class="text-[2rem] font-extrabold text-[var(--text-primary)]">
             {{ data.primaEstimada | currency:'USD':'symbol':'1.0-0' }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Prima base</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Prima base</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.primaBase | currency:'USD':'symbol':'1.0-0' }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Horas extra</span>
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Horas extra</span>
           <strong class="text-[1.6rem] font-extrabold text-[#9ff3cf]">
             {{ data.extraHoras | currency:'USD':'symbol':'1.0-0' }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Facturación semanal</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)] xl:col-span-2">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Facturación semanal</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.facturacionSemanal | currency:'USD':'symbol':'1.0-0' }}
           </strong>
         </article>
       </div>
 
       <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-4">
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Horas</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Horas</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.horasTrabajadas }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Servicios</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Servicios</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.serviciosRealizados }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">Días trabajados</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">Días trabajados</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.diasTrabajados }}
           </strong>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-          <span class="mb-[8px] block text-[0.84rem] text-[#9aa4b2]">% aplicado</span>
-          <strong class="text-[1.6rem] font-extrabold text-[#f5f7fb]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+          <span class="mb-[8px] block text-[0.84rem] text-[var(--text-secondary)]">% aplicado</span>
+          <strong class="text-[1.6rem] font-extrabold text-[var(--text-primary)]">
             {{ data.porcentajeAplicado }}%
           </strong>
         </article>
       </div>
 
       <div class="grid grid-cols-1 gap-[18px] xl:grid-cols-2">
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
           <div class="mb-5">
             <h3 class="text-[1.15rem] font-bold">Actividad diaria</h3>
-            <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+            <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
               Desglose de la semana seleccionada.
             </p>
           </div>
@@ -180,25 +180,25 @@
           <div class="grid gap-3">
             <div
               *ngFor="let dia of data.actividadDiaria"
-              class="grid grid-cols-4 items-center gap-3 rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-3">
+              class="grid grid-cols-4 items-center gap-3 rounded-[14px] border border-[var(--border-soft)] bg-[var(--bg-hover)] p-3">
               <div>
-                <div class="font-bold text-white">{{ dia.dia }}</div>
-                <div class="text-[0.78rem] text-[#9aa4b2]">{{ dia.fecha }}</div>
+                <div class="font-bold text-[var(--text-primary)]">{{ dia.dia }}</div>
+                <div class="text-[0.78rem] text-[var(--text-secondary)]">{{ dia.fecha }}</div>
               </div>
 
               <div class="text-center">
-                <div class="text-[0.78rem] text-[#9aa4b2]">Horas</div>
+                <div class="text-[0.78rem] text-[var(--text-secondary)]">Horas</div>
                 <div class="font-bold">{{ dia.horas }}</div>
               </div>
 
               <div class="text-center">
-                <div class="text-[0.78rem] text-[#9aa4b2]">Servicios</div>
+                <div class="text-[0.78rem] text-[var(--text-secondary)]">Servicios</div>
                 <div class="font-bold">{{ dia.servicios }}</div>
               </div>
 
               <div class="text-right">
-                <div class="text-[0.78rem] text-[#9aa4b2]">Facturación</div>
-                <div class="font-bold text-[#f4b400]">
+                <div class="text-[0.78rem] text-[var(--text-secondary)]">Facturación</div>
+                <div class="font-bold text-[var(--brand-primary)]">
                   {{ dia.facturacion | currency:'USD':'symbol':'1.0-0' }}
                 </div>
               </div>
@@ -206,10 +206,10 @@
           </div>
         </article>
 
-        <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-[18px] shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
           <div class="mb-5">
             <h3 class="text-[1.15rem] font-bold">Evolución semanal</h3>
-            <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+            <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
               Mejor semana visible: {{ mejorSemanaHistorico }}
             </p>
           </div>
@@ -217,15 +217,15 @@
           <div class="grid gap-4">
             <div *ngFor="let h of data.historico">
               <div class="mb-2 flex items-center justify-between gap-3 text-[0.86rem]">
-                <span class="font-semibold text-white">{{ h.semana }}</span>
-                <span class="text-[#9aa4b2]">
+                <span class="font-semibold text-[var(--text-primary)]">{{ h.semana }}</span>
+                <span class="text-[var(--text-secondary)]">
                   {{ h.facturacion | currency:'USD':'symbol':'1.0-0' }}
                 </span>
               </div>
 
               <div class="h-3 overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
                 <div
-                  class="h-full rounded-full bg-[#f4b400] transition-all duration-300"
+                  class="h-full rounded-full bg-[var(--brand-primary)] transition-all duration-300"
                   [style.width.%]="getPorcentajeBarra(h.facturacion)">
                 </div>
               </div>
@@ -234,10 +234,10 @@
         </article>
       </div>
 
-      <article class="rounded-[18px] border border-[#2f3748] bg-[linear-gradient(180deg,rgba(35,41,56,0.92),rgba(26,30,40,0.95))] p-0 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-        <div class="border-b border-[rgba(255,255,255,0.06)] px-[18px] py-[18px]">
+      <article class="rounded-[18px] border border-[var(--border-color)] bg-[var(--bg-card)] p-0 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+        <div class="border-b border-[var(--border-soft)] px-[18px] py-[18px]">
           <h3 class="text-[1.15rem] font-bold">Histórico de primas</h3>
-          <p class="mt-1 text-[0.88rem] text-[#9aa4b2]">
+          <p class="mt-1 text-[0.88rem] text-[var(--text-secondary)]">
             Resumen de tus semanas registradas.
           </p>
         </div>
@@ -245,33 +245,33 @@
         <div class="w-full overflow-x-auto">
           <table class="w-full min-w-[980px] border-collapse">
             <thead>
-              <tr class="bg-[rgba(255,255,255,0.03)]">
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Semana</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Horas</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Servicios</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Facturación</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Prima base</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Horas extra</th>
-                <th class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[#9aa4b2]">Prima total</th>
+              <tr class="bg-[var(--bg-hover)]">
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Semana</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Horas</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Servicios</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Facturación</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Prima base</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Horas extra</th>
+                <th class="border-b border-[var(--border-soft)] px-4 py-[14px] text-left text-[0.8rem] font-bold uppercase tracking-[0.05em] text-[var(--text-secondary)]">Prima total</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr *ngFor="let h of data.historico" class="transition duration-150 hover:bg-[rgba(255,255,255,0.03)]">
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-[#f5f7fb]">
+              <tr *ngFor="let h of data.historico" class="transition duration-150 hover:bg-[var(--bg-hover)]">
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] text-[var(--text-primary)]">
                   <div class="font-semibold">{{ h.semana }}</div>
-                  <div class="text-[0.82rem] text-[#9aa4b2]">{{ h.rangoFechas }}</div>
+                  <div class="text-[0.82rem] text-[var(--text-secondary)]">{{ h.rangoFechas }}</div>
                 </td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-[#f5f7fb]">{{ h.horas }}</td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-[#f5f7fb]">{{ h.servicios }}</td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-[#f5f7fb]">{{ h.facturacion | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] text-[#f5f7fb]">{{ h.primaBase | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] font-bold text-[#9ff3cf]">{{ h.extraHoras | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="border-b border-[rgba(255,255,255,0.06)] px-4 py-[14px] font-bold text-[#9ff3cf]">{{ h.prima | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] text-[var(--text-primary)]">{{ h.horas }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] text-[var(--text-primary)]">{{ h.servicios }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] text-[var(--text-primary)]">{{ h.facturacion | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] text-[var(--text-primary)]">{{ h.primaBase | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] font-bold text-[#9ff3cf]">{{ h.extraHoras | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="border-b border-[var(--border-soft)] px-4 py-[14px] font-bold text-[#9ff3cf]">{{ h.prima | currency:'USD':'symbol':'1.0-0' }}</td>
               </tr>
 
               <tr *ngIf="data.historico.length === 0">
-                <td colspan="7" class="px-4 py-8 text-center text-[#9aa4b2]">
+                <td colspan="7" class="px-4 py-8 text-center text-[var(--text-secondary)]">
                   Sin histórico disponible
                 </td>
               </tr>

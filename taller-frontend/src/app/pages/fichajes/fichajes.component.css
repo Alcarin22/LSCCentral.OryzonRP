@@ -5,7 +5,7 @@
 .fichajes-page {
   min-height: 100vh;
   padding: 24px;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .fichajes-view {
@@ -25,16 +25,16 @@
 }
 
 .fichajes-header p {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(35,41,56,0.92), rgba(26,30,40,0.95));
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 18px;
   padding: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-card);
 }
 
 .fichajes-stats-grid {
@@ -51,17 +51,17 @@
 .fichaje-stat-card span,
 .card-header p,
 .form-group label {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.84rem;
 }
 
 .fichaje-stat-card strong {
   font-size: 1.6rem;
-  color: #f5f7fb;
+  color: var(--text-primary);
 }
 
 .fichaje-stat-card.main-stat {
-  background: #2a54d6;
+  background: var(--brand-primary);
 }
 
 .fichaje-stat-card.main-stat span {
@@ -78,7 +78,7 @@
 
 .card-header h3 {
   font-size: 1.05rem;
-  color: #f5f7fb;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -113,9 +113,9 @@
 .form-group input,
 .form-group select {
   width: 100%;
-  border: 1px solid #2f3748;
-  background: rgba(255,255,255,0.03);
-  color: #f5f7fb;
+  border: 1px solid var(--border-color);
+  background: var(--bg-hover);
+  color: var(--text-primary);
   border-radius: 14px;
   padding: 12px 14px;
   outline: none;
@@ -132,14 +132,14 @@
 }
 
 .btn-primary {
-  background: #f4b400;
-  color: #111;
+  background: var(--brand-primary);
+  color: var(--text-inverse);
 }
 
 .btn-secondary {
-  background: #1d212b;
-  color: #f5f7fb;
-  border: 1px solid #2f3748;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .btn:hover {
@@ -151,7 +151,7 @@
 }
 
 .loading-card p {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -161,7 +161,7 @@
   background: rgba(239,68,68,0.15);
   padding: 18px;
   text-align: center;
-  color: #ffb4b4;
+  color: var(--danger);
 }
 
 .fichajes-table-card {
@@ -189,12 +189,12 @@
 .fichajes-table td {
   text-align: left;
   padding: 14px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-soft);
   vertical-align: middle;
 }
 
 .fichajes-table th {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -207,12 +207,12 @@
 }
 
 .fichaje-main-row:hover {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-hover);
   filter: brightness(1.1);
 }
 
 .fichaje-main-row.is-open {
-  background: rgba(244,180,0,0.06);
+  background: var(--brand-primary-soft);
 }
 
 .fichaje-detail-row {
@@ -231,8 +231,8 @@
   margin: 12px;
   padding: 18px;
   border-radius: 16px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-soft);
   display: grid;
   gap: 14px;
 }
@@ -246,27 +246,27 @@
 .fichaje-detail-item {
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--bg-hover);
+  border: 1px solid var(--bg-hover);
   display: grid;
   gap: 6px;
 }
 
 .fichaje-detail-item span {
-  color: #9aa4b2;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   font-weight: 600;
 }
 
 .fichaje-detail-item strong {
-  color: #f5f7fb;
+  color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 700;
   word-break: break-word;
 }
 
 .fichaje-time {
-  color: #f4b400;
+  color: var(--brand-primary);
   font-weight: 800;
 }
 
@@ -282,19 +282,19 @@
 .status-ok {
   background: rgba(16,185,129,0.12);
   border: 1px solid rgba(16,185,129,0.22);
-  color: #9ff3cf;
+  color: var(--success);
 }
 
 .status-active {
-  background: rgba(244,180,0,0.12);
+  background: var(--brand-primary-soft);
   border: 1px solid rgba(244,180,0,0.2);
-  color: #f4b400;
+  color: var(--brand-primary);
 }
 
 .empty-row {
   padding: 28px;
   text-align: center;
-  color: #9aa4b2;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 1200px) {
