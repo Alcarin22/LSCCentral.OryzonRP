@@ -67,6 +67,10 @@
 .fichaje-stat-card.main-stat span {
   color: rgba(255,255,255,0.78);
 }
+.fichaje-stat-card.main-stat strong {
+  color: var(--text-inverse);
+}
+
 
 .card-header {
   display: flex;

@@ -77,7 +77,7 @@
     var(--brand-primary-soft)
   );
   border: 1px solid var(--brand-primary-soft);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-card);
 }
 
 .alerta-icon {
@@ -97,7 +97,7 @@
 }
 
 .alerta-content strong {
-  color: #ffd66b;
+  color: var(--warning);
   font-size: 0.96rem;
   font-weight: 900;
 }
@@ -155,7 +155,7 @@
   border-radius: 18px;
   padding: 18px;
   margin-bottom: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--shadow-card);
 }
 
 .filtro-group {
@@ -274,7 +274,7 @@
 .estado-badge.tasacion.pendiente,
 .estado-tasacion-badge.pendiente {
   background: var(--brand-primary-soft);
-  color: #ffd66b;
+  color: var(--warning);
 }
 
 .estado-badge.tasacion.enviada,
@@ -294,7 +294,7 @@
 
 .total-column {
   font-weight: 900;
-  color: #ffd66b;
+  color: var(--warning);
 }
 
 .acciones-column {

@@ -9,11 +9,11 @@
 
 :root {
   /* Fondos */
-  --bg-main: #f3f4f6;
+  --bg-main: #e7ebef;
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-secondary: #e9ecef;
-  --bg-hover: #f7f9fb;
+  --bg-card-secondary: #edf1f4;
+  --bg-hover: #f4f6f8;
 
   /* Branding LSC */
   --brand-primary: #003366;
@@ -34,8 +34,8 @@
   --text-inverse: #ffffff;
 
   /* Bordes */
-  --border-color: #d4d8dd;
-  --border-soft: #e5e8eb;
+  --border-color: #c8d0d8;
+  --border-soft: #dce2e7;
 
   /* Estados */
   --success: #16875d;
@@ -46,8 +46,8 @@
   --warning-soft: #fbf1df;
 
   /* Sombras */
-  --shadow-soft: 0 8px 24px rgba(31, 41, 55, 0.07);
-  --shadow-card: 0 14px 32px rgba(31, 41, 55, 0.08);
+  --shadow-soft: 0 8px 24px rgba(31, 41, 55, 0.10);
+  --shadow-card: 0 12px 30px rgba(31, 41, 55, 0.13);
   --shadow-brand: 0 10px 24px rgba(0, 51, 102, 0.18);
 
   /* Radios */
@@ -174,3 +174,42 @@ textarea:focus {
 .bg-theme-card { background: var(--bg-card) !important; }
 .bg-theme-hover { background: var(--bg-hover) !important; }
 .border-theme { border-color: var(--border-color) !important; }
+
+
+/* =========================================================
+   CONTRASTE DE SUPERFICIES Y ACCIONES DE MARCA
+   ========================================================= */
+
+/* Toda acción con fondo azul LSC debe usar texto blanco. */
+.btn-primary,
+.btn-primary *,
+.admin-tab.active,
+.admin-tab.active *,
+.btn-actual,
+.btn-actual *,
+.page-dot.active,
+.page-dot.active * {
+  color: var(--text-inverse) !important;
+}
+
+/* Tarjetas destacadas con fondo de marca. */
+.main-stat,
+.main-stat *,
+.admin-stat-card.main-stat,
+.admin-stat-card.main-stat *,
+.fichaje-stat-card.main-stat,
+.fichaje-stat-card.main-stat *,
+.card.highlight,
+.card.highlight * {
+  color: var(--text-inverse) !important;
+}
+
+/* Separación visual consistente entre fondo general y superficies. */
+.card,
+.factura-card,
+.stat-card,
+.summary-card,
+.admin-stat-card,
+.fichaje-stat-card {
+  border-color: var(--border-color);
+}

@@ -254,7 +254,7 @@
           <button
             type="button"
             (click)="agregarAFacturacion()"
-            class="rounded-xl bg-[var(--brand-primary)] px-6 py-3 font-bold text-black transition hover:-translate-y-0.5"
+            class="rounded-xl bg-[var(--brand-primary)] px-6 py-3 font-bold text-white transition hover:-translate-y-0.5"
           >
             + Añadir a facturación
           </button>
@@ -351,7 +351,7 @@
               type="button"
               (click)="generarFacturacion()"
               [disabled]="enviando"
-              class="rounded-xl bg-[var(--brand-primary)] px-6 py-3 font-bold text-black disabled:opacity-50"
+              class="rounded-xl bg-[var(--brand-primary)] px-6 py-3 font-bold text-white disabled:opacity-50"
             >
               {{ enviando ? 'Generando...' : 'Generar facturación' }}
             </button>

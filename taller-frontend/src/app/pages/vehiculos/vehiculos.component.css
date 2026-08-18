@@ -124,6 +124,10 @@
 .main-stat span {
   color: rgba(255,255,255,0.78);
 }
+.main-stat strong {
+  color: var(--text-inverse);
+}
+
 
 .loading-card,
 .empty-card,
@@ -195,7 +199,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   background: var(--brand-primary-soft);
-  border: 1px solid rgba(244,180,0,0.2);
+  border: 1px solid rgba(0, 51, 102, 0.20);
   color: var(--text-primary);
   font-size: 0.78rem;
   font-weight: 800;

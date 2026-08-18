@@ -188,7 +188,7 @@
   padding: 14px 16px;
   border-radius: 14px;
   background: var(--brand-primary-soft);
-  border: 1px solid rgba(244, 180, 0, 0.2);
+  border: 1px solid #bfd0df;
 }
 
 .total-row span {
@@ -222,7 +222,7 @@
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  background: #ffca2c;
+  background: var(--brand-primary-hover);
 }
 
 .btn-primary:active {
