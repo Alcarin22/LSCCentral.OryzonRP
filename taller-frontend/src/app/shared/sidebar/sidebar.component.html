@@ -61,9 +61,14 @@
   </nav>
 
   <div class="theme-toggle">
-    <button type="button" (click)="toggleTheme()">
-      <span *ngIf="isDarkMode">🌙</span>
-      <span *ngIf="!isDarkMode">☀️</span>
+    <button
+      type="button"
+      (click)="toggleTheme()"
+      [attr.aria-label]="isDarkMode ? 'Activar modo día' : 'Activar modo noche'"
+      [title]="isDarkMode ? 'Cambiar a modo día' : 'Cambiar a modo noche'"
+    >
+      <span *ngIf="!isDarkMode">🌙</span>
+      <span *ngIf="isDarkMode">☀️</span>
     </button>
   </div>
 

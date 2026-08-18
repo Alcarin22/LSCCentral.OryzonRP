@@ -4,7 +4,7 @@
 
 /* =========================================================
    LSC CENTRAL - SISTEMA GLOBAL DE COLORES
-   TEMA CLARO
+   TEMA CLARO + MODO NOCHE
    ========================================================= */
 
 :root {
@@ -56,6 +56,72 @@
   --radius-lg: 18px;
   --radius-xl: 22px;
 }
+
+
+
+/* =========================================================
+   TEMA CLARO EXPLÍCITO
+   El :root ya contiene la paleta de día. Esta clase existe
+   para que el cambio de tema sea simétrico y fácil de mantener.
+   ========================================================= */
+
+body.light-mode {
+  color-scheme: light;
+}
+
+/* =========================================================
+   TEMA NOCHE
+   Gris carbón + blanco + azul LSC.
+   Solo cambian variables: los componentes reutilizan la
+   misma estructura visual del modo día.
+   ========================================================= */
+
+body.dark-mode {
+  color-scheme: dark;
+
+  /* Fondos */
+  --bg-main: #0b1118;
+  --bg-surface: #101821;
+  --bg-card: #17212b;
+  --bg-card-secondary: #202c37;
+  --bg-hover: #1c2935;
+
+  /* Branding LSC */
+  --brand-primary: #0b4f82;
+  --brand-primary-hover: #126ca8;
+  --brand-primary-dark: #003366;
+  --brand-primary-soft: #18364d;
+  --brand-primary-soft-hover: #20465f;
+
+  /* Grises */
+  --gray-dark: #dce3ea;
+  --gray-medium: #aeb9c4;
+  --gray-soft: #81909d;
+
+  /* Texto */
+  --text-primary: #f3f6f9;
+  --text-secondary: #aeb8c2;
+  --text-muted: #7f8d99;
+  --text-inverse: #ffffff;
+
+  /* Bordes */
+  --border-color: #2d3a47;
+  --border-soft: #25313d;
+
+  /* Estados */
+  --success: #48c995;
+  --success-soft: #143a2d;
+  --danger: #f0787f;
+  --danger-soft: #3d2025;
+  --warning: #e0ad52;
+  --warning-soft: #3b3020;
+
+  /* Sombras */
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.24);
+  --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.34);
+  --shadow-brand: 0 10px 24px rgba(0, 51, 102, 0.34);
+}
+
 
 /* =========================================================
    RESET BASE
@@ -128,16 +194,16 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #e9ecef;
+  background: var(--bg-card-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #b6bdc5;
+  background: var(--gray-soft);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ba5af;
+  background: var(--gray-medium);
 }
 
 
@@ -212,4 +278,92 @@ textarea:focus {
 .admin-stat-card,
 .fichaje-stat-card {
   border-color: var(--border-color);
+}
+
+
+/* =========================================================
+   COMPATIBILIDAD GLOBAL DEL MODO NOCHE
+   Cubre utilidades antiguas de Tailwind/estilos heredados que
+   todavía contienen colores claros escritos directamente.
+   ========================================================= */
+
+body.dark-mode {
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+body.dark-mode .main-content {
+  background: var(--bg-main);
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+  color: var(--text-primary);
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: var(--bg-card-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: var(--text-muted);
+}
+
+body.dark-mode select option {
+  background: var(--bg-card-secondary);
+  color: var(--text-primary);
+}
+
+/* Utilidades claras que puedan quedar en plantillas antiguas. */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100,
+body.dark-mode .bg-slate-50,
+body.dark-mode .bg-slate-100 {
+  background-color: var(--bg-card) !important;
+}
+
+body.dark-mode .text-black,
+body.dark-mode .text-gray-900,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-slate-900,
+body.dark-mode .text-slate-800 {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-500,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-slate-600,
+body.dark-mode .text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-slate-100,
+body.dark-mode .border-slate-200 {
+  border-color: var(--border-color) !important;
+}
+
+/* Las acciones de marca conservan siempre texto blanco. */
+body.dark-mode .btn-primary,
+body.dark-mode .btn-primary *,
+body.dark-mode .admin-tab.active,
+body.dark-mode .admin-tab.active *,
+body.dark-mode .btn-actual,
+body.dark-mode .btn-actual *,
+body.dark-mode .page-dot.active,
+body.dark-mode .page-dot.active * {
+  color: #ffffff !important;
 }

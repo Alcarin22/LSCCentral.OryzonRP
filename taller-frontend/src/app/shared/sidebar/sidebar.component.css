@@ -110,7 +110,7 @@
 }
 
 .menu::-webkit-scrollbar-thumb {
-  background: #c5cbd1;
+  background: var(--gray-soft);
   border-radius: 10px;
 }
 
@@ -139,7 +139,7 @@
 
 .theme-toggle button:hover {
   background: var(--brand-primary-soft);
-  border-color: #b7cbdd;
+  border-color: var(--brand-primary-hover);
 }
 
 /* PERFIL */
@@ -232,6 +232,11 @@
 
 .logout-btn:hover {
   background: var(--danger-soft);
-  border-color: #efc6ca;
+  border-color: var(--danger);
   color: var(--danger);
+}
+
+
+body.dark-mode .sidebar {
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.28);
 }

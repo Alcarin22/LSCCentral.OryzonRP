@@ -14,7 +14,7 @@ import { SessionEmpleado, SessionService } from '../../core/services/session.ser
 export class SidebarComponent implements OnInit {
   empleado: SessionEmpleado | null = null;
 
-  isDarkMode = true;
+  isDarkMode = false;
   avatar = '';
   nombre = 'Invitado';
   rango = 'Sin rango';
@@ -32,7 +32,9 @@ export class SidebarComponent implements OnInit {
     this.rango = this.empleado?.rango?.nombre || 'Sin rango';
 
     const savedTheme = localStorage.getItem('theme');
-    this.isDarkMode = savedTheme ? savedTheme === 'dark' : true;
+
+    // El tema claro es el tema por defecto de LSC Central.
+    this.isDarkMode = savedTheme === 'dark';
     this.aplicarTema();
   }
 
@@ -48,7 +50,14 @@ export class SidebarComponent implements OnInit {
   }
 
   private aplicarTema(): void {
-    document.body.classList.toggle('light-mode', !this.isDarkMode);
-    document.body.classList.toggle('dark-mode', this.isDarkMode);
+    const body = document.body;
+
+    body.classList.toggle('light-mode', !this.isDarkMode);
+    body.classList.toggle('dark-mode', this.isDarkMode);
+
+    // También permite que controles nativos adopten correctamente el tema.
+    document.documentElement.style.colorScheme = this.isDarkMode
+      ? 'dark'
+      : 'light';
   }
 }
