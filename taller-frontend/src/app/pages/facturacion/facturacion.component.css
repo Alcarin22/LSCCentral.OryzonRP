@@ -232,11 +232,16 @@
 
 .tabla-container {
   overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .tabla-facturacion {
   width: 100%;
   border-collapse: collapse;
+  background: var(--bg-card);
 }
 
 .tabla-facturacion th,
@@ -250,13 +255,21 @@
 }
 
 .factura-row {
-  border-bottom: 1px solid var(--bg-hover);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-soft);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.factura-row:nth-child(4n + 3) {
+  background: #f7f9fb;
 }
 
 .factura-row:hover {
-  background: var(--bg-hover);
+  background: var(--brand-primary-soft);
+  box-shadow: inset 4px 0 0 var(--brand-primary);
 }
 
 .tipo-badge,
