@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
@@ -37,75 +36,32 @@ public class Convenio {
     @Column(name = "archivo_tipo_mime", length = 150)
     private String archivoTipoMime;
 
-    @Lob
-    @Column(name = "archivo_contenido", columnDefinition = "LONGBLOB")
-    private byte[] archivoContenido;
+    @Column(name = "archivo_ruta", length = 500)
+    private String archivoRuta;
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public String getLocal() {
-        return local;
-    }
+    public String getLocal() { return local; }
+    public void setLocal(String local) { this.local = local; }
 
-    public void setLocal(String local) {
-        this.local = local;
-    }
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 
-    public String getCategoria() {
-        return categoria;
-    }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
+    public String getCondicionesLsc() { return condicionesLsc; }
+    public void setCondicionesLsc(String condicionesLsc) { this.condicionesLsc = condicionesLsc; }
 
-    public String getEstado() {
-        return estado;
-    }
+    public String getCondicionesLocal() { return condicionesLocal; }
+    public void setCondicionesLocal(String condicionesLocal) { this.condicionesLocal = condicionesLocal; }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    public String getArchivoNombre() { return archivoNombre; }
+    public void setArchivoNombre(String archivoNombre) { this.archivoNombre = archivoNombre; }
 
-    public String getCondicionesLsc() {
-        return condicionesLsc;
-    }
+    public String getArchivoTipoMime() { return archivoTipoMime; }
+    public void setArchivoTipoMime(String archivoTipoMime) { this.archivoTipoMime = archivoTipoMime; }
 
-    public void setCondicionesLsc(String condicionesLsc) {
-        this.condicionesLsc = condicionesLsc;
-    }
-
-    public String getCondicionesLocal() {
-        return condicionesLocal;
-    }
-
-    public void setCondicionesLocal(String condicionesLocal) {
-        this.condicionesLocal = condicionesLocal;
-    }
-
-    public String getArchivoNombre() {
-        return archivoNombre;
-    }
-
-    public void setArchivoNombre(String archivoNombre) {
-        this.archivoNombre = archivoNombre;
-    }
-
-    public String getArchivoTipoMime() {
-        return archivoTipoMime;
-    }
-
-    public void setArchivoTipoMime(String archivoTipoMime) {
-        this.archivoTipoMime = archivoTipoMime;
-    }
-
-    public byte[] getArchivoContenido() {
-        return archivoContenido;
-    }
-
-    public void setArchivoContenido(byte[] archivoContenido) {
-        this.archivoContenido = archivoContenido;
-    }
+    public String getArchivoRuta() { return archivoRuta; }
+    public void setArchivoRuta(String archivoRuta) { this.archivoRuta = archivoRuta; }
 }

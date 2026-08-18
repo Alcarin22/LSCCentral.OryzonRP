@@ -124,7 +124,7 @@
                 (click)="verArchivo(convenio)"
               >
                 <span>📎</span>
-                Ver archivo
+                Ver imagen
                 <small *ngIf="convenio.archivoNombre">
                   {{ convenio.archivoNombre }}
                 </small>
@@ -132,7 +132,7 @@
 
               <ng-template #sinArchivo>
                 <div class="sin-archivo">
-                  Sin archivo asociado
+                  Sin imagen asociada
                 </div>
               </ng-template>
             </div>
@@ -309,7 +309,7 @@
                       ? 'Archivo preparado para subir'
                       : convenioEditandoId !== null && archivoExistenteNombre
                         ? 'Selecciona uno nuevo solo si quieres sustituir el actual'
-                        : 'PDF, imagen u otro documento · máximo 10 MB'
+                        : 'Imagen PNG · máximo 10 MB'
                   }}
                 </small>
               </div>
@@ -322,6 +322,7 @@
               id="convenio-archivo"
               class="file-input-hidden"
               type="file"
+              accept="image/png,.png"
               [disabled]="guardando"
               (change)="onArchivoSeleccionado($event)"
             />
@@ -360,4 +361,24 @@
       </div>
     </section>
   </div>
+
+  <div class="visor-backdrop" *ngIf="visorAbierto" (click)="cerrarVisorDesdeFondo($event)">
+    <section class="visor-card" role="dialog" aria-modal="true" aria-labelledby="visor-convenio-title">
+      <div class="visor-header">
+        <div>
+          <span class="modal-kicker">Imagen del convenio</span>
+          <h2 id="visor-convenio-title">{{ visorTitulo }}</h2>
+        </div>
+        <button type="button" class="modal-close" (click)="cerrarVisor()" aria-label="Cerrar imagen">×</button>
+      </div>
+      <div class="visor-body">
+        <div *ngIf="visorCargando" class="visor-loading">
+          <div class="loading-spinner"></div>
+          <span>Cargando imagen...</span>
+        </div>
+        <img *ngIf="!visorCargando && visorImagenUrl" class="visor-imagen" [src]="visorImagenUrl" [alt]="'Imagen del convenio con ' + visorTitulo" />
+      </div>
+    </section>
+  </div>
+
 </section>

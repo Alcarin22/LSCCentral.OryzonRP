@@ -1,9 +1,12 @@
 package com.taller.backend.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,11 +34,33 @@ public class ConvenioService {
     );
 
     private static final long TAMANO_MAXIMO_ARCHIVO = 10L * 1024L * 1024L;
+    private static final String MIME_PNG = "image/png";
 
     private final ConvenioRepository convenioRepository;
+    private final Path carpetaConvenios;
 
     public ConvenioService(ConvenioRepository convenioRepository) {
         this.convenioRepository = convenioRepository;
+
+        String raizUploads = System.getenv("RAILWAY_VOLUME_MOUNT_PATH");
+
+        if (raizUploads == null || raizUploads.isBlank()) {
+            raizUploads = "uploads";
+        }
+
+        this.carpetaConvenios = Path.of(raizUploads, "convenios")
+                .toAbsolutePath()
+                .normalize();
+
+        try {
+            Files.createDirectories(this.carpetaConvenios);
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "No se pudo crear la carpeta de archivos de convenios: "
+                            + this.carpetaConvenios,
+                    e
+            );
+        }
     }
 
     @Transactional(readOnly = true)
@@ -77,9 +102,10 @@ public class ConvenioService {
         Convenio convenio = obtenerEntidad(id);
         aplicarDatos(convenio, request);
 
-        // Si no llega un archivo nuevo, se conserva el archivo existente.
         if (archivo != null && !archivo.isEmpty()) {
+            String rutaAnterior = convenio.getArchivoRuta();
             aplicarArchivo(convenio, archivo);
+            eliminarArchivoFisico(rutaAnterior);
         }
 
         return mapearResponse(
@@ -90,7 +116,12 @@ public class ConvenioService {
     @Transactional
     public void eliminar(Long id) {
         Convenio convenio = obtenerEntidad(id);
+        String rutaArchivo = convenio.getArchivoRuta();
+
         convenioRepository.delete(convenio);
+        convenioRepository.flush();
+
+        eliminarArchivoFisico(rutaArchivo);
     }
 
     @Transactional(readOnly = true)
@@ -100,6 +131,35 @@ public class ConvenioService {
                 .orElseThrow(
                         () -> new RuntimeException("Convenio no encontrado")
                 );
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] obtenerArchivo(Long id) {
+        Convenio convenio = obtenerEntidad(id);
+
+        if (convenio.getArchivoRuta() == null
+                || convenio.getArchivoRuta().isBlank()) {
+            throw new RuntimeException(
+                    "El convenio no tiene ninguna imagen asociada"
+            );
+        }
+
+        Path ruta = resolverRutaGuardada(convenio.getArchivoRuta());
+
+        if (!Files.exists(ruta) || !Files.isRegularFile(ruta)) {
+            throw new RuntimeException(
+                    "La imagen del convenio no existe en el almacenamiento"
+            );
+        }
+
+        try {
+            return Files.readAllBytes(ruta);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "No se pudo leer la imagen del convenio",
+                    e
+            );
+        }
     }
 
     private void aplicarDatos(
@@ -117,32 +177,98 @@ public class ConvenioService {
             Convenio convenio,
             MultipartFile archivo
     ) {
-        if (archivo.getSize() > TAMANO_MAXIMO_ARCHIVO) {
-            throw new RuntimeException(
-                    "El archivo no puede superar los 10 MB"
-            );
+        validarArchivoPng(archivo);
+
+        String nombreOriginal = limpiarNombreArchivo(
+                archivo.getOriginalFilename()
+        );
+
+        String nombreFisico = UUID.randomUUID() + ".png";
+        Path destino = carpetaConvenios
+                .resolve(nombreFisico)
+                .normalize();
+
+        if (!destino.startsWith(carpetaConvenios)) {
+            throw new RuntimeException("Ruta de archivo no válida");
         }
 
         try {
-            convenio.setArchivoNombre(
-                    limpiarNombreArchivo(archivo.getOriginalFilename())
-            );
-
-            convenio.setArchivoTipoMime(
-                    archivo.getContentType() != null
-                            ? archivo.getContentType()
-                            : "application/octet-stream"
-            );
-
-            convenio.setArchivoContenido(
-                    archivo.getBytes()
+            Files.createDirectories(carpetaConvenios);
+            Files.copy(
+                    archivo.getInputStream(),
+                    destino,
+                    StandardCopyOption.REPLACE_EXISTING
             );
         } catch (IOException e) {
             throw new RuntimeException(
-                    "No se pudo guardar el archivo del convenio",
+                    "No se pudo guardar la imagen del convenio",
                     e
             );
         }
+
+        convenio.setArchivoNombre(nombreOriginal);
+        convenio.setArchivoTipoMime(MIME_PNG);
+        convenio.setArchivoRuta("convenios/" + nombreFisico);
+    }
+
+    private void validarArchivoPng(MultipartFile archivo) {
+        if (archivo.getSize() > TAMANO_MAXIMO_ARCHIVO) {
+            throw new RuntimeException(
+                    "La imagen no puede superar los 10 MB"
+            );
+        }
+
+        String nombre = archivo.getOriginalFilename();
+
+        boolean extensionPng = nombre != null
+                && nombre.toLowerCase().endsWith(".png");
+
+        boolean mimePng = MIME_PNG.equalsIgnoreCase(
+                archivo.getContentType()
+        );
+
+        if (!extensionPng || !mimePng) {
+            throw new RuntimeException(
+                    "Solo se permiten imágenes en formato PNG"
+            );
+        }
+    }
+
+    private void eliminarArchivoFisico(String rutaGuardada) {
+        if (rutaGuardada == null || rutaGuardada.isBlank()) {
+            return;
+        }
+
+        Path ruta = resolverRutaGuardada(rutaGuardada);
+
+        try {
+            Files.deleteIfExists(ruta);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "No se pudo eliminar la imagen física del convenio",
+                    e
+            );
+        }
+    }
+
+    private Path resolverRutaGuardada(String rutaGuardada) {
+        String relativa = rutaGuardada
+                .replace('\\', '/')
+                .trim();
+
+        if (relativa.startsWith("convenios/")) {
+            relativa = relativa.substring("convenios/".length());
+        }
+
+        Path ruta = carpetaConvenios
+                .resolve(relativa)
+                .normalize();
+
+        if (!ruta.startsWith(carpetaConvenios)) {
+            throw new RuntimeException("Ruta de archivo no válida");
+        }
+
+        return ruta;
     }
 
     private ConvenioResponse mapearResponse(Convenio convenio) {
@@ -155,9 +281,8 @@ public class ConvenioService {
         response.setCondicionesLsc(convenio.getCondicionesLsc());
         response.setCondicionesLocal(convenio.getCondicionesLocal());
 
-        boolean tieneArchivo =
-                convenio.getArchivoContenido() != null
-                        && convenio.getArchivoContenido().length > 0;
+        boolean tieneArchivo = convenio.getArchivoRuta() != null
+                && !convenio.getArchivoRuta().isBlank();
 
         response.setTieneArchivo(tieneArchivo);
         response.setArchivoNombre(convenio.getArchivoNombre());
@@ -207,7 +332,7 @@ public class ConvenioService {
 
     private String limpiarNombreArchivo(String nombre) {
         if (nombre == null || nombre.isBlank()) {
-            return "archivo";
+            return "convenio.png";
         }
 
         String normalizado = nombre
@@ -220,12 +345,8 @@ public class ConvenioService {
             normalizado = normalizado.substring(ultimaBarra + 1);
         }
 
-        if (normalizado.isBlank()) {
-            return "archivo";
-        }
-
-        return normalizado.toLowerCase(Locale.ROOT).endsWith(".exe")
-                ? "archivo"
+        return normalizado.isBlank()
+                ? "convenio.png"
                 : normalizado;
     }
 }

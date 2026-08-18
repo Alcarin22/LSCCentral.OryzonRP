@@ -28,9 +28,7 @@ public class ConvenioController {
 
     private final ConvenioService convenioService;
 
-    public ConvenioController(
-            ConvenioService convenioService
-    ) {
+    public ConvenioController(ConvenioService convenioService) {
         this.convenioService = convenioService;
     }
 
@@ -39,23 +37,14 @@ public class ConvenioController {
         return convenioService.listar();
     }
 
-    @PostMapping(
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ConvenioResponse crear(
             @RequestPart("datos") ConvenioRequest request,
             @RequestPart(value = "archivo", required = false) MultipartFile archivo
     ) {
-        return convenioService.crear(
-                request,
-                archivo
-        );
+        return convenioService.crear(request, archivo);
     }
 
-    /*
-     * Endpoint REST estándar.
-     * Se mantiene para compatibilidad.
-     */
     @PutMapping(
             value = "/{id}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -65,18 +54,9 @@ public class ConvenioController {
             @RequestPart("datos") ConvenioRequest request,
             @RequestPart(value = "archivo", required = false) MultipartFile archivo
     ) {
-        return convenioService.actualizar(
-                id,
-                request,
-                archivo
-        );
+        return convenioService.actualizar(id, request, archivo);
     }
 
-    /*
-     * Endpoint utilizado por el frontend.
-     * Usamos POST para evitar problemas de despliegue/proxy con
-     * multipart/form-data + PUT.
-     */
     @PostMapping(
             value = "/{id}/actualizar",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -86,91 +66,39 @@ public class ConvenioController {
             @RequestPart("datos") ConvenioRequest request,
             @RequestPart(value = "archivo", required = false) MultipartFile archivo
     ) {
-        return convenioService.actualizar(
-                id,
-                request,
-                archivo
-        );
+        return convenioService.actualizar(id, request, archivo);
     }
 
-    /*
-     * Endpoint REST estándar.
-     * Se mantiene para compatibilidad.
-     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarDelete(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> eliminarDelete(@PathVariable Long id) {
         convenioService.eliminar(id);
-
-        return ResponseEntity
-                .noContent()
-                .build();
+        return ResponseEntity.noContent().build();
     }
 
-    /*
-     * Endpoint utilizado por el frontend.
-     * Usamos POST para que la operación funcione también detrás de
-     * proxies que puedan tratar DELETE de forma diferente.
-     */
     @PostMapping("/{id}/eliminar")
-    public ResponseEntity<Void> eliminarPost(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> eliminarPost(@PathVariable Long id) {
         convenioService.eliminar(id);
-
-        return ResponseEntity
-                .noContent()
-                .build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/archivo")
-    public ResponseEntity<byte[]> verArchivo(
-            @PathVariable Long id
-    ) {
-        Convenio convenio =
-                convenioService.obtenerEntidad(id);
+    public ResponseEntity<byte[]> verArchivo(@PathVariable Long id) {
+        Convenio convenio = convenioService.obtenerEntidad(id);
+        byte[] contenido = convenioService.obtenerArchivo(id);
 
-        byte[] contenido =
-                convenio.getArchivoContenido();
-
-        if (
-                contenido == null
-                        || contenido.length == 0
-        ) {
-            return ResponseEntity
-                    .notFound()
-                    .build();
-        }
-
-        MediaType mediaType =
-                MediaType.APPLICATION_OCTET_STREAM;
-
-        if (convenio.getArchivoTipoMime() != null) {
-            try {
-                mediaType =
-                        MediaType.parseMediaType(
-                                convenio.getArchivoTipoMime()
-                        );
-            } catch (Exception ignored) {
-                // Se usa application/octet-stream.
-            }
-        }
-
-        ContentDisposition disposition =
-                ContentDisposition
-                        .inline()
-                        .filename(
-                                convenio.getArchivoNombre() != null
-                                        ? convenio.getArchivoNombre()
-                                        : "archivo",
-                                StandardCharsets.UTF_8
-                        )
-                        .build();
+        ContentDisposition disposition = ContentDisposition
+                .inline()
+                .filename(
+                        convenio.getArchivoNombre() != null
+                                ? convenio.getArchivoNombre()
+                                : "convenio.png",
+                        StandardCharsets.UTF_8
+                )
+                .build();
 
         return ResponseEntity
                 .ok()
-                .contentType(mediaType)
+                .contentType(MediaType.IMAGE_PNG)
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         disposition.toString()
