@@ -34,7 +34,7 @@ import com.taller.backend.repository.PrimaRepository;
 public class PrimasService {
 
     private static final LocalDate FECHA_INICIO_SEMANA_0 =
-            LocalDate.of(2026, 4, 13);
+            LocalDate.of(2026, 8, 24);
 
     private static final int MINUTOS_BASE_SIN_EXTRAS = 7 * 60;
     private static final int IMPORTE_HORA_EXTRA = 1000;
