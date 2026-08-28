@@ -24,7 +24,6 @@ import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
 import com.taller.backend.entity.Fichaje;
 import com.taller.backend.entity.Prima;
-import com.taller.backend.entity.TipoServicio;
 import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.repository.FacturaRepository;
 import com.taller.backend.repository.FichajeRepository;
@@ -221,7 +220,6 @@ public class PrimasService {
                 .toList();
 
         int minutos = sumarMinutos(fichajes);
-        int minutosSeguridad = calcularMinutosSeguridad(empleado, fichajes);
 
         BigDecimal horas = BigDecimal
                 .valueOf(minutos)
@@ -251,11 +249,10 @@ public class PrimasService {
                         ? 0
                         : getPorcentajePrima(rangoNombre);
 
-        BigDecimal primaBase = calcularPrimaBaseMixta(
+        BigDecimal primaBase = calcularPrimaBase(
                 rangoNombre,
                 facturado,
                 minutos,
-                minutosSeguridad,
                 porcentaje
         );
 
@@ -485,35 +482,23 @@ public class PrimasService {
                 .toList();
     }
 
-    private BigDecimal calcularPrimaBaseMixta(
+    private BigDecimal calcularPrimaBase(
             String rangoNombre,
             BigDecimal facturado,
-            int minutosTotales,
-            int minutosSeguridad,
+            int minutosTrabajados,
             int porcentaje
     ) {
         if (esRangoSeguridad(rangoNombre)) {
-            return calcularPrimaBaseSeguridad(rangoNombre, minutosTotales);
+            return calcularPrimaBaseSeguridad(
+                    rangoNombre,
+                    minutosTrabajados
+            );
         }
 
-        BigDecimal primaMecanica = calcularPrimaBaseMecanico(facturado, porcentaje);
-        BigDecimal primaSeguridad = calcularPrimaBaseSeguridad("seguridad", minutosSeguridad);
-
-        return primaMecanica.add(primaSeguridad);
-    }
-
-    private int calcularMinutosSeguridad(Empleado empleado, List<Fichaje> fichajes) {
-        if (empleado != null && empleado.getRango() != null
-                && esRangoSeguridad(empleado.getRango().getNombre())) {
-            return sumarMinutos(fichajes);
-        }
-
-        return fichajes.stream()
-                .filter(f -> f.getTipoServicio() == TipoServicio.SEGURIDAD)
-                .map(Fichaje::getMinutosTrabajados)
-                .filter(Objects::nonNull)
-                .mapToInt(Integer::intValue)
-                .sum();
+        return calcularPrimaBaseMecanico(
+                facturado,
+                porcentaje
+        );
     }
 
     private BigDecimal calcularPrimaBaseMecanico(
