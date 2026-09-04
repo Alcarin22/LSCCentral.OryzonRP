@@ -274,27 +274,30 @@ export class FacturaComponent implements OnInit {
         break;
       }
 
-case 'Items': {
-  const itemSeleccionado = this.itemsDisponibles.find(
-    i => this.normalizarClave(i.nombre) === this.normalizarClave(this.item)
-  );
+      case 'Items': {
+        const itemSeleccionado = this.itemsDisponibles.find(
+          i => this.normalizarClave(i.nombre) === this.normalizarClave(this.item)
+        );
 
-  const cantidad = Math.max(1, Number(this.cantidad) || 1);
+        const cantidad = Math.max(
+          1,
+          Number(this.cantidad) || 1
+        );
 
-  // LSPD: los kits de reparación cuestan 500$ por unidad.
-  // El resto de items conserva su precio normal.
-  const esKitReparacion =
-    this.normalizarClave(this.item).includes('kit') &&
-    this.normalizarClave(this.item).includes('reparacion');
+        const nombreItem = this.normalizarClave(this.item);
 
-  if (this.lspd && esKitReparacion) {
-    base = 500 * cantidad;
-  } else {
-    base = (itemSeleccionado?.precio ?? 0) * cantidad;
-  }
+        const esKitReparacion =
+          nombreItem.includes('kit') &&
+          nombreItem.includes('reparacion');
 
-  break;
-}
+        if (this.lspd && esKitReparacion) {
+          base = 500 * cantidad;
+        } else {
+          base = (itemSeleccionado?.precio ?? 0) * cantidad;
+        }
+
+        break;
+      }
 
       case 'Tasación': {
         const precioSeleccionado = this.tasacionPrecios.find(
