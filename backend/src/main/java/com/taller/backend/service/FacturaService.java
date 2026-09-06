@@ -369,7 +369,7 @@ public class FacturaService {
         boolean lspd = Boolean.TRUE.equals(request.getLspd());
 
         if (lspd) {
-            subtotal = (int) Math.round(subtotal * 0.90);
+            subtotal = (int) Math.round(subtotal * 0.50);
         }
 
         FacturaItem linea = new FacturaItem();
