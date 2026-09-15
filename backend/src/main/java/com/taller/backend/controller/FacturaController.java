@@ -18,19 +18,26 @@ import com.taller.backend.dto.CreateFacturacionLoteRequest;
 import com.taller.backend.dto.CreateFacturacionLoteResponse;
 import com.taller.backend.dto.FacturaListadoResponse;
 import com.taller.backend.dto.FacturasPageResponse;
+import com.taller.backend.entity.Empleado;
 import com.taller.backend.entity.Factura;
+import com.taller.backend.repository.EmpleadoRepository;
 import com.taller.backend.service.FacturaService;
 
 @RestController
 @RequestMapping("/api/facturas")
 public class FacturaController {
 
+    private static final int NIVEL_GESTION_FACTURAS = 3;
+
     private final FacturaService facturaService;
+    private final EmpleadoRepository empleadoRepository;
 
     public FacturaController(
-            FacturaService facturaService
+            FacturaService facturaService,
+            EmpleadoRepository empleadoRepository
     ) {
         this.facturaService = facturaService;
+        this.empleadoRepository = empleadoRepository;
     }
 
     @PostMapping
@@ -89,8 +96,13 @@ public class FacturaController {
 
     @PatchMapping("/{id}/tasacion/enviada")
     public FacturaListadoResponse marcarTasacionEnviada(
+            Authentication authentication,
             @PathVariable Long id
     ) {
+
+        exigirNivelGestionFacturas(
+                authentication
+        );
 
         return facturaService.marcarTasacionEnviada(
                 id
@@ -99,12 +111,52 @@ public class FacturaController {
 
     @DeleteMapping("/{id}")
     public void eliminarFactura(
+            Authentication authentication,
             @PathVariable Long id
     ) {
+
+        exigirNivelGestionFacturas(
+                authentication
+        );
 
         facturaService.eliminarFactura(
                 id
         );
+    }
+
+    private void exigirNivelGestionFacturas(
+            Authentication authentication
+    ) {
+
+        String discordId =
+                obtenerDiscordIdAutenticado(
+                        authentication
+                );
+
+        Empleado empleado =
+                empleadoRepository
+                        .findByDiscordId(
+                                discordId
+                        )
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.UNAUTHORIZED,
+                                        "Empleado no encontrado"
+                                )
+                        );
+
+        if (
+                empleado.getRango() == null
+                        || empleado.getRango().getNivel() == null
+                        || empleado.getRango().getNivel()
+                                < NIVEL_GESTION_FACTURAS
+        ) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para gestionar facturas"
+            );
+        }
     }
 
     private String obtenerDiscordIdAutenticado(
