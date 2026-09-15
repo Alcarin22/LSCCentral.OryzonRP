@@ -15,6 +15,7 @@ export interface SessionEmpleado {
   nickServidor: string;
   puedeTrabajarComoSeguridad: boolean;
   token?: string;
+
   rango: {
     id: number;
     nombre: string;
@@ -27,18 +28,24 @@ export interface SessionEmpleado {
 })
 export class SessionService {
 
-  private static readonly EMPLEADO_STORAGE_KEY = 'empleado';
-  private static readonly TOKEN_STORAGE_KEY = 'auth_token';
+  private static readonly EMPLEADO_STORAGE_KEY =
+    'empleado';
+
+  private static readonly TOKEN_STORAGE_KEY =
+    'auth_token';
 
   private empleadoSubject =
     new BehaviorSubject<SessionEmpleado | null>(
       this.getEmpleadoFromStorage()
     );
 
-  empleado$ = this.empleadoSubject.asObservable();
+  empleado$ =
+    this.empleadoSubject.asObservable();
 
   private monitorSub?: Subscription;
-  private validandoSesion = false;
+
+  private validandoSesion =
+    false;
 
   constructor(
     private http: HttpClient,
@@ -46,9 +53,12 @@ export class SessionService {
     private toastService: ToastService
   ) {}
 
-  setEmpleado(empleado: SessionEmpleado): void {
+  setEmpleado(
+    empleado: SessionEmpleado
+  ): void {
 
     if (empleado.token) {
+
       sessionStorage.setItem(
         SessionService.TOKEN_STORAGE_KEY,
         empleado.token
@@ -62,19 +72,25 @@ export class SessionService {
 
     localStorage.setItem(
       SessionService.EMPLEADO_STORAGE_KEY,
-      JSON.stringify(empleadoSinToken)
+      JSON.stringify(
+        empleadoSinToken
+      )
     );
 
-    this.empleadoSubject.next(empleadoSinToken);
+    this.empleadoSubject.next(
+      empleadoSinToken
+    );
 
     this.iniciarMonitorSesion();
   }
 
   getEmpleado(): SessionEmpleado | null {
+
     return this.empleadoSubject.value;
   }
 
   getToken(): string | null {
+
     return sessionStorage.getItem(
       SessionService.TOKEN_STORAGE_KEY
     );
@@ -82,7 +98,8 @@ export class SessionService {
 
   isLogged(): boolean {
 
-    const empleado = this.getEmpleado();
+    const empleado =
+      this.getEmpleado();
 
     return !!empleado
       && empleado.activo !== false
@@ -99,7 +116,9 @@ export class SessionService {
       SessionService.TOKEN_STORAGE_KEY
     );
 
-    this.empleadoSubject.next(null);
+    this.empleadoSubject.next(
+      null
+    );
 
     this.detenerMonitorSesion();
   }
@@ -108,61 +127,71 @@ export class SessionService {
 
     if (
       this.monitorSub ||
-      !this.getEmpleado()?.discordId
+      !this.getEmpleado()
     ) {
       return;
     }
 
     this.validarSesionActual();
 
-    this.monitorSub = interval(1000).subscribe(() => {
-      this.validarSesionActual();
-    });
+    this.monitorSub =
+      interval(1000).subscribe(() => {
+
+        this.validarSesionActual();
+
+      });
   }
 
   detenerMonitorSesion(): void {
 
     this.monitorSub?.unsubscribe();
 
-    this.monitorSub = undefined;
-    this.validandoSesion = false;
+    this.monitorSub =
+      undefined;
+
+    this.validandoSesion =
+      false;
   }
 
   validarSesionActual(): void {
 
-    const empleado = this.getEmpleado();
-
     if (
-      !empleado?.discordId ||
+      !this.getEmpleado() ||
       this.validandoSesion
     ) {
       return;
     }
 
-    this.validandoSesion = true;
+    this.validandoSesion =
+      true;
 
     this.http
       .get<SessionEmpleado>(
-        `${environment.backendUrl}/api/session/empleado/${empleado.discordId}`
+        `${environment.backendUrl}/api/session/me`
       )
       .subscribe({
 
-        next: (empleadoActualizado) => {
+        next: (
+          empleadoActualizado
+        ) => {
 
-          this.validandoSesion = false;
+          this.validandoSesion =
+            false;
 
           if (
             !empleadoActualizado ||
             empleadoActualizado.activo === false
           ) {
+
             this.cerrarSesionPorInactividad();
+
             return;
           }
 
           /*
-           * El endpoint de sesión no devuelve un JWT nuevo.
-           * Por eso actualizamos únicamente los datos del empleado
-           * y conservamos el token guardado en sessionStorage.
+           * El JWT permanece exclusivamente en sessionStorage.
+           * La información del empleado se actualiza
+           * independientemente del token.
            */
           const empleadoSinToken: SessionEmpleado = {
             ...empleadoActualizado,
@@ -171,7 +200,9 @@ export class SessionService {
 
           localStorage.setItem(
             SessionService.EMPLEADO_STORAGE_KEY,
-            JSON.stringify(empleadoSinToken)
+            JSON.stringify(
+              empleadoSinToken
+            )
           );
 
           this.empleadoSubject.next(
@@ -179,9 +210,22 @@ export class SessionService {
           );
         },
 
-        error: (error) => {
+        error: (
+          error
+        ) => {
 
-          this.validandoSesion = false;
+          this.validandoSesion =
+            false;
+
+          if (
+            error.status === 401 ||
+            error.status === 403
+          ) {
+
+            this.cerrarSesionPorExpiracion();
+
+            return;
+          }
 
           console.error(
             'Error validando sesión:',
@@ -199,14 +243,31 @@ export class SessionService {
       'Tu acceso ha sido desactivado.'
     );
 
-    this.router.navigate(['/login']);
+    this.router.navigate([
+      '/login'
+    ]);
   }
 
-  private getEmpleadoFromStorage(): SessionEmpleado | null {
+  private cerrarSesionPorExpiracion(): void {
 
-    const data = localStorage.getItem(
-      SessionService.EMPLEADO_STORAGE_KEY
+    this.logout();
+
+    this.toastService.error(
+      'Tu sesión ha caducado. Inicia sesión de nuevo.'
     );
+
+    this.router.navigate([
+      '/login'
+    ]);
+  }
+
+  private getEmpleadoFromStorage():
+    SessionEmpleado | null {
+
+    const data =
+      localStorage.getItem(
+        SessionService.EMPLEADO_STORAGE_KEY
+      );
 
     if (!data) {
       return null;
@@ -215,9 +276,13 @@ export class SessionService {
     try {
 
       const empleado =
-        JSON.parse(data) as SessionEmpleado;
+        JSON.parse(
+          data
+        ) as SessionEmpleado;
 
-      if (empleado.activo === false) {
+      if (
+        empleado.activo === false
+      ) {
 
         localStorage.removeItem(
           SessionService.EMPLEADO_STORAGE_KEY
