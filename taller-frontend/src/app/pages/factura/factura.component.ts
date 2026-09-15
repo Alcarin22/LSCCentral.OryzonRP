@@ -421,53 +421,84 @@ export class FacturaComponent implements OnInit {
     this.elementosFacturacion = [];
   }
 
-  generarFacturacion(): void {
-    if (!this.empleado?.discordId) {
-      this.toastService.error('No hay sesión de empleado activa.');
-      return;
-    }
+generarFacturacion(): void {
 
-    if (this.elementosFacturacion.length === 0) {
-      this.toastService.warning('Añade al menos un elemento antes de generar la facturación.');
-      return;
-    }
+  if (!this.empleado) {
+    this.toastService.error(
+      'No hay sesión de empleado activa.'
+    );
+    return;
+  }
 
-    if (this.enviando) {
-      return;
-    }
+  if (this.elementosFacturacion.length === 0) {
 
-    const payload: CreateFacturacionLoteRequest = {
-      discordId: this.empleado.discordId,
-      elementos: this.elementosFacturacion.map(elemento => ({
-        ...elemento.payload,
-        discordId: this.empleado!.discordId
-      }))
-    };
+    this.toastService.warning(
+      'Añade al menos un elemento antes de generar la facturación.'
+    );
 
-    this.enviando = true;
+    return;
+  }
 
-    this.facturaService.crearFacturacionLote(payload).subscribe({
+  if (this.enviando) {
+    return;
+  }
+
+  const payload: CreateFacturacionLoteRequest = {
+
+    elementos:
+      this.elementosFacturacion.map(
+        elemento => ({
+          ...elemento.payload
+        })
+      )
+  };
+
+  this.enviando = true;
+
+  this.facturaService
+    .crearFacturacionLote(
+      payload
+    )
+    .subscribe({
+
       next: (response) => {
-        const numeroFacturas = response.totalFacturas ?? 0;
-        const totalGeneral = response.totalGeneral ?? this.totalFacturacion;
+
+        const numeroFacturas =
+          response.totalFacturas
+          ?? 0;
+
+        const totalGeneral =
+          response.totalGeneral
+          ?? this.totalFacturacion;
 
         this.toastService.success(
           `Facturación generada: ${numeroFacturas} factura${numeroFacturas === 1 ? '' : 's'} · Total $${totalGeneral}`
         );
 
         this.elementosFacturacion = [];
+
         this.resetFormularioCompleto();
+
         this.enviando = false;
       },
+
       error: (error) => {
-        console.error('Error generando facturación:', error);
-        this.toastService.error(
-          error?.error?.message || error?.error?.error || 'No se pudo generar la facturación.'
+
+        console.error(
+          'Error generando facturación:',
+          error
         );
+
+        this.toastService.error(
+          error?.error?.message
+          || error?.error?.error
+          || 'No se pudo generar la facturación.'
+        );
+
         this.enviando = false;
       }
     });
-  }
+}
 
   get totalFacturacion(): number {
     return this.elementosFacturacion.reduce(
@@ -579,40 +610,99 @@ export class FacturaComponent implements OnInit {
     return true;
   }
 
-  private construirPayloadActual(): CreateFacturaRequest {
-    return {
-      discordId: this.empleado!.discordId,
-      matricula: this.obtenerMatriculaParaBackend(),
-      tipo: this.tipoSeleccionado,
-      total: this.total,
-      convenio: this.tipoSeleccionado === 'Tasación' || this.tipoSeleccionado === 'Items'
+private construirPayloadActual(): CreateFacturaRequest {
+
+  return {
+
+    matricula:
+      this.obtenerMatriculaParaBackend(),
+
+    tipo:
+      this.tipoSeleccionado,
+
+    total:
+      this.total,
+
+    convenio:
+      this.tipoSeleccionado === 'Tasación'
+      || this.tipoSeleccionado === 'Items'
         ? false
         : this.convenio,
-      lspd: this.tipoSeleccionado === 'Items' ? this.lspd : false,
-      modelo: this.tipoSeleccionado === 'Reparación' || this.tipoSeleccionado === 'Items'
+
+    lspd:
+      this.tipoSeleccionado === 'Items'
+        ? this.lspd
+        : false,
+
+    modelo:
+      this.tipoSeleccionado === 'Reparación'
+      || this.tipoSeleccionado === 'Items'
         ? null
-        : this.normalizarTexto(this.modelo),
-      estado: this.tipoSeleccionado === 'Tasación'
-        ? this.normalizarTexto(this.estado)
+        : this.normalizarTexto(
+            this.modelo
+          ),
+
+    estado:
+      this.tipoSeleccionado === 'Tasación'
+        ? this.normalizarTexto(
+            this.estado
+          )
         : null,
-      cantidad: this.tipoSeleccionado === 'Items' ? Number(this.cantidad) : null,
-      item: this.tipoSeleccionado === 'Items' ? this.normalizarTexto(this.item) : null,
-      categoria: this.tipoSeleccionado === 'Full Tuning' || this.tipoSeleccionado === 'Tuneo'
-        ? this.normalizarTexto(this.categoria)
+
+    cantidad:
+      this.tipoSeleccionado === 'Items'
+        ? Number(
+            this.cantidad
+          )
         : null,
-      gravedad: this.tipoSeleccionado === 'Reparación'
-        ? this.normalizarTexto(this.gravedad)
+
+    item:
+      this.tipoSeleccionado === 'Items'
+        ? this.normalizarTexto(
+            this.item
+          )
         : null,
-      tuneoPlate: this.tipoSeleccionado === 'Tuneo'
-        ? this.normalizarTexto(this.tuneoPlate)
+
+    categoria:
+      this.tipoSeleccionado === 'Full Tuning'
+      || this.tipoSeleccionado === 'Tuneo'
+        ? this.normalizarTexto(
+            this.categoria
+          )
         : null,
-      tuneoSeleccionados: this.tipoSeleccionado === 'Tuneo'
+
+    gravedad:
+      this.tipoSeleccionado === 'Reparación'
+        ? this.normalizarTexto(
+            this.gravedad
+          )
+        : null,
+
+    tuneoPlate:
+      this.tipoSeleccionado === 'Tuneo'
+        ? this.normalizarTexto(
+            this.tuneoPlate
+          )
+        : null,
+
+    tuneoSeleccionados:
+      this.tipoSeleccionado === 'Tuneo'
         ? this.tuneoSeleccionados.join(', ')
         : null,
-      grua: this.tipoSeleccionado === 'Reparación' ? this.grua : false,
-      otros: this.tipoSeleccionado === 'Tasación' ? this.normalizarTexto(this.otros) : null
-    };
-  }
+
+    grua:
+      this.tipoSeleccionado === 'Reparación'
+        ? this.grua
+        : false,
+
+    otros:
+      this.tipoSeleccionado === 'Tasación'
+        ? this.normalizarTexto(
+            this.otros
+          )
+        : null
+  };
+}
 
   private getDescripcionElemento(payload: CreateFacturaRequest): string {
     switch (payload.tipo) {
