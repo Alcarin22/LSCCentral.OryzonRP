@@ -156,14 +156,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   toggleFichaje(): void {
-    if (!this.empleado?.discordId || this.procesandoToggle) {
+    if (!this.empleado || this.procesandoToggle) {
       return;
     }
 
     this.procesandoToggle = true;
     this.cdr.detectChanges();
 
-    this.fichajeService.toggleFichaje(this.empleado.discordId, this.fichajeSeguridadSeleccionado).pipe(
+    this.fichajeService.toggleFichaje(
+  this.fichajeSeguridadSeleccionado
+).pipe(
       finalize(() => {
         this.procesandoToggle = false;
         this.cdr.detectChanges();

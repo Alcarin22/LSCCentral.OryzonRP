@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../environments/environment';
 
 export interface FichajeResponse {
@@ -32,32 +33,62 @@ export interface FichajeFiltros {
   providedIn: 'root'
 })
 export class FichajeService {
-  private readonly baseUrl = `${environment.backendUrl}/api/fichajes`;
 
-  constructor(private http: HttpClient) {}
+  private readonly baseUrl =
+    `${environment.backendUrl}/api/fichajes`;
 
-  toggleFichaje(discordId: string, fichajeSeguridad = false): Observable<FichajeResponse> {
+  constructor(
+    private http: HttpClient
+  ) {}
+
+  toggleFichaje(
+    fichajeSeguridad = false
+  ): Observable<FichajeResponse> {
+
     return this.http.post<FichajeResponse>(
-      `${this.baseUrl}/toggle/${discordId}`,
-      { fichajeSeguridad }
+      `${this.baseUrl}/toggle`,
+      {
+        fichajeSeguridad
+      }
     );
   }
 
-  obtenerEstadoFichaje(discordId: string): Observable<FichajeResponse> {
-    return this.http.get<FichajeResponse>(`${this.baseUrl}/estado/${discordId}`);
+  obtenerEstadoFichaje():
+    Observable<FichajeResponse> {
+
+    return this.http.get<FichajeResponse>(
+      `${this.baseUrl}/estado`
+    );
   }
 
-  listarFichajes(filtros: FichajeFiltros): Observable<FichajeListado[]> {
-    let params = new HttpParams();
+  listarFichajes(
+    filtros: FichajeFiltros
+  ): Observable<FichajeListado[]> {
+
+    let params =
+      new HttpParams();
 
     if (filtros.fechaInicio) {
-      params = params.set('fechaInicio', filtros.fechaInicio);
+
+      params = params.set(
+        'fechaInicio',
+        filtros.fechaInicio
+      );
     }
 
     if (filtros.fechaFin) {
-      params = params.set('fechaFin', filtros.fechaFin);
+
+      params = params.set(
+        'fechaFin',
+        filtros.fechaFin
+      );
     }
 
-    return this.http.get<FichajeListado[]>(this.baseUrl, { params });
+    return this.http.get<FichajeListado[]>(
+      this.baseUrl,
+      {
+        params
+      }
+    );
   }
 }
