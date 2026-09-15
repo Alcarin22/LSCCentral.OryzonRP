@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -52,6 +53,7 @@ public class SecurityConfig {
     private final RangoRepository rangoRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final JwtService jwtService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
@@ -72,12 +74,14 @@ public class SecurityConfig {
             EmpleadoRepository empleadoRepository,
             RangoRepository rangoRepository,
             OAuth2AuthorizedClientService authorizedClientService,
-            JwtService jwtService
+            JwtService jwtService,
+            JwtAuthenticationFilter jwtAuthenticationFilter
     ) {
         this.empleadoRepository = empleadoRepository;
         this.rangoRepository = rangoRepository;
         this.authorizedClientService = authorizedClientService;
         this.jwtService = jwtService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -112,6 +116,7 @@ public class SecurityConfig {
                                 System.err.println(
                                         "LOGIN DENEGADO: no se pudo obtener discordId"
                                 );
+
                                 escribirRespuestaPopup(response, null);
                                 return;
                             }
@@ -132,7 +137,9 @@ public class SecurityConfig {
 
                             boolean tieneRolEmpleado =
                                     memberData != null
-                                            && memberData.roleIds().contains(empleadoRoleId);
+                                            && memberData.roleIds().contains(
+                                                    empleadoRoleId
+                                            );
 
                             if (
                                     !tieneRolEmpleado
@@ -140,7 +147,9 @@ public class SecurityConfig {
                                             && !accessToken.isBlank()
                             ) {
                                 tieneRolEmpleado =
-                                        usuarioTieneRolEmpleadoConOAuth(accessToken);
+                                        usuarioTieneRolEmpleadoConOAuth(
+                                                accessToken
+                                        );
                             }
 
                             if (!tieneRolEmpleado) {
@@ -148,18 +157,20 @@ public class SecurityConfig {
                                         "LOGIN DENEGADO: usuario sin rol Empleado. Discord ID: "
                                                 + discordId
                                 );
+
                                 escribirRespuestaPopup(response, null);
                                 return;
                             }
 
-                            Empleado empleado = empleadoRepository
-                                    .findByDiscordId(discordId)
-                                    .orElseGet(() ->
-                                            crearEmpleadoDesdeDiscord(
-                                                    discordId,
-                                                    username
-                                            )
-                                    );
+                            Empleado empleado =
+                                    empleadoRepository
+                                            .findByDiscordId(discordId)
+                                            .orElseGet(() ->
+                                                    crearEmpleadoDesdeDiscord(
+                                                            discordId,
+                                                            username
+                                                    )
+                                            );
 
                             actualizarEmpleadoDesdeDiscord(
                                     empleado,
@@ -175,9 +186,17 @@ public class SecurityConfig {
                                             avatar
                                     );
 
-                            escribirRespuestaPopup(response, user);
+                            escribirRespuestaPopup(
+                                    response,
+                                    user
+                            );
                         })
                 );
+
+        http.addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         return http.build();
     }
@@ -185,6 +204,7 @@ public class SecurityConfig {
     private DiscordMemberData obtenerMiembroDiscordConBot(
             String discordId
     ) {
+
         try {
 
             if (
@@ -194,6 +214,7 @@ public class SecurityConfig {
                 System.err.println(
                         "DISCORD BOT MEMBER ERROR: discord.bot-token vacío"
                 );
+
                 return null;
             }
 
@@ -203,7 +224,8 @@ public class SecurityConfig {
                             + "/members/"
                             + discordId;
 
-            HttpHeaders headers = new HttpHeaders();
+            HttpHeaders headers =
+                    new HttpHeaders();
 
             headers.set(
                     "Authorization",
@@ -226,7 +248,8 @@ public class SecurityConfig {
             String nickServidor = null;
 
             if (
-                    body.has("nick")
+                    body != null
+                            && body.has("nick")
                             && !body.get("nick").isNull()
             ) {
                 nickServidor =
@@ -237,12 +260,15 @@ public class SecurityConfig {
                     new ArrayList<>();
 
             if (
-                    body.has("roles")
+                    body != null
+                            && body.has("roles")
                             && body.get("roles").isArray()
             ) {
 
                 for (JsonNode role : body.get("roles")) {
-                    roleIds.add(role.asText());
+                    roleIds.add(
+                            role.asText()
+                    );
                 }
             }
 
@@ -276,6 +302,7 @@ public class SecurityConfig {
     private boolean usuarioTieneRolEmpleadoConOAuth(
             String accessToken
     ) {
+
         try {
 
             String url =
@@ -286,7 +313,9 @@ public class SecurityConfig {
             HttpHeaders headers =
                     new HttpHeaders();
 
-            headers.setBearerAuth(accessToken);
+            headers.setBearerAuth(
+                    accessToken
+            );
 
             ResponseEntity<String> discordResponse =
                     restTemplate.exchange(
@@ -337,6 +366,7 @@ public class SecurityConfig {
                 body == null
                         || !body.has("roles")
         ) {
+
             System.err.println(
                     "DISCORD "
                             + origen
@@ -365,7 +395,11 @@ public class SecurityConfig {
             String roleId =
                     role.asText();
 
-            if (empleadoRoleId.equals(roleId)) {
+            if (
+                    empleadoRoleId.equals(
+                            roleId
+                    )
+            ) {
 
                 System.out.println(
                         "DISCORD "
@@ -398,8 +432,13 @@ public class SecurityConfig {
                         username
                 );
 
-        empleado.setNombre(nombreServidor);
-        empleado.setActivo(true);
+        empleado.setNombre(
+                nombreServidor
+        );
+
+        empleado.setActivo(
+                true
+        );
 
         Optional<Rango> rangoDiscord =
                 detectarRangoDesdeRolesDiscord(
@@ -412,7 +451,9 @@ public class SecurityConfig {
                     rangoDiscord.get()
             );
 
-        } else if (empleado.getRango() == null) {
+        } else if (
+                empleado.getRango() == null
+        ) {
 
             Rango rangoDefault =
                     rangoRepository
@@ -423,10 +464,14 @@ public class SecurityConfig {
                                     )
                             );
 
-            empleado.setRango(rangoDefault);
+            empleado.setRango(
+                    rangoDefault
+            );
         }
 
-        empleadoRepository.save(empleado);
+        empleadoRepository.save(
+                empleado
+        );
     }
 
     private String obtenerNombreServidor(
@@ -466,12 +511,15 @@ public class SecurityConfig {
         Map<String, String> rolesServidor =
                 obtenerRolesServidorConBot();
 
-        if (rolesServidor.isEmpty()) {
+        if (
+                rolesServidor.isEmpty()
+        ) {
             return Optional.empty();
         }
 
         List<String> nombresRolesUsuario =
-                memberData.roleIds()
+                memberData
+                        .roleIds()
                         .stream()
                         .map(rolesServidor::get)
                         .filter(nombre ->
@@ -480,23 +528,28 @@ public class SecurityConfig {
                         )
                         .toList();
 
-        if (nombresRolesUsuario.isEmpty()) {
+        if (
+                nombresRolesUsuario.isEmpty()
+        ) {
             return Optional.empty();
         }
 
         List<Rango> rangos =
                 rangoRepository.findAll();
 
-        return rangos.stream()
+        return rangos
+                .stream()
                 .filter(rango ->
-                        nombresRolesUsuario.stream()
+                        nombresRolesUsuario
+                                .stream()
                                 .anyMatch(nombreRolDiscord ->
-                                        normalizar(nombreRolDiscord)
-                                                .equals(
-                                                        normalizar(
-                                                                rango.getNombre()
-                                                        )
+                                        normalizar(
+                                                nombreRolDiscord
+                                        ).equals(
+                                                normalizar(
+                                                        rango.getNombre()
                                                 )
+                                        )
                                 )
                 )
                 .max(
@@ -517,6 +570,7 @@ public class SecurityConfig {
                     discordBotToken == null
                             || discordBotToken.isBlank()
             ) {
+
                 System.err.println(
                         "DISCORD BOT ROLES ERROR: discord.bot-token vacío"
                 );
@@ -607,7 +661,9 @@ public class SecurityConfig {
         Empleado empleado =
                 new Empleado();
 
-        empleado.setDiscordId(discordId);
+        empleado.setDiscordId(
+                discordId
+        );
 
         empleado.setNombre(
                 username != null
@@ -616,11 +672,21 @@ public class SecurityConfig {
                         : "Empleado"
         );
 
-        empleado.setActivo(true);
-        empleado.setRango(rangoDefault);
-        empleado.setPuedeTrabajarComoSeguridad(false);
+        empleado.setActivo(
+                true
+        );
 
-        return empleadoRepository.save(empleado);
+        empleado.setRango(
+                rangoDefault
+        );
+
+        empleado.setPuedeTrabajarComoSeguridad(
+                false
+        );
+
+        return empleadoRepository.save(
+                empleado
+        );
     }
 
     private Map<String, Object> crearRespuestaUsuario(
@@ -703,10 +769,11 @@ public class SecurityConfig {
                 rango
         );
 
-        // JWT de acceso a la API.
         user.put(
                 "token",
-                jwtService.generarToken(empleado)
+                jwtService.generarToken(
+                        empleado
+                )
         );
 
         return user;
@@ -722,9 +789,12 @@ public class SecurityConfig {
         );
 
         String json =
-                objectMapper.writeValueAsString(user);
+                objectMapper.writeValueAsString(
+                        user
+                );
 
-        response.getWriter().write("""
+        response.getWriter().write(
+                """
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -763,7 +833,10 @@ public class SecurityConfig {
                         value,
                         Normalizer.Form.NFD
                 )
-                .replaceAll("\\p{M}", "")
+                .replaceAll(
+                        "\\p{M}",
+                        ""
+                )
                 .toLowerCase()
                 .trim();
     }
@@ -802,7 +875,9 @@ public class SecurityConfig {
                 List.of("*")
         );
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(
+                true
+        );
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
