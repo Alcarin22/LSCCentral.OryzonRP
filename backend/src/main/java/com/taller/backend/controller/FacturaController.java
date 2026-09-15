@@ -1,5 +1,18 @@
 package com.taller.backend.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.taller.backend.dto.CreateFacturaRequest;
 import com.taller.backend.dto.CreateFacturacionLoteRequest;
 import com.taller.backend.dto.CreateFacturacionLoteResponse;
@@ -8,28 +21,68 @@ import com.taller.backend.dto.FacturasPageResponse;
 import com.taller.backend.entity.Factura;
 import com.taller.backend.service.FacturaService;
 
-import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/facturas")
 public class FacturaController {
 
     private final FacturaService facturaService;
 
-    public FacturaController(FacturaService facturaService) {
+    public FacturaController(
+            FacturaService facturaService
+    ) {
         this.facturaService = facturaService;
     }
 
     @PostMapping
-    public Factura crearFactura(@RequestBody CreateFacturaRequest request) {
-        return facturaService.crearFactura(request);
+    public Factura crearFactura(
+            Authentication authentication,
+            @RequestBody CreateFacturaRequest request
+    ) {
+
+        String discordId =
+                obtenerDiscordIdAutenticado(
+                        authentication
+                );
+
+        /*
+         * El discordId recibido desde el navegador
+         * nunca determina el empleado.
+         *
+         * Lo sobrescribimos siempre con la identidad
+         * obtenida del JWT.
+         */
+        request.setDiscordId(
+                discordId
+        );
+
+        return facturaService.crearFactura(
+                request
+        );
     }
 
     @PostMapping("/lote")
     public CreateFacturacionLoteResponse crearFacturacionLote(
+            Authentication authentication,
             @RequestBody CreateFacturacionLoteRequest request
     ) {
-        return facturaService.crearFacturacionLote(request);
+
+        String discordId =
+                obtenerDiscordIdAutenticado(
+                        authentication
+                );
+
+        /*
+         * Igual que en una factura individual:
+         * cualquier discordId enviado por Angular
+         * queda sustituido por el usuario autenticado.
+         */
+        request.setDiscordId(
+                discordId
+        );
+
+        return facturaService.crearFacturacionLote(
+                request
+        );
     }
 
     @GetMapping
@@ -41,6 +94,7 @@ public class FacturaController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
+
         return facturaService.listarFacturas(
                 fechaInicio,
                 fechaFin,
@@ -52,12 +106,54 @@ public class FacturaController {
     }
 
     @PatchMapping("/{id}/tasacion/enviada")
-    public FacturaListadoResponse marcarTasacionEnviada(@PathVariable Long id) {
-        return facturaService.marcarTasacionEnviada(id);
+    public FacturaListadoResponse marcarTasacionEnviada(
+            @PathVariable Long id
+    ) {
+
+        return facturaService.marcarTasacionEnviada(
+                id
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void eliminarFactura(@PathVariable Long id) {
-        facturaService.eliminarFactura(id);
+    public void eliminarFactura(
+            @PathVariable Long id
+    ) {
+
+        facturaService.eliminarFactura(
+                id
+        );
+    }
+
+    private String obtenerDiscordIdAutenticado(
+            Authentication authentication
+    ) {
+
+        if (
+                authentication == null
+                        || !authentication.isAuthenticated()
+        ) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Sesión no autenticada"
+            );
+        }
+
+        String discordId =
+                authentication.getName();
+
+        if (
+                discordId == null
+                        || discordId.isBlank()
+        ) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Usuario no identificado"
+            );
+        }
+
+        return discordId;
     }
 }
