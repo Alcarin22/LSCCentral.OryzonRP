@@ -3,7 +3,6 @@ package com.taller.backend.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,6 +35,7 @@ public class SesionController {
                                         )
                                 )
         ) {
+
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Sesión no autenticada"
@@ -49,31 +49,13 @@ public class SesionController {
                 discordId == null
                         || discordId.isBlank()
         ) {
+
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Usuario no identificado"
             );
         }
 
-        return empleadoSesionService
-                .obtenerEmpleadoSesion(
-                        discordId
-                );
-    }
-
-    /*
-     * Endpoint antiguo.
-     *
-     * Lo conservamos temporalmente para que una diferencia de
-     * despliegue entre Railway y Vercel no rompa la aplicación.
-     *
-     * Lo eliminaremos cuando comprobemos que /api/session/me
-     * funciona correctamente en producción.
-     */
-    @GetMapping("/api/session/empleado/{discordId}")
-    public SesionEmpleadoResponse obtenerEmpleadoSesion(
-            @PathVariable String discordId
-    ) {
         return empleadoSesionService
                 .obtenerEmpleadoSesion(
                         discordId

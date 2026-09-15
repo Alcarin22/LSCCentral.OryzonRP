@@ -91,13 +91,50 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
+                        // CORS preflight
                         .requestMatchers(
-                                "/api/**",
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // Endpoints públicos
+                        .requestMatchers(
+                                "/api/health",
                                 "/oauth2/**",
                                 "/login/**",
                                 "/error"
                         ).permitAll()
+
+                        // Administración: nivel 4 o superior
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+
+                        // Resto de la API: empleado autenticado
+                        .requestMatchers(
+                                "/api/**"
+                        ).hasRole("EMPLEADO")
+
                         .anyRequest().permitAll()
+                )
+                .exceptionHandling(ex -> ex
+
+                        // Sin JWT válido
+                        .authenticationEntryPoint(
+                                (request, response, authException) ->
+                                        response.sendError(
+                                                HttpServletResponse.SC_UNAUTHORIZED
+                                        )
+                        )
+
+                        // JWT válido, pero sin permisos suficientes
+                        .accessDeniedHandler(
+                                (request, response, accessDeniedException) ->
+                                        response.sendError(
+                                                HttpServletResponse.SC_FORBIDDEN
+                                        )
+                        )
                 )
                 .oauth2Login(oauth -> oauth
                         .successHandler((request, response, authentication) -> {
