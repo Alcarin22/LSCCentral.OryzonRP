@@ -1,11 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
 import { environment } from '../../../environments/environment';
 
 export interface DashboardHoyResponse {
   horaEntrada: string | null;
   fichajeActivo: boolean;
   serviciosRealizadosHoy: number;
+  tipoServicio: 'MECANICA' | 'SEGURIDAD' | null;
+  ultimoTurnoFecha: string | null;
+  ultimoTurnoHoraEntrada: string | null;
+  ultimoTurnoHoraSalida: string | null;
+  ultimoTurnoMinutos: number | null;
 }
 
 export interface DashboardSemanaResponse {
@@ -27,23 +34,28 @@ export interface DashboardMesResponse {
 })
 export class DashboardService {
 
-  constructor(private http: HttpClient) {}
+  private readonly baseUrl =
+    `${environment.backendUrl}/api/dashboard`;
 
-  getResumenHoy(discordId: string) {
+  constructor(
+    private http: HttpClient
+  ) {}
+
+  getResumenHoy(): Observable<DashboardHoyResponse> {
     return this.http.get<DashboardHoyResponse>(
-      `${environment.backendUrl}/api/dashboard/hoy/${discordId}`
+      `${this.baseUrl}/hoy`
     );
   }
 
-  getResumenSemana(discordId: string) {
+  getResumenSemana(): Observable<DashboardSemanaResponse> {
     return this.http.get<DashboardSemanaResponse>(
-      `${environment.backendUrl}/api/dashboard/semana/${discordId}`
+      `${this.baseUrl}/semana`
     );
   }
 
-  getResumenMes(discordId: string) {
+  getResumenMes(): Observable<DashboardMesResponse> {
     return this.http.get<DashboardMesResponse>(
-      `${environment.backendUrl}/api/dashboard/mes/${discordId}`
+      `${this.baseUrl}/mes`
     );
   }
 }
