@@ -51,6 +51,7 @@ public class SecurityConfig {
     private final EmpleadoRepository empleadoRepository;
     private final RangoRepository rangoRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final JwtService jwtService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
@@ -70,11 +71,13 @@ public class SecurityConfig {
     public SecurityConfig(
             EmpleadoRepository empleadoRepository,
             RangoRepository rangoRepository,
-            OAuth2AuthorizedClientService authorizedClientService
+            OAuth2AuthorizedClientService authorizedClientService,
+            JwtService jwtService
     ) {
         this.empleadoRepository = empleadoRepository;
         this.rangoRepository = rangoRepository;
         this.authorizedClientService = authorizedClientService;
+        this.jwtService = jwtService;
     }
 
     @Bean
@@ -106,7 +109,9 @@ public class SecurityConfig {
                             String avatar = oauthUser.getAttribute("avatar");
 
                             if (discordId == null || discordId.isBlank()) {
-                                System.err.println("LOGIN DENEGADO: no se pudo obtener discordId");
+                                System.err.println(
+                                        "LOGIN DENEGADO: no se pudo obtener discordId"
+                                );
                                 escribirRespuestaPopup(response, null);
                                 return;
                             }
@@ -122,13 +127,20 @@ public class SecurityConfig {
                                             ? client.getAccessToken().getTokenValue()
                                             : null;
 
-                            DiscordMemberData memberData = obtenerMiembroDiscordConBot(discordId);
+                            DiscordMemberData memberData =
+                                    obtenerMiembroDiscordConBot(discordId);
 
-                            boolean tieneRolEmpleado = memberData != null &&
-                                    memberData.roleIds().contains(empleadoRoleId);
+                            boolean tieneRolEmpleado =
+                                    memberData != null
+                                            && memberData.roleIds().contains(empleadoRoleId);
 
-                            if (!tieneRolEmpleado && accessToken != null && !accessToken.isBlank()) {
-                                tieneRolEmpleado = usuarioTieneRolEmpleadoConOAuth(accessToken);
+                            if (
+                                    !tieneRolEmpleado
+                                            && accessToken != null
+                                            && !accessToken.isBlank()
+                            ) {
+                                tieneRolEmpleado =
+                                        usuarioTieneRolEmpleadoConOAuth(accessToken);
                             }
 
                             if (!tieneRolEmpleado) {
@@ -142,7 +154,12 @@ public class SecurityConfig {
 
                             Empleado empleado = empleadoRepository
                                     .findByDiscordId(discordId)
-                                    .orElseGet(() -> crearEmpleadoDesdeDiscord(discordId, username));
+                                    .orElseGet(() ->
+                                            crearEmpleadoDesdeDiscord(
+                                                    discordId,
+                                                    username
+                                            )
+                                    );
 
                             actualizarEmpleadoDesdeDiscord(
                                     empleado,
@@ -150,12 +167,13 @@ public class SecurityConfig {
                                     username
                             );
 
-                            Map<String, Object> user = crearRespuestaUsuario(
-                                    empleado,
-                                    discordId,
-                                    username,
-                                    avatar
-                            );
+                            Map<String, Object> user =
+                                    crearRespuestaUsuario(
+                                            empleado,
+                                            discordId,
+                                            username,
+                                            avatar
+                                    );
 
                             escribirRespuestaPopup(response, user);
                         })
@@ -164,119 +182,207 @@ public class SecurityConfig {
         return http.build();
     }
 
-    private DiscordMemberData obtenerMiembroDiscordConBot(String discordId) {
+    private DiscordMemberData obtenerMiembroDiscordConBot(
+            String discordId
+    ) {
         try {
-            if (discordBotToken == null || discordBotToken.isBlank()) {
-                System.err.println("DISCORD BOT MEMBER ERROR: discord.bot-token vacío");
+
+            if (
+                    discordBotToken == null
+                            || discordBotToken.isBlank()
+            ) {
+                System.err.println(
+                        "DISCORD BOT MEMBER ERROR: discord.bot-token vacío"
+                );
                 return null;
             }
 
-            String url = "https://discord.com/api/guilds/"
-                    + discordGuildId
-                    + "/members/"
-                    + discordId;
+            String url =
+                    "https://discord.com/api/guilds/"
+                            + discordGuildId
+                            + "/members/"
+                            + discordId;
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bot " + discordBotToken);
 
-            ResponseEntity<String> discordResponse = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
+            headers.set(
+                    "Authorization",
+                    "Bot " + discordBotToken
             );
 
-            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+            ResponseEntity<String> discordResponse =
+                    restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            new HttpEntity<>(headers),
+                            String.class
+                    );
+
+            JsonNode body =
+                    objectMapper.readTree(
+                            discordResponse.getBody()
+                    );
 
             String nickServidor = null;
 
-            if (body.has("nick") && !body.get("nick").isNull()) {
-                nickServidor = body.get("nick").asText();
+            if (
+                    body.has("nick")
+                            && !body.get("nick").isNull()
+            ) {
+                nickServidor =
+                        body.get("nick").asText();
             }
 
-            List<String> roleIds = new ArrayList<>();
+            List<String> roleIds =
+                    new ArrayList<>();
 
-            if (body.has("roles") && body.get("roles").isArray()) {
+            if (
+                    body.has("roles")
+                            && body.get("roles").isArray()
+            ) {
+
                 for (JsonNode role : body.get("roles")) {
                     roleIds.add(role.asText());
                 }
             }
 
-            return new DiscordMemberData(nickServidor, roleIds);
+            return new DiscordMemberData(
+                    nickServidor,
+                    roleIds
+            );
 
         } catch (HttpClientErrorException e) {
+
             System.err.println(
                     "DISCORD BOT MEMBER ERROR: "
                             + e.getStatusCode()
                             + " - "
                             + e.getResponseBodyAsString()
             );
+
             return null;
 
         } catch (Exception e) {
-            System.err.println("DISCORD BOT MEMBER ERROR: " + e.getMessage());
+
+            System.err.println(
+                    "DISCORD BOT MEMBER ERROR: "
+                            + e.getMessage()
+            );
+
             return null;
         }
     }
 
-    private boolean usuarioTieneRolEmpleadoConOAuth(String accessToken) {
+    private boolean usuarioTieneRolEmpleadoConOAuth(
+            String accessToken
+    ) {
         try {
-            String url = "https://discord.com/api/users/@me/guilds/"
-                    + discordGuildId
-                    + "/member";
 
-            HttpHeaders headers = new HttpHeaders();
+            String url =
+                    "https://discord.com/api/users/@me/guilds/"
+                            + discordGuildId
+                            + "/member";
+
+            HttpHeaders headers =
+                    new HttpHeaders();
+
             headers.setBearerAuth(accessToken);
 
-            ResponseEntity<String> discordResponse = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
+            ResponseEntity<String> discordResponse =
+                    restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            new HttpEntity<>(headers),
+                            String.class
+                    );
+
+            JsonNode body =
+                    objectMapper.readTree(
+                            discordResponse.getBody()
+                    );
+
+            return contieneRolEmpleado(
+                    body,
+                    "OAuth"
             );
 
-            JsonNode body = objectMapper.readTree(discordResponse.getBody());
-
-            return contieneRolEmpleado(body, "OAuth");
-
         } catch (HttpClientErrorException e) {
+
             System.err.println(
                     "DISCORD OAUTH CHECK ERROR: "
                             + e.getStatusCode()
                             + " - "
                             + e.getResponseBodyAsString()
             );
+
             return false;
 
         } catch (Exception e) {
-            System.err.println("DISCORD OAUTH CHECK ERROR: " + e.getMessage());
+
+            System.err.println(
+                    "DISCORD OAUTH CHECK ERROR: "
+                            + e.getMessage()
+            );
+
             return false;
         }
     }
 
-    private boolean contieneRolEmpleado(JsonNode body, String origen) {
-        if (body == null || !body.has("roles")) {
-            System.err.println("DISCORD " + origen + " CHECK: respuesta sin roles");
+    private boolean contieneRolEmpleado(
+            JsonNode body,
+            String origen
+    ) {
+
+        if (
+                body == null
+                        || !body.has("roles")
+        ) {
+            System.err.println(
+                    "DISCORD "
+                            + origen
+                            + " CHECK: respuesta sin roles"
+            );
+
             return false;
         }
 
-        JsonNode roles = body.get("roles");
+        JsonNode roles =
+                body.get("roles");
 
         if (!roles.isArray()) {
-            System.err.println("DISCORD " + origen + " CHECK: roles no es array");
+
+            System.err.println(
+                    "DISCORD "
+                            + origen
+                            + " CHECK: roles no es array"
+            );
+
             return false;
         }
 
         for (JsonNode role : roles) {
-            String roleId = role.asText();
+
+            String roleId =
+                    role.asText();
 
             if (empleadoRoleId.equals(roleId)) {
-                System.out.println("DISCORD " + origen + " CHECK: rol Empleado encontrado");
+
+                System.out.println(
+                        "DISCORD "
+                                + origen
+                                + " CHECK: rol Empleado encontrado"
+                );
+
                 return true;
             }
         }
 
-        System.err.println("DISCORD " + origen + " CHECK: rol Empleado NO encontrado");
+        System.err.println(
+                "DISCORD "
+                        + origen
+                        + " CHECK: rol Empleado NO encontrado"
+        );
+
         return false;
     }
 
@@ -285,18 +391,37 @@ public class SecurityConfig {
             DiscordMemberData memberData,
             String username
     ) {
-        String nombreServidor = obtenerNombreServidor(memberData, username);
+
+        String nombreServidor =
+                obtenerNombreServidor(
+                        memberData,
+                        username
+                );
 
         empleado.setNombre(nombreServidor);
         empleado.setActivo(true);
 
-        Optional<Rango> rangoDiscord = detectarRangoDesdeRolesDiscord(memberData);
+        Optional<Rango> rangoDiscord =
+                detectarRangoDesdeRolesDiscord(
+                        memberData
+                );
 
         if (rangoDiscord.isPresent()) {
-            empleado.setRango(rangoDiscord.get());
+
+            empleado.setRango(
+                    rangoDiscord.get()
+            );
+
         } else if (empleado.getRango() == null) {
-            Rango rangoDefault = rangoRepository.findByNombre("Aprendiz")
-                    .orElseThrow(() -> new RuntimeException("No existe el rango Aprendiz"));
+
+            Rango rangoDefault =
+                    rangoRepository
+                            .findByNombre("Aprendiz")
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "No existe el rango Aprendiz"
+                                    )
+                            );
 
             empleado.setRango(rangoDefault);
         }
@@ -308,81 +433,135 @@ public class SecurityConfig {
             DiscordMemberData memberData,
             String username
     ) {
+
         if (
-                memberData != null &&
-                memberData.nickServidor() != null &&
-                !memberData.nickServidor().isBlank()
+                memberData != null
+                        && memberData.nickServidor() != null
+                        && !memberData.nickServidor().isBlank()
         ) {
             return memberData.nickServidor();
         }
 
-        if (username != null && !username.isBlank()) {
+        if (
+                username != null
+                        && !username.isBlank()
+        ) {
             return username;
         }
 
         return "Empleado";
     }
 
-    private Optional<Rango> detectarRangoDesdeRolesDiscord(DiscordMemberData memberData) {
-        if (memberData == null || memberData.roleIds().isEmpty()) {
+    private Optional<Rango> detectarRangoDesdeRolesDiscord(
+            DiscordMemberData memberData
+    ) {
+
+        if (
+                memberData == null
+                        || memberData.roleIds().isEmpty()
+        ) {
             return Optional.empty();
         }
 
-        Map<String, String> rolesServidor = obtenerRolesServidorConBot();
+        Map<String, String> rolesServidor =
+                obtenerRolesServidorConBot();
 
         if (rolesServidor.isEmpty()) {
             return Optional.empty();
         }
 
-        List<String> nombresRolesUsuario = memberData.roleIds()
-                .stream()
-                .map(rolesServidor::get)
-                .filter(nombre -> nombre != null && !nombre.isBlank())
-                .toList();
+        List<String> nombresRolesUsuario =
+                memberData.roleIds()
+                        .stream()
+                        .map(rolesServidor::get)
+                        .filter(nombre ->
+                                nombre != null
+                                        && !nombre.isBlank()
+                        )
+                        .toList();
 
         if (nombresRolesUsuario.isEmpty()) {
             return Optional.empty();
         }
 
-        List<Rango> rangos = rangoRepository.findAll();
+        List<Rango> rangos =
+                rangoRepository.findAll();
 
         return rangos.stream()
-                .filter(rango -> nombresRolesUsuario.stream()
-                        .anyMatch(nombreRolDiscord ->
-                                normalizar(nombreRolDiscord).equals(normalizar(rango.getNombre()))
-                        )
+                .filter(rango ->
+                        nombresRolesUsuario.stream()
+                                .anyMatch(nombreRolDiscord ->
+                                        normalizar(nombreRolDiscord)
+                                                .equals(
+                                                        normalizar(
+                                                                rango.getNombre()
+                                                        )
+                                                )
+                                )
                 )
-                .max(Comparator.comparingInt(Rango::getNivel));
+                .max(
+                        Comparator.comparingInt(
+                                Rango::getNivel
+                        )
+                );
     }
 
     private Map<String, String> obtenerRolesServidorConBot() {
-        Map<String, String> roles = new HashMap<>();
+
+        Map<String, String> roles =
+                new HashMap<>();
 
         try {
-            if (discordBotToken == null || discordBotToken.isBlank()) {
-                System.err.println("DISCORD BOT ROLES ERROR: discord.bot-token vacío");
+
+            if (
+                    discordBotToken == null
+                            || discordBotToken.isBlank()
+            ) {
+                System.err.println(
+                        "DISCORD BOT ROLES ERROR: discord.bot-token vacío"
+                );
+
                 return roles;
             }
 
-            String url = "https://discord.com/api/guilds/"
-                    + discordGuildId
-                    + "/roles";
+            String url =
+                    "https://discord.com/api/guilds/"
+                            + discordGuildId
+                            + "/roles";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bot " + discordBotToken);
+            HttpHeaders headers =
+                    new HttpHeaders();
 
-            ResponseEntity<String> discordResponse = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
+            headers.set(
+                    "Authorization",
+                    "Bot " + discordBotToken
             );
 
-            JsonNode body = objectMapper.readTree(discordResponse.getBody());
+            ResponseEntity<String> discordResponse =
+                    restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            new HttpEntity<>(headers),
+                            String.class
+                    );
 
-            if (body != null && body.isArray()) {
+            JsonNode body =
+                    objectMapper.readTree(
+                            discordResponse.getBody()
+                    );
+
+            if (
+                    body != null
+                            && body.isArray()
+            ) {
+
                 for (JsonNode role : body) {
-                    if (role.has("id") && role.has("name")) {
+
+                    if (
+                            role.has("id")
+                                    && role.has("name")
+                    ) {
+
                         roles.put(
                                 role.get("id").asText(),
                                 role.get("name").asText()
@@ -392,6 +571,7 @@ public class SecurityConfig {
             }
 
         } catch (HttpClientErrorException e) {
+
             System.err.println(
                     "DISCORD BOT ROLES ERROR: "
                             + e.getStatusCode()
@@ -400,24 +580,42 @@ public class SecurityConfig {
             );
 
         } catch (Exception e) {
-            System.err.println("DISCORD BOT ROLES ERROR: " + e.getMessage());
+
+            System.err.println(
+                    "DISCORD BOT ROLES ERROR: "
+                            + e.getMessage()
+            );
         }
 
         return roles;
     }
 
-    private Empleado crearEmpleadoDesdeDiscord(String discordId, String username) {
-        Rango rangoDefault = rangoRepository.findByNombre("Aprendiz")
-                .orElseThrow(() -> new RuntimeException("No existe el rango Aprendiz"));
+    private Empleado crearEmpleadoDesdeDiscord(
+            String discordId,
+            String username
+    ) {
 
-        Empleado empleado = new Empleado();
+        Rango rangoDefault =
+                rangoRepository
+                        .findByNombre("Aprendiz")
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "No existe el rango Aprendiz"
+                                )
+                        );
+
+        Empleado empleado =
+                new Empleado();
 
         empleado.setDiscordId(discordId);
+
         empleado.setNombre(
-                username != null && !username.isBlank()
+                username != null
+                        && !username.isBlank()
                         ? username
                         : "Empleado"
         );
+
         empleado.setActivo(true);
         empleado.setRango(rangoDefault);
         empleado.setPuedeTrabajarComoSeguridad(false);
@@ -431,14 +629,28 @@ public class SecurityConfig {
             String username,
             String avatar
     ) {
-        Map<String, Object> rango = new HashMap<>();
 
-        rango.put("id", empleado.getRango().getId());
-        rango.put("nombre", empleado.getRango().getNombre());
-        rango.put("nivel", empleado.getRango().getNivel());
+        Map<String, Object> rango =
+                new HashMap<>();
+
+        rango.put(
+                "id",
+                empleado.getRango().getId()
+        );
+
+        rango.put(
+                "nombre",
+                empleado.getRango().getNombre()
+        );
+
+        rango.put(
+                "nivel",
+                empleado.getRango().getNivel()
+        );
 
         String avatarUrl =
-                avatar != null && !avatar.isBlank()
+                avatar != null
+                        && !avatar.isBlank()
                         ? "https://cdn.discordapp.com/avatars/"
                                 + discordId
                                 + "/"
@@ -446,19 +658,56 @@ public class SecurityConfig {
                                 + ".png"
                         : "https://cdn.discordapp.com/embed/avatars/0.png";
 
-        Map<String, Object> user = new HashMap<>();
+        Map<String, Object> user =
+                new HashMap<>();
 
-        user.put("id", empleado.getId());
-        user.put("discordId", empleado.getDiscordId());
-        user.put("nombre", empleado.getNombre());
-        user.put("activo", empleado.getActivo());
-        user.put("puedeTrabajarComoSeguridad", Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
-        user.put("avatarUrl", avatarUrl);
+        user.put(
+                "id",
+                empleado.getId()
+        );
+
+        user.put(
+                "discordId",
+                empleado.getDiscordId()
+        );
+
+        user.put(
+                "nombre",
+                empleado.getNombre()
+        );
+
+        user.put(
+                "activo",
+                empleado.getActivo()
+        );
+
+        user.put(
+                "puedeTrabajarComoSeguridad",
+                Boolean.TRUE.equals(
+                        empleado.getPuedeTrabajarComoSeguridad()
+                )
+        );
+
+        user.put(
+                "avatarUrl",
+                avatarUrl
+        );
+
         user.put(
                 "nickServidor",
                 empleado.getNombre()
         );
-        user.put("rango", rango);
+
+        user.put(
+                "rango",
+                rango
+        );
+
+        // JWT de acceso a la API.
+        user.put(
+                "token",
+                jwtService.generarToken(empleado)
+        );
 
         return user;
     }
@@ -468,9 +717,12 @@ public class SecurityConfig {
             Map<String, Object> user
     ) throws IOException {
 
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType(
+                "text/html;charset=UTF-8"
+        );
 
-        String json = objectMapper.writeValueAsString(user);
+        String json =
+                objectMapper.writeValueAsString(user);
 
         response.getWriter().write("""
                 <!DOCTYPE html>
@@ -485,20 +737,32 @@ public class SecurityConfig {
                             window.opener.postMessage(%s, "%s");
                             window.close();
                         } else {
-                            document.body.innerText = "Login completado. Puedes cerrar esta ventana.";
+                            document.body.innerText =
+                                "Login completado. Puedes cerrar esta ventana.";
                         }
                     </script>
                 </body>
                 </html>
-                """.formatted(json, frontendUrl));
+                """.formatted(
+                        json,
+                        frontendUrl
+                )
+        );
     }
 
-    private String normalizar(String value) {
+    private String normalizar(
+            String value
+    ) {
+
         if (value == null) {
             return "";
         }
 
-        return Normalizer.normalize(value, Normalizer.Form.NFD)
+        return Normalizer
+                .normalize(
+                        value,
+                        Normalizer.Form.NFD
+                )
                 .replaceAll("\\p{M}", "")
                 .toLowerCase()
                 .trim();
@@ -507,32 +771,46 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:4200",
-                frontendUrl,
-                "https://*.vercel.app",
-                "https://lsccentraloryzonrp-production.up.railway.app"
-        ));
+        configuration.setAllowedOriginPatterns(
+                List.of(
+                        "http://localhost:4200",
+                        frontendUrl,
+                        "https://*.vercel.app",
+                        "https://lsccentraloryzonrp-production.up.railway.app"
+                )
+        );
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-        ));
+        configuration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
+        );
 
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
+        configuration.setExposedHeaders(
+                List.of("*")
+        );
+
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }
@@ -540,5 +818,6 @@ public class SecurityConfig {
     private record DiscordMemberData(
             String nickServidor,
             List<String> roleIds
-    ) {}
+    ) {
+    }
 }

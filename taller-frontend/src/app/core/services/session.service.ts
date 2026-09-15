@@ -14,6 +14,7 @@ export interface SessionEmpleado {
   avatarUrl: string;
   nickServidor: string;
   puedeTrabajarComoSeguridad: boolean;
+  token?: string;
   rango: {
     id: number;
     nombre: string;
@@ -25,7 +26,15 @@ export interface SessionEmpleado {
   providedIn: 'root'
 })
 export class SessionService {
-  private empleadoSubject = new BehaviorSubject<SessionEmpleado | null>(this.getEmpleadoFromStorage());
+
+  private static readonly EMPLEADO_STORAGE_KEY = 'empleado';
+  private static readonly TOKEN_STORAGE_KEY = 'auth_token';
+
+  private empleadoSubject =
+    new BehaviorSubject<SessionEmpleado | null>(
+      this.getEmpleadoFromStorage()
+    );
+
   empleado$ = this.empleadoSubject.asObservable();
 
   private monitorSub?: Subscription;
@@ -38,8 +47,26 @@ export class SessionService {
   ) {}
 
   setEmpleado(empleado: SessionEmpleado): void {
-    localStorage.setItem('empleado', JSON.stringify(empleado));
-    this.empleadoSubject.next(empleado);
+
+    if (empleado.token) {
+      sessionStorage.setItem(
+        SessionService.TOKEN_STORAGE_KEY,
+        empleado.token
+      );
+    }
+
+    const empleadoSinToken: SessionEmpleado = {
+      ...empleado,
+      token: undefined
+    };
+
+    localStorage.setItem(
+      SessionService.EMPLEADO_STORAGE_KEY,
+      JSON.stringify(empleadoSinToken)
+    );
+
+    this.empleadoSubject.next(empleadoSinToken);
+
     this.iniciarMonitorSesion();
   }
 
@@ -47,19 +74,42 @@ export class SessionService {
     return this.empleadoSubject.value;
   }
 
+  getToken(): string | null {
+    return sessionStorage.getItem(
+      SessionService.TOKEN_STORAGE_KEY
+    );
+  }
+
   isLogged(): boolean {
+
     const empleado = this.getEmpleado();
-    return !!empleado && empleado.activo !== false;
+
+    return !!empleado
+      && empleado.activo !== false
+      && !!this.getToken();
   }
 
   logout(): void {
-    localStorage.removeItem('empleado');
+
+    localStorage.removeItem(
+      SessionService.EMPLEADO_STORAGE_KEY
+    );
+
+    sessionStorage.removeItem(
+      SessionService.TOKEN_STORAGE_KEY
+    );
+
     this.empleadoSubject.next(null);
+
     this.detenerMonitorSesion();
   }
 
   iniciarMonitorSesion(): void {
-    if (this.monitorSub || !this.getEmpleado()?.discordId) {
+
+    if (
+      this.monitorSub ||
+      !this.getEmpleado()?.discordId
+    ) {
       return;
     }
 
@@ -71,65 +121,119 @@ export class SessionService {
   }
 
   detenerMonitorSesion(): void {
+
     this.monitorSub?.unsubscribe();
+
     this.monitorSub = undefined;
     this.validandoSesion = false;
   }
 
   validarSesionActual(): void {
+
     const empleado = this.getEmpleado();
 
-    if (!empleado?.discordId || this.validandoSesion) {
+    if (
+      !empleado?.discordId ||
+      this.validandoSesion
+    ) {
       return;
     }
 
     this.validandoSesion = true;
 
     this.http
-      .get<SessionEmpleado>(`${environment.backendUrl}/api/session/empleado/${empleado.discordId}`)
+      .get<SessionEmpleado>(
+        `${environment.backendUrl}/api/session/empleado/${empleado.discordId}`
+      )
       .subscribe({
+
         next: (empleadoActualizado) => {
+
           this.validandoSesion = false;
 
-          if (!empleadoActualizado || empleadoActualizado.activo === false) {
+          if (
+            !empleadoActualizado ||
+            empleadoActualizado.activo === false
+          ) {
             this.cerrarSesionPorInactividad();
             return;
           }
 
-          localStorage.setItem('empleado', JSON.stringify(empleadoActualizado));
-          this.empleadoSubject.next(empleadoActualizado);
+          /*
+           * El endpoint de sesión no devuelve un JWT nuevo.
+           * Por eso actualizamos únicamente los datos del empleado
+           * y conservamos el token guardado en sessionStorage.
+           */
+          const empleadoSinToken: SessionEmpleado = {
+            ...empleadoActualizado,
+            token: undefined
+          };
+
+          localStorage.setItem(
+            SessionService.EMPLEADO_STORAGE_KEY,
+            JSON.stringify(empleadoSinToken)
+          );
+
+          this.empleadoSubject.next(
+            empleadoSinToken
+          );
         },
+
         error: (error) => {
+
           this.validandoSesion = false;
-          console.error('Error validando sesión:', error);
+
+          console.error(
+            'Error validando sesión:',
+            error
+          );
         }
       });
   }
 
   cerrarSesionPorInactividad(): void {
+
     this.logout();
-    this.toastService.error('Tu acceso ha sido desactivado.');
+
+    this.toastService.error(
+      'Tu acceso ha sido desactivado.'
+    );
+
     this.router.navigate(['/login']);
   }
 
   private getEmpleadoFromStorage(): SessionEmpleado | null {
-    const data = localStorage.getItem('empleado');
+
+    const data = localStorage.getItem(
+      SessionService.EMPLEADO_STORAGE_KEY
+    );
 
     if (!data) {
       return null;
     }
 
     try {
-      const empleado = JSON.parse(data) as SessionEmpleado;
+
+      const empleado =
+        JSON.parse(data) as SessionEmpleado;
 
       if (empleado.activo === false) {
-        localStorage.removeItem('empleado');
+
+        localStorage.removeItem(
+          SessionService.EMPLEADO_STORAGE_KEY
+        );
+
         return null;
       }
 
       return empleado;
+
     } catch {
-      localStorage.removeItem('empleado');
+
+      localStorage.removeItem(
+        SessionService.EMPLEADO_STORAGE_KEY
+      );
+
       return null;
     }
   }
