@@ -7,6 +7,8 @@ import {
 
 import { Observable } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
+
 export interface FacturaItemDetalle {
   id: number;
   item: string;
@@ -60,8 +62,8 @@ export interface FacturaResponse {
 })
 export class FacturacionService {
 
-  private apiUrl =
-    'https://lsccentraloryzonrp-production.up.railway.app/api/facturas';
+  private readonly apiUrl =
+    `${environment.backendUrl}/api/facturas`;
 
   constructor(
     private http: HttpClient
@@ -78,31 +80,49 @@ export class FacturacionService {
       .set('size', size);
 
     if (filtros.fechaInicio) {
-      params = params.set('fechaInicio', filtros.fechaInicio);
+      params = params.set(
+        'fechaInicio',
+        filtros.fechaInicio
+      );
     }
 
     if (filtros.fechaFin) {
-      params = params.set('fechaFin', filtros.fechaFin);
+      params = params.set(
+        'fechaFin',
+        filtros.fechaFin
+      );
     }
 
     if (filtros.tipo) {
-      params = params.set('tipo', filtros.tipo);
+      params = params.set(
+        'tipo',
+        filtros.tipo
+      );
     }
 
     if (
       filtros.idEmpleado !== null &&
       filtros.idEmpleado !== undefined
     ) {
-      params = params.set('idEmpleado', filtros.idEmpleado);
+
+      params = params.set(
+        'idEmpleado',
+        filtros.idEmpleado
+      );
     }
 
     return this.http.get<FacturaResponse>(
       this.apiUrl,
-      { params }
+      {
+        params
+      }
     );
   }
 
-  marcarTasacionEnviada(id: number): Observable<FacturaListado> {
+  marcarTasacionEnviada(
+    id: number
+  ): Observable<FacturaListado> {
+
     return this.http.patch<FacturaListado>(
       `${this.apiUrl}/${id}/tasacion/enviada`,
       {}
@@ -112,6 +132,7 @@ export class FacturacionService {
   eliminarFactura(
     id: number
   ): Observable<void> {
+
     return this.http.delete<void>(
       `${this.apiUrl}/${id}`
     );
