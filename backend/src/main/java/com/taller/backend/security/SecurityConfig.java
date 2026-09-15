@@ -85,7 +85,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
         http
                 .cors(Customizer.withDefaults())
@@ -111,17 +113,24 @@ public class SecurityConfig {
                                 "/api/admin/**"
                         ).hasAuthority("ROLE_ADMIN")
 
+                        // Resto de la API: empleado autenticado
                         .requestMatchers(
                                 "/api/**"
                         ).hasAuthority("ROLE_EMPLEADO")
 
-                        .anyRequest().permitAll()
+                        // Todo lo que no esté declarado explícitamente
+                        // queda bloqueado por defecto.
+                        .anyRequest().denyAll()
                 )
                 .exceptionHandling(ex -> ex
 
                         // Sin JWT válido
                         .authenticationEntryPoint(
-                                (request, response, authException) ->
+                                (
+                                        request,
+                                        response,
+                                        authException
+                                ) ->
                                         response.sendError(
                                                 HttpServletResponse.SC_UNAUTHORIZED
                                         )
@@ -129,104 +138,185 @@ public class SecurityConfig {
 
                         // JWT válido, pero sin permisos suficientes
                         .accessDeniedHandler(
-                                (request, response, accessDeniedException) ->
+                                (
+                                        request,
+                                        response,
+                                        accessDeniedException
+                                ) ->
                                         response.sendError(
                                                 HttpServletResponse.SC_FORBIDDEN
                                         )
                         )
                 )
-                .oauth2Login(oauth -> oauth
-                        .successHandler((request, response, authentication) -> {
+                .oauth2Login(oauth ->
+                        oauth.successHandler(
+                                (
+                                        request,
+                                        response,
+                                        authentication
+                                ) -> {
 
-                            OAuth2AuthenticationToken oauthToken =
-                                    (OAuth2AuthenticationToken) authentication;
+                                    OAuth2AuthenticationToken oauthToken =
+                                            (OAuth2AuthenticationToken)
+                                                    authentication;
 
-                            OAuth2User oauthUser =
-                                    (OAuth2User) authentication.getPrincipal();
+                                    OAuth2User oauthUser =
+                                            (OAuth2User)
+                                                    authentication.getPrincipal();
 
-                            String discordId = oauthUser.getAttribute("id");
-                            String username = oauthUser.getAttribute("username");
-                            String avatar = oauthUser.getAttribute("avatar");
-
-                            if (discordId == null || discordId.isBlank()) {
-                                System.err.println(
-                                        "LOGIN DENEGADO: no se pudo obtener discordId"
-                                );
-
-                                escribirRespuestaPopup(response, null);
-                                return;
-                            }
-
-                            OAuth2AuthorizedClient client =
-                                    authorizedClientService.loadAuthorizedClient(
-                                            oauthToken.getAuthorizedClientRegistrationId(),
-                                            oauthToken.getName()
-                                    );
-
-                            String accessToken =
-                                    client != null && client.getAccessToken() != null
-                                            ? client.getAccessToken().getTokenValue()
-                                            : null;
-
-                            DiscordMemberData memberData =
-                                    obtenerMiembroDiscordConBot(discordId);
-
-                            boolean tieneRolEmpleado =
-                                    memberData != null
-                                            && memberData.roleIds().contains(
-                                                    empleadoRoleId
+                                    String discordId =
+                                            oauthUser.getAttribute(
+                                                    "id"
                                             );
 
-                            if (
-                                    !tieneRolEmpleado
-                                            && accessToken != null
-                                            && !accessToken.isBlank()
-                            ) {
-                                tieneRolEmpleado =
-                                        usuarioTieneRolEmpleadoConOAuth(
-                                                accessToken
+                                    String username =
+                                            oauthUser.getAttribute(
+                                                    "username"
+                                            );
+
+                                    String avatar =
+                                            oauthUser.getAttribute(
+                                                    "avatar"
+                                            );
+
+                                    if (
+                                            discordId == null
+                                                    || discordId.isBlank()
+                                    ) {
+
+                                        System.err.println(
+                                                "LOGIN DENEGADO: "
+                                                        + "no se pudo obtener discordId"
                                         );
-                            }
 
-                            if (!tieneRolEmpleado) {
-                                System.err.println(
-                                        "LOGIN DENEGADO: usuario sin rol Empleado. Discord ID: "
-                                                + discordId
-                                );
+                                        escribirRespuestaPopup(
+                                                response,
+                                                null
+                                        );
 
-                                escribirRespuestaPopup(response, null);
-                                return;
-                            }
+                                        return;
+                                    }
 
-                            Empleado empleado =
-                                    empleadoRepository
-                                            .findByDiscordId(discordId)
-                                            .orElseGet(() ->
-                                                    crearEmpleadoDesdeDiscord(
-                                                            discordId,
-                                                            username
-                                                    )
+                                    OAuth2AuthorizedClient client =
+                                            authorizedClientService
+                                                    .loadAuthorizedClient(
+                                                            oauthToken
+                                                                    .getAuthorizedClientRegistrationId(),
+                                                            oauthToken
+                                                                    .getName()
+                                                    );
+
+                                    String accessToken =
+                                            client != null
+                                                    && client.getAccessToken()
+                                                    != null
+                                                    ? client
+                                                            .getAccessToken()
+                                                            .getTokenValue()
+                                                    : null;
+
+                                    DiscordMemberData memberData =
+                                            obtenerMiembroDiscordConBot(
+                                                    discordId
                                             );
 
-                            actualizarEmpleadoDesdeDiscord(
-                                    empleado,
-                                    memberData,
-                                    username
-                            );
+                                    boolean tieneRolEmpleado =
+                                            memberData != null
+                                                    && memberData
+                                                            .roleIds()
+                                                            .contains(
+                                                                    empleadoRoleId
+                                                            );
 
-                            Map<String, Object> user =
-                                    crearRespuestaUsuario(
+                                    if (
+                                            !tieneRolEmpleado
+                                                    && accessToken != null
+                                                    && !accessToken.isBlank()
+                                    ) {
+
+                                        tieneRolEmpleado =
+                                                usuarioTieneRolEmpleadoConOAuth(
+                                                        accessToken
+                                                );
+                                    }
+
+                                    if (!tieneRolEmpleado) {
+
+                                        System.err.println(
+                                                "LOGIN DENEGADO: "
+                                                        + "usuario sin rol Empleado. "
+                                                        + "Discord ID: "
+                                                        + discordId
+                                        );
+
+                                        escribirRespuestaPopup(
+                                                response,
+                                                null
+                                        );
+
+                                        return;
+                                    }
+
+                                    Empleado empleado =
+                                            empleadoRepository
+                                                    .findByDiscordId(
+                                                            discordId
+                                                    )
+                                                    .orElseGet(
+                                                            () ->
+                                                                    crearEmpleadoDesdeDiscord(
+                                                                            discordId,
+                                                                            username
+                                                                    )
+                                                    );
+
+                                    actualizarEmpleadoDesdeDiscord(
                                             empleado,
-                                            discordId,
-                                            username,
-                                            avatar
+                                            memberData,
+                                            username
                                     );
 
-                            escribirRespuestaPopup(
-                                    response,
-                                    user
-                            );
-                        })
+                                    /*
+                                     * Un empleado desactivado puede autenticarse
+                                     * correctamente en Discord, pero no debe
+                                     * recibir un JWT de la aplicación.
+                                     */
+                                    if (
+                                            !Boolean.TRUE.equals(
+                                                    empleado.getActivo()
+                                            )
+                                    ) {
+
+                                        Map<String, Object> userInactivo =
+                                                new HashMap<>();
+
+                                        userInactivo.put(
+                                                "activo",
+                                                false
+                                        );
+
+                                        escribirRespuestaPopup(
+                                                response,
+                                                userInactivo
+                                        );
+
+                                        return;
+                                    }
+
+                                    Map<String, Object> user =
+                                            crearRespuestaUsuario(
+                                                    empleado,
+                                                    discordId,
+                                                    username,
+                                                    avatar
+                                            );
+
+                                    escribirRespuestaPopup(
+                                            response,
+                                            user
+                                    );
+                                }
+                        )
                 );
 
         http.addFilterBefore(
@@ -247,8 +337,10 @@ public class SecurityConfig {
                     discordBotToken == null
                             || discordBotToken.isBlank()
             ) {
+
                 System.err.println(
-                        "DISCORD BOT MEMBER ERROR: discord.bot-token vacío"
+                        "DISCORD BOT MEMBER ERROR: "
+                                + "discord.bot-token vacío"
                 );
 
                 return null;
@@ -272,7 +364,9 @@ public class SecurityConfig {
                     restTemplate.exchange(
                             url,
                             HttpMethod.GET,
-                            new HttpEntity<>(headers),
+                            new HttpEntity<>(
+                                    headers
+                            ),
                             String.class
                     );
 
@@ -281,15 +375,21 @@ public class SecurityConfig {
                             discordResponse.getBody()
                     );
 
-            String nickServidor = null;
+            String nickServidor =
+                    null;
 
             if (
                     body != null
                             && body.has("nick")
-                            && !body.get("nick").isNull()
+                            && !body
+                                    .get("nick")
+                                    .isNull()
             ) {
+
                 nickServidor =
-                        body.get("nick").asText();
+                        body
+                                .get("nick")
+                                .asText();
             }
 
             List<String> roleIds =
@@ -298,10 +398,16 @@ public class SecurityConfig {
             if (
                     body != null
                             && body.has("roles")
-                            && body.get("roles").isArray()
+                            && body
+                                    .get("roles")
+                                    .isArray()
             ) {
 
-                for (JsonNode role : body.get("roles")) {
+                for (
+                        JsonNode role :
+                        body.get("roles")
+                ) {
+
                     roleIds.add(
                             role.asText()
                     );
@@ -313,7 +419,9 @@ public class SecurityConfig {
                     roleIds
             );
 
-        } catch (HttpClientErrorException e) {
+        } catch (
+                HttpClientErrorException e
+        ) {
 
             System.err.println(
                     "DISCORD BOT MEMBER ERROR: "
@@ -324,7 +432,9 @@ public class SecurityConfig {
 
             return null;
 
-        } catch (Exception e) {
+        } catch (
+                Exception e
+        ) {
 
             System.err.println(
                     "DISCORD BOT MEMBER ERROR: "
@@ -357,7 +467,9 @@ public class SecurityConfig {
                     restTemplate.exchange(
                             url,
                             HttpMethod.GET,
-                            new HttpEntity<>(headers),
+                            new HttpEntity<>(
+                                    headers
+                            ),
                             String.class
                     );
 
@@ -371,7 +483,9 @@ public class SecurityConfig {
                     "OAuth"
             );
 
-        } catch (HttpClientErrorException e) {
+        } catch (
+                HttpClientErrorException e
+        ) {
 
             System.err.println(
                     "DISCORD OAUTH CHECK ERROR: "
@@ -382,7 +496,9 @@ public class SecurityConfig {
 
             return false;
 
-        } catch (Exception e) {
+        } catch (
+                Exception e
+        ) {
 
             System.err.println(
                     "DISCORD OAUTH CHECK ERROR: "
@@ -426,7 +542,10 @@ public class SecurityConfig {
             return false;
         }
 
-        for (JsonNode role : roles) {
+        for (
+                JsonNode role :
+                roles
+        ) {
 
             String roleId =
                     role.asText();
@@ -472,32 +591,51 @@ public class SecurityConfig {
                 nombreServidor
         );
 
-        empleado.setActivo(
-                true
-        );
+        /*
+         * Solo inicializamos el estado para posibles
+         * registros antiguos cuyo valor sea null.
+         *
+         * Nunca reactivamos automáticamente a un empleado
+         * que haya sido desactivado desde Administración.
+         */
+        if (
+                empleado.getActivo()
+                        == null
+        ) {
+
+            empleado.setActivo(
+                    true
+            );
+        }
 
         Optional<Rango> rangoDiscord =
                 detectarRangoDesdeRolesDiscord(
                         memberData
                 );
 
-        if (rangoDiscord.isPresent()) {
+        if (
+                rangoDiscord.isPresent()
+        ) {
 
             empleado.setRango(
                     rangoDiscord.get()
             );
 
         } else if (
-                empleado.getRango() == null
+                empleado.getRango()
+                        == null
         ) {
 
             Rango rangoDefault =
                     rangoRepository
-                            .findByNombre("Aprendiz")
-                            .orElseThrow(() ->
-                                    new RuntimeException(
-                                            "No existe el rango Aprendiz"
-                                    )
+                            .findByNombre(
+                                    "Aprendiz"
+                            )
+                            .orElseThrow(
+                                    () ->
+                                            new RuntimeException(
+                                                    "No existe el rango Aprendiz"
+                                            )
                             );
 
             empleado.setRango(
@@ -517,16 +655,22 @@ public class SecurityConfig {
 
         if (
                 memberData != null
-                        && memberData.nickServidor() != null
-                        && !memberData.nickServidor().isBlank()
+                        && memberData.nickServidor()
+                        != null
+                        && !memberData
+                                .nickServidor()
+                                .isBlank()
         ) {
-            return memberData.nickServidor();
+
+            return memberData
+                    .nickServidor();
         }
 
         if (
                 username != null
                         && !username.isBlank()
         ) {
+
             return username;
         }
 
@@ -539,8 +683,11 @@ public class SecurityConfig {
 
         if (
                 memberData == null
-                        || memberData.roleIds().isEmpty()
+                        || memberData
+                                .roleIds()
+                                .isEmpty()
         ) {
+
             return Optional.empty();
         }
 
@@ -550,6 +697,7 @@ public class SecurityConfig {
         if (
                 rolesServidor.isEmpty()
         ) {
+
             return Optional.empty();
         }
 
@@ -557,36 +705,44 @@ public class SecurityConfig {
                 memberData
                         .roleIds()
                         .stream()
-                        .map(rolesServidor::get)
-                        .filter(nombre ->
-                                nombre != null
-                                        && !nombre.isBlank()
+                        .map(
+                                rolesServidor::get
+                        )
+                        .filter(
+                                nombre ->
+                                        nombre != null
+                                                && !nombre.isBlank()
                         )
                         .toList();
 
         if (
-                nombresRolesUsuario.isEmpty()
+                nombresRolesUsuario
+                        .isEmpty()
         ) {
+
             return Optional.empty();
         }
 
         List<Rango> rangos =
-                rangoRepository.findAll();
+                rangoRepository
+                        .findAll();
 
         return rangos
                 .stream()
-                .filter(rango ->
-                        nombresRolesUsuario
-                                .stream()
-                                .anyMatch(nombreRolDiscord ->
-                                        normalizar(
-                                                nombreRolDiscord
-                                        ).equals(
-                                                normalizar(
-                                                        rango.getNombre()
-                                                )
+                .filter(
+                        rango ->
+                                nombresRolesUsuario
+                                        .stream()
+                                        .anyMatch(
+                                                nombreRolDiscord ->
+                                                        normalizar(
+                                                                nombreRolDiscord
+                                                        ).equals(
+                                                                normalizar(
+                                                                        rango.getNombre()
+                                                                )
+                                                        )
                                         )
-                                )
                 )
                 .max(
                         Comparator.comparingInt(
@@ -608,7 +764,8 @@ public class SecurityConfig {
             ) {
 
                 System.err.println(
-                        "DISCORD BOT ROLES ERROR: discord.bot-token vacío"
+                        "DISCORD BOT ROLES ERROR: "
+                                + "discord.bot-token vacío"
                 );
 
                 return roles;
@@ -631,7 +788,9 @@ public class SecurityConfig {
                     restTemplate.exchange(
                             url,
                             HttpMethod.GET,
-                            new HttpEntity<>(headers),
+                            new HttpEntity<>(
+                                    headers
+                            ),
                             String.class
                     );
 
@@ -645,7 +804,10 @@ public class SecurityConfig {
                             && body.isArray()
             ) {
 
-                for (JsonNode role : body) {
+                for (
+                        JsonNode role :
+                        body
+                ) {
 
                     if (
                             role.has("id")
@@ -653,14 +815,20 @@ public class SecurityConfig {
                     ) {
 
                         roles.put(
-                                role.get("id").asText(),
-                                role.get("name").asText()
+                                role
+                                        .get("id")
+                                        .asText(),
+                                role
+                                        .get("name")
+                                        .asText()
                         );
                     }
                 }
             }
 
-        } catch (HttpClientErrorException e) {
+        } catch (
+                HttpClientErrorException e
+        ) {
 
             System.err.println(
                     "DISCORD BOT ROLES ERROR: "
@@ -669,7 +837,9 @@ public class SecurityConfig {
                             + e.getResponseBodyAsString()
             );
 
-        } catch (Exception e) {
+        } catch (
+                Exception e
+        ) {
 
             System.err.println(
                     "DISCORD BOT ROLES ERROR: "
@@ -687,11 +857,14 @@ public class SecurityConfig {
 
         Rango rangoDefault =
                 rangoRepository
-                        .findByNombre("Aprendiz")
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "No existe el rango Aprendiz"
-                                )
+                        .findByNombre(
+                                "Aprendiz"
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "No existe el rango Aprendiz"
+                                        )
                         );
 
         Empleado empleado =
@@ -737,17 +910,23 @@ public class SecurityConfig {
 
         rango.put(
                 "id",
-                empleado.getRango().getId()
+                empleado
+                        .getRango()
+                        .getId()
         );
 
         rango.put(
                 "nombre",
-                empleado.getRango().getNombre()
+                empleado
+                        .getRango()
+                        .getNombre()
         );
 
         rango.put(
                 "nivel",
-                empleado.getRango().getNivel()
+                empleado
+                        .getRango()
+                        .getNivel()
         );
 
         String avatarUrl =
@@ -786,7 +965,8 @@ public class SecurityConfig {
         user.put(
                 "puedeTrabajarComoSeguridad",
                 Boolean.TRUE.equals(
-                        empleado.getPuedeTrabajarComoSeguridad()
+                        empleado
+                                .getPuedeTrabajarComoSeguridad()
                 )
         );
 
@@ -860,7 +1040,10 @@ public class SecurityConfig {
             String value
     ) {
 
-        if (value == null) {
+        if (
+                value == null
+        ) {
+
             return "";
         }
 

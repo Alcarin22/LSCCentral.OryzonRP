@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Subscription, interval } from 'rxjs';
+import {
+  BehaviorSubject,
+  Subscription,
+  interval
+} from 'rxjs';
 import { Router } from '@angular/router';
 
 import { environment } from '../../../environments/environment';
@@ -33,6 +37,13 @@ export class SessionService {
 
   private static readonly TOKEN_STORAGE_KEY =
     'auth_token';
+
+  /*
+   * Validamos periódicamente que la sesión siga siendo válida
+   * sin realizar una petición al backend cada segundo.
+   */
+  private static readonly SESSION_MONITOR_INTERVAL_MS =
+    30000;
 
   private empleadoSubject =
     new BehaviorSubject<SessionEmpleado | null>(
@@ -132,10 +143,18 @@ export class SessionService {
       return;
     }
 
+    /*
+     * Primera comprobación inmediata.
+     */
     this.validarSesionActual();
 
+    /*
+     * Después comprobamos cada 30 segundos.
+     */
     this.monitorSub =
-      interval(1000).subscribe(() => {
+      interval(
+        SessionService.SESSION_MONITOR_INTERVAL_MS
+      ).subscribe(() => {
 
         this.validarSesionActual();
 
@@ -190,8 +209,9 @@ export class SessionService {
 
           /*
            * El JWT permanece exclusivamente en sessionStorage.
-           * La información del empleado se actualiza
-           * independientemente del token.
+           *
+           * La información del empleado puede actualizarse
+           * desde el backend sin volver a almacenar el token.
            */
           const empleadoSinToken: SessionEmpleado = {
             ...empleadoActualizado,
