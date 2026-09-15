@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { environment } from '../../../environments/environment';
 
 export interface PrimaActividadDia {
@@ -46,13 +47,20 @@ export interface MisPrimasResponse {
   providedIn: 'root'
 })
 export class PrimasService {
-  private readonly baseUrl = `${environment.backendUrl}/api/primas`;
 
-  constructor(private http: HttpClient) {}
+  private readonly baseUrl =
+    `${environment.backendUrl}/api/primas`;
 
-  getMisPrimas(discordId: string, weekOffset = 0): Observable<MisPrimasResponse> {
+  constructor(
+    private http: HttpClient
+  ) {}
+
+  getMisPrimas(
+    weekOffset = 0
+  ): Observable<MisPrimasResponse> {
+
     return this.http.get<MisPrimasResponse>(
-      `${this.baseUrl}/${discordId}?weekOffset=${weekOffset}&t=${Date.now()}`
+      `${this.baseUrl}?weekOffset=${weekOffset}&t=${Date.now()}`
     );
   }
 }
