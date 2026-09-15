@@ -44,19 +44,9 @@ public class FacturaController {
                         authentication
                 );
 
-        /*
-         * El discordId recibido desde el navegador
-         * nunca determina el empleado.
-         *
-         * Lo sobrescribimos siempre con la identidad
-         * obtenida del JWT.
-         */
-        request.setDiscordId(
-                discordId
-        );
-
         return facturaService.crearFactura(
-                request
+                request,
+                discordId
         );
     }
 
@@ -71,17 +61,9 @@ public class FacturaController {
                         authentication
                 );
 
-        /*
-         * Igual que en una factura individual:
-         * cualquier discordId enviado por Angular
-         * queda sustituido por el usuario autenticado.
-         */
-        request.setDiscordId(
-                discordId
-        );
-
         return facturaService.crearFacturacionLote(
-                request
+                request,
+                discordId
         );
     }
 
