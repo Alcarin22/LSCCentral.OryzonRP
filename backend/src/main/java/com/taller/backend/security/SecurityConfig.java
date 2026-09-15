@@ -109,12 +109,11 @@ public class SecurityConfig {
                         // Administración: nivel 4 o superior
                         .requestMatchers(
                                 "/api/admin/**"
-                        ).hasRole("ADMIN")
+                        ).hasAuthority("ROLE_ADMIN")
 
-                        // Resto de la API: empleado autenticado
                         .requestMatchers(
                                 "/api/**"
-                        ).hasRole("EMPLEADO")
+                        ).hasAuthority("ROLE_EMPLEADO")
 
                         .anyRequest().permitAll()
                 )

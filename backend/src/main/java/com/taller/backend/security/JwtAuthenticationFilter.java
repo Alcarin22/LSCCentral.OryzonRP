@@ -5,26 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpHeaders;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-
 import org.springframework.stereotype.Component;
-
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-
 import com.taller.backend.entity.Empleado;
 import com.taller.backend.repository.EmpleadoRepository;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -50,20 +44,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         String authorizationHeader =
-                request.getHeader(
-                        HttpHeaders.AUTHORIZATION
-                );
+                request.getHeader(HttpHeaders.AUTHORIZATION);
 
+        /*
+         * Si la petición no lleva Bearer token,
+         * dejamos que Spring continúe normalmente.
+         *
+         * Esto es necesario para OAuth2, /login/**,
+         * /oauth2/** y endpoints públicos.
+         */
         if (
                 authorizationHeader == null
                         || !authorizationHeader.startsWith("Bearer ")
         ) {
-
-            filterChain.doFilter(
-                    request,
-                    response
-            );
-
+            filterChain.doFilter(request, response);
             return;
         }
 
@@ -72,59 +66,62 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .substring(7)
                         .trim();
 
-        if (
-                token.isBlank()
-        ) {
+        if (token.isBlank()) {
+            SecurityContextHolder.clearContext();
 
-            filterChain.doFilter(
-                    request,
-                    response
-            );
-
+            filterChain.doFilter(request, response);
             return;
         }
 
         try {
 
             String discordId =
-                    jwtService.obtenerDiscordId(
-                            token
-                    );
+                    jwtService.obtenerDiscordId(token);
 
             if (
-                    discordId != null
-                            && !discordId.isBlank()
-                            && SecurityContextHolder
-                                    .getContext()
-                                    .getAuthentication() == null
+                    discordId == null
+                            || discordId.isBlank()
             ) {
+                SecurityContextHolder.clearContext();
 
-                empleadoRepository
-                        .findByDiscordId(
-                                discordId
-                        )
-                        .filter(empleado ->
-                                Boolean.TRUE.equals(
-                                        empleado.getActivo()
-                                )
-                        )
-                        .ifPresent(empleado ->
-                                autenticarEmpleado(
-                                        request,
-                                        empleado
-                                )
-                        );
+                filterChain.doFilter(request, response);
+                return;
             }
+
+            Empleado empleado =
+                    empleadoRepository
+                            .findByDiscordId(discordId)
+                            .filter(e ->
+                                    Boolean.TRUE.equals(
+                                            e.getActivo()
+                                    )
+                            )
+                            .orElse(null);
+
+            if (empleado == null) {
+                SecurityContextHolder.clearContext();
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            /*
+             * Si existe un Bearer JWT válido, su autenticación
+             * tiene prioridad sobre cualquier autenticación
+             * previa creada por OAuth2/Spring.
+             */
+            autenticarEmpleado(
+                    request,
+                    empleado
+            );
 
         } catch (JWTVerificationException e) {
 
-            SecurityContextHolder
-                    .clearContext();
+            SecurityContextHolder.clearContext();
 
         } catch (Exception e) {
 
-            SecurityContextHolder
-                    .clearContext();
+            SecurityContextHolder.clearContext();
 
             System.err.println(
                     "JWT AUTH ERROR: "
@@ -173,9 +170,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         authentication.setDetails(
                 new WebAuthenticationDetailsSource()
-                        .buildDetails(
-                                request
-                        )
+                        .buildDetails(request)
         );
 
         SecurityContextHolder
