@@ -32,11 +32,6 @@ public class FichajeController {
         this.fichajeService = fichajeService;
     }
 
-    /*
-     * Endpoint nuevo.
-     *
-     * El empleado se obtiene exclusivamente de la autenticación JWT.
-     */
     @PostMapping("/toggle")
     public FichajeResponse toggleFichaje(
             Authentication authentication,
@@ -59,11 +54,6 @@ public class FichajeController {
         );
     }
 
-    /*
-     * Endpoint nuevo.
-     *
-     * El navegador ya no indica qué empleado quiere consultar.
-     */
     @GetMapping("/estado")
     public FichajeResponse obtenerEstado(
             Authentication authentication
@@ -76,41 +66,6 @@ public class FichajeController {
 
         return fichajeService.obtenerEstadoFichaje(
                 discordId
-        );
-    }
-
-    /*
-     * Endpoint antiguo temporal.
-     *
-     * Conservamos la URL para que el frontend actualmente desplegado
-     * siga funcionando durante la transición.
-     *
-     * IMPORTANTE:
-     * El discordId incluido en la URL NO se utiliza.
-     * La identidad real se obtiene del JWT.
-     */
-    @PostMapping("/toggle/{discordId}")
-    public FichajeResponse toggleFichajeLegacy(
-            Authentication authentication,
-            @RequestBody(required = false) FichajeToggleRequest request
-    ) {
-        return toggleFichaje(
-                authentication,
-                request
-        );
-    }
-
-    /*
-     * Endpoint antiguo temporal.
-     *
-     * El discordId de la URL se ignora deliberadamente.
-     */
-    @GetMapping("/estado/{discordId}")
-    public FichajeResponse obtenerEstadoLegacy(
-            Authentication authentication
-    ) {
-        return obtenerEstado(
-                authentication
         );
     }
 
