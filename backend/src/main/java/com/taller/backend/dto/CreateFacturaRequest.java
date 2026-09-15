@@ -2,7 +2,6 @@ package com.taller.backend.dto;
 
 public class CreateFacturaRequest {
 
-    private String discordId;
     private String matricula;
     private String tipo;
     private Integer total;
@@ -19,14 +18,6 @@ public class CreateFacturaRequest {
     private String tuneoSeleccionados;
     private Boolean grua;
     private String otros;
-
-    public String getDiscordId() {
-        return discordId;
-    }
-
-    public void setDiscordId(String discordId) {
-        this.discordId = discordId;
-    }
 
     public String getMatricula() {
         return matricula;
