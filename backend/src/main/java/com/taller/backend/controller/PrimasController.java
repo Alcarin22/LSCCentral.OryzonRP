@@ -28,11 +28,6 @@ public class PrimasController {
         this.primasService = primasService;
     }
 
-    /*
-     * Endpoint nuevo.
-     *
-     * El empleado se obtiene exclusivamente de la autenticación JWT.
-     */
     @GetMapping("/api/primas")
     public MisPrimasResponse getMisPrimas(
             Authentication authentication,
@@ -46,28 +41,6 @@ public class PrimasController {
 
         return primasService.getMisPrimas(
                 discordId,
-                weekOffset
-        );
-    }
-
-    /*
-     * Endpoint legacy temporal.
-     *
-     * Se mantiene mientras el frontend desplegado siga enviando
-     * el discordId en la URL.
-     *
-     * El valor recibido en la URL se ignora completamente.
-     * La identidad real procede del JWT.
-     */
-    @GetMapping("/api/primas/{discordId}")
-    public MisPrimasResponse getMisPrimasLegacy(
-            Authentication authentication,
-            @PathVariable String discordId,
-            @RequestParam(defaultValue = "0") Integer weekOffset
-    ) {
-
-        return getMisPrimas(
-                authentication,
                 weekOffset
         );
     }
