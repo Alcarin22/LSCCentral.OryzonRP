@@ -215,6 +215,35 @@
                         </div>
 
                         <div class="admin-detail-item">
+                          <span>Fecha de contratación</span>
+                          <input
+                            type="date"
+                            [(ngModel)]="empleado.fechaContratacion"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+
+                        <div class="admin-detail-item">
+                          <span>Fecha del último ascenso</span>
+                          <input
+                            type="date"
+                            [(ngModel)]="empleado.fechaUltimoAscenso"
+                            (click)="$event.stopPropagation()"
+                          />
+                        </div>
+
+                        <div class="admin-detail-item admin-detail-actions">
+                          <span>Seguimiento de ascensos</span>
+                          <button
+                            type="button"
+                            class="btn btn-primary"
+                            (click)="$event.stopPropagation(); guardarFechasEmpleado(empleado)"
+                          >
+                            Guardar fechas
+                          </button>
+                        </div>
+
+                        <div class="admin-detail-item">
                           <span>Puede trabajar como Seguridad</span>
 
                           <label class="security-permission-toggle" (click)="$event.stopPropagation()">
@@ -332,8 +361,20 @@
                 <tr
                   *ngFor="let prima of primas"
                   [class.is-paid]="prima.pagada"
+                  [ngClass]="claseAscenso(prima)"
                 >
-                  <td><strong>{{ prima.nombreEmpleado }}</strong></td>
+                  <td>
+                    <strong>{{ prima.nombreEmpleado }}</strong>
+                    <div
+                      *ngIf="prima.estadoAscenso !== 'NINGUNO'"
+                      class="promotion-message"
+                      [class.promotion-message-due]="prima.estadoAscenso === 'ASCENSO_PENDIENTE'"
+                      [title]="prima.detalleAscenso || ''"
+                    >
+                      {{ textoAscenso(prima) }}
+                      <span *ngIf="prima.fechaAscenso"> · {{ formatearFecha(prima.fechaAscenso) | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                  </td>
 
                   <td>{{ prima.rango }}</td>
 

@@ -48,17 +48,20 @@ public class PrimasService {
     private final FichajeRepository fichajeRepository;
     private final FacturaRepository facturaRepository;
     private final PrimaRepository primaRepository;
+    private final AscensosService ascensosService;
 
     public PrimasService(
             EmpleadoRepository empleadoRepository,
             FichajeRepository fichajeRepository,
             FacturaRepository facturaRepository,
-            PrimaRepository primaRepository
+            PrimaRepository primaRepository,
+            AscensosService ascensosService
     ) {
         this.empleadoRepository = empleadoRepository;
         this.fichajeRepository = fichajeRepository;
         this.facturaRepository = facturaRepository;
         this.primaRepository = primaRepository;
+        this.ascensosService = ascensosService;
     }
 
     @Transactional
@@ -418,6 +421,12 @@ public class PrimasService {
         response.setFechaPago(
                 prima.getFechaPago()
         );
+
+        AscensosService.EvaluacionAscenso ascenso = ascensosService.evaluar(prima.getEmpleado());
+        response.setEstadoAscenso(ascenso.estado().name());
+        response.setSiguienteRango(ascenso.siguienteRango());
+        response.setFechaAscenso(ascenso.fechaAscenso());
+        response.setDetalleAscenso(ascenso.detalle());
 
         return response;
     }

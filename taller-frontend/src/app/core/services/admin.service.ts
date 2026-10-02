@@ -12,6 +12,8 @@ export interface EmpleadoAdmin {
   rangoNombre: string;
   rangoNivel: number;
   puedeTrabajarComoSeguridad: boolean;
+  fechaContratacion: string | null;
+  fechaUltimoAscenso: string | null;
 }
 
 export interface RangoAdmin {
@@ -61,6 +63,17 @@ export class AdminService {
 
   listarRangos(): Observable<RangoAdmin[]> {
     return this.http.get<RangoAdmin[]>(`${this.baseUrl}/rangos`);
+  }
+
+  actualizarFechasEmpleado(
+    empleadoId: number,
+    fechaContratacion: string | null,
+    fechaUltimoAscenso: string | null
+  ): Observable<EmpleadoAdmin> {
+    return this.http.put<EmpleadoAdmin>(
+      `${this.baseUrl}/empleados/${empleadoId}/fechas`,
+      { fechaContratacion, fechaUltimoAscenso }
+    );
   }
 
   actualizarEmpleado(

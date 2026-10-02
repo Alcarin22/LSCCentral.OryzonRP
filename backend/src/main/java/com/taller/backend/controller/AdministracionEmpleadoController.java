@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.taller.backend.dto.EmpleadoAdminResponse;
 import com.taller.backend.dto.EmpleadoAdminUpdateRequest;
+import com.taller.backend.dto.EmpleadoFechasUpdateRequest;
 import com.taller.backend.dto.RangoResponse;
 import com.taller.backend.service.AdministracionEmpleadoService;
 
@@ -37,5 +38,12 @@ public class AdministracionEmpleadoController {
             @RequestBody EmpleadoAdminUpdateRequest request
     ) {
         return administracionEmpleadoService.actualizarEmpleado(empleadoId, request);
+    }
+    @PutMapping("/empleados/{empleadoId}/fechas")
+    public EmpleadoAdminResponse actualizarFechas(
+            @PathVariable Long empleadoId,
+            @RequestBody EmpleadoFechasUpdateRequest request
+    ) {
+        return administracionEmpleadoService.actualizarFechas(empleadoId, request);
     }
 }

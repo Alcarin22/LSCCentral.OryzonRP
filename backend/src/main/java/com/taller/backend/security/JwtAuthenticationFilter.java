@@ -151,12 +151,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (
                 empleado.getRango() != null
-                        && (
-                                empleado.getRango().getNivel() >= 4
-                                        || "Encargado".equalsIgnoreCase(
-                                                empleado.getRango().getNombre()
-                                        )
-                        )
+                        && empleado.getRango().getNivel() >= 4
         ) {
 
             authorities.add(

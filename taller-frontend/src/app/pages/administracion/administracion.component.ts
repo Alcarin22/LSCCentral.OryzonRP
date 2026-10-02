@@ -99,14 +99,7 @@ export class AdministracionComponent implements OnInit {
   }
 
   puedeAcceder(): boolean {
-    const nombreRango = (this.empleadoSesion?.rango?.nombre ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim()
-      .toLowerCase();
-
-    return nombreRango === 'encargado'
-      || (this.empleadoSesion?.rango?.nivel ?? 0) >= 4;
+    return (this.empleadoSesion?.rango?.nivel ?? 0) >= 4;
   }
 
   setTab(tab: AdminTab): void {
@@ -304,6 +297,39 @@ export class AdministracionComponent implements OnInit {
         alert('No se pudo actualizar el permiso para trabajar como seguridad.');
       }
     });
+  }
+
+  guardarFechasEmpleado(empleado: EmpleadoAdmin): void {
+    this.adminService.actualizarFechasEmpleado(
+      empleado.id,
+      empleado.fechaContratacion || null,
+      empleado.fechaUltimoAscenso || null
+    ).subscribe({
+      next: (actualizado) => {
+        this.actualizarEmpleadoEnLista(actualizado);
+        if (this.activeTab === 'primas') this.cargarPrimas();
+      },
+      error: (error) => {
+        console.error('Error actualizando fechas del empleado:', error);
+        alert('No se pudieron guardar las fechas del empleado.');
+      }
+    });
+  }
+
+  claseAscenso(prima: AdminPrima): string {
+    if (prima.estadoAscenso === 'ASCENSO_PENDIENTE') return 'promotion-due';
+    if (prima.estadoAscenso === 'REQUISITOS_CUMPLIDOS') return 'promotion-ready';
+    return '';
+  }
+
+  textoAscenso(prima: AdminPrima): string {
+    if (prima.estadoAscenso === 'ASCENSO_PENDIENTE') {
+      return `Hay que ascenderlo a ${prima.siguienteRango ?? 'su siguiente rango'}`;
+    }
+    if (prima.estadoAscenso === 'REQUISITOS_CUMPLIDOS') {
+      return `Ha cumplido los requisitos para ascender a ${prima.siguienteRango ?? 'su siguiente rango'}`;
+    }
+    return '';
   }
 
   toggleActivo(empleado: EmpleadoAdmin): void {

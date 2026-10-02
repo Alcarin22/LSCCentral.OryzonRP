@@ -1,5 +1,7 @@
 package com.taller.backend.dto;
 
+import java.time.LocalDate;
+
 public class EmpleadoAdminResponse {
 
     private Long id;
@@ -10,6 +12,8 @@ public class EmpleadoAdminResponse {
     private String rangoNombre;
     private Integer rangoNivel;
     private Boolean puedeTrabajarComoSeguridad;
+    private LocalDate fechaContratacion;
+    private LocalDate fechaUltimoAscenso;
 
     public Long getId() {
         return id;
@@ -73,4 +77,8 @@ public class EmpleadoAdminResponse {
     public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
         this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
+    public LocalDate getFechaContratacion() { return fechaContratacion; }
+    public void setFechaContratacion(LocalDate fechaContratacion) { this.fechaContratacion = fechaContratacion; }
+    public LocalDate getFechaUltimoAscenso() { return fechaUltimoAscenso; }
+    public void setFechaUltimoAscenso(LocalDate fechaUltimoAscenso) { this.fechaUltimoAscenso = fechaUltimoAscenso; }
 }

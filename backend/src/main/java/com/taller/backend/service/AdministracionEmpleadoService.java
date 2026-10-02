@@ -63,9 +63,19 @@ public class AdministracionEmpleadoService {
             empleado.setPuedeTrabajarComoSeguridad(request.getPuedeTrabajarComoSeguridad());
         }
 
+
         Empleado actualizado = empleadoRepository.save(empleado);
 
         return mapearEmpleado(actualizado);
+    }
+
+    @Transactional
+    public EmpleadoAdminResponse actualizarFechas(Long empleadoId, com.taller.backend.dto.EmpleadoFechasUpdateRequest request) {
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        empleado.setFechaContratacion(request.getFechaContratacion());
+        empleado.setFechaUltimoAscenso(request.getFechaUltimoAscenso());
+        return mapearEmpleado(empleadoRepository.save(empleado));
     }
 
     private EmpleadoAdminResponse mapearEmpleado(Empleado empleado) {
@@ -76,6 +86,8 @@ public class AdministracionEmpleadoService {
         response.setNombre(empleado.getNombre());
         response.setActivo(empleado.getActivo());
         response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
+        response.setFechaContratacion(empleado.getFechaContratacion());
+        response.setFechaUltimoAscenso(empleado.getFechaUltimoAscenso());
 
         if (empleado.getRango() != null) {
             response.setRangoId(empleado.getRango().getId());

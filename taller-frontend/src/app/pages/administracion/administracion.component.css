@@ -584,3 +584,38 @@
   height: 18px;
   accent-color: var(--brand-primary);
 }
+
+/* Indicadores de criterios de ascenso en Administración > Primas */
+.primas-table tbody tr.promotion-ready > td {
+  border-top: 2px solid #d6a800;
+  border-bottom: 2px solid #d6a800;
+}
+.primas-table tbody tr.promotion-ready > td:first-child { border-left: 3px solid #d6a800; }
+.primas-table tbody tr.promotion-ready > td:last-child { border-right: 3px solid #d6a800; }
+
+.primas-table tbody tr.promotion-due > td {
+  border-top: 2px solid #159447;
+  border-bottom: 2px solid #159447;
+}
+.primas-table tbody tr.promotion-due > td:first-child { border-left: 3px solid #159447; }
+.primas-table tbody tr.promotion-due > td:last-child { border-right: 3px solid #159447; }
+
+.promotion-message {
+  margin-top: 5px;
+  font-size: .76rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #a67c00;
+}
+.promotion-message-due { color: #159447; }
+
+.admin-detail-item input[type="date"] {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.admin-detail-actions { justify-content: flex-end; }

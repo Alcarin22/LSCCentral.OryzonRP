@@ -22,6 +22,10 @@ public class AdminPrimaResponse {
     private BigDecimal total;
     private Boolean pagada;
     private LocalDateTime fechaPago;
+    private String estadoAscenso;
+    private String siguienteRango;
+    private LocalDate fechaAscenso;
+    private String detalleAscenso;
 
     public Long getId() {
         return id;
@@ -150,4 +154,12 @@ public class AdminPrimaResponse {
     public void setFechaPago(LocalDateTime fechaPago) {
         this.fechaPago = fechaPago;
     }
+    public String getEstadoAscenso() { return estadoAscenso; }
+    public void setEstadoAscenso(String estadoAscenso) { this.estadoAscenso = estadoAscenso; }
+    public String getSiguienteRango() { return siguienteRango; }
+    public void setSiguienteRango(String siguienteRango) { this.siguienteRango = siguienteRango; }
+    public LocalDate getFechaAscenso() { return fechaAscenso; }
+    public void setFechaAscenso(LocalDate fechaAscenso) { this.fechaAscenso = fechaAscenso; }
+    public String getDetalleAscenso() { return detalleAscenso; }
+    public void setDetalleAscenso(String detalleAscenso) { this.detalleAscenso = detalleAscenso; }
 }

@@ -20,6 +20,10 @@ export interface AdminPrima {
   total: number;
   pagada: boolean;
   fechaPago: string | null;
+  estadoAscenso: 'NINGUNO' | 'REQUISITOS_CUMPLIDOS' | 'ASCENSO_PENDIENTE';
+  siguienteRango: string | null;
+  fechaAscenso: string | null;
+  detalleAscenso: string | null;
 }
 
 export interface AdminPrimaPagadaRequest {

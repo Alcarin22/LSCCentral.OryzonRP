@@ -1,5 +1,7 @@
 package com.taller.backend.entity;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,6 +35,12 @@ public class Empleado {
 
     @Column(name = "puede_trabajar_como_seguridad", nullable = false)
     private Boolean puedeTrabajarComoSeguridad = false;
+
+    @Column(name = "fecha_contratacion")
+    private LocalDate fechaContratacion;
+
+    @Column(name = "fecha_ultimo_ascenso")
+    private LocalDate fechaUltimoAscenso;
 
     public Long getId() {
         return id;
@@ -77,4 +85,9 @@ public class Empleado {
     public void setPuedeTrabajarComoSeguridad(Boolean puedeTrabajarComoSeguridad) {
         this.puedeTrabajarComoSeguridad = puedeTrabajarComoSeguridad;
     }
+
+    public LocalDate getFechaContratacion() { return fechaContratacion; }
+    public void setFechaContratacion(LocalDate fechaContratacion) { this.fechaContratacion = fechaContratacion; }
+    public LocalDate getFechaUltimoAscenso() { return fechaUltimoAscenso; }
+    public void setFechaUltimoAscenso(LocalDate fechaUltimoAscenso) { this.fechaUltimoAscenso = fechaUltimoAscenso; }
 }
