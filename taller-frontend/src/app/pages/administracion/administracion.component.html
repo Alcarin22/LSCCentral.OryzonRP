@@ -122,12 +122,22 @@
                   class="admin-main-row"
                   [class.is-open]="isEmpleadoAbierto(empleado)"
                   [class.is-inactive]="!empleado.activo"
+                  [ngClass]="claseAscenso(empleado)"
                   (click)="toggleEmpleado(empleado)"
                 >
                   <td>#{{ empleado.id }}</td>
 
                   <td>
                     <strong>{{ empleado.nombre }}</strong>
+                    <div
+                      *ngIf="empleado.estadoAscenso !== 'NINGUNO'"
+                      class="promotion-message"
+                      [class.promotion-message-due]="empleado.estadoAscenso === 'ASCENSO_PENDIENTE'"
+                      [title]="empleado.detalleAscenso || ''"
+                    >
+                      {{ textoAscenso(empleado) }}
+                      <span *ngIf="empleado.fechaAscenso"> · {{ formatearFecha(empleado.fechaAscenso) | date:'dd/MM/yyyy' }}</span>
+                    </div>
                   </td>
 
                   <td>{{ empleado.discordId }}</td>
@@ -361,19 +371,9 @@
                 <tr
                   *ngFor="let prima of primas"
                   [class.is-paid]="prima.pagada"
-                  [ngClass]="claseAscenso(prima)"
                 >
                   <td>
                     <strong>{{ prima.nombreEmpleado }}</strong>
-                    <div
-                      *ngIf="prima.estadoAscenso !== 'NINGUNO'"
-                      class="promotion-message"
-                      [class.promotion-message-due]="prima.estadoAscenso === 'ASCENSO_PENDIENTE'"
-                      [title]="prima.detalleAscenso || ''"
-                    >
-                      {{ textoAscenso(prima) }}
-                      <span *ngIf="prima.fechaAscenso"> · {{ formatearFecha(prima.fechaAscenso) | date:'dd/MM/yyyy' }}</span>
-                    </div>
                   </td>
 
                   <td>{{ prima.rango }}</td>

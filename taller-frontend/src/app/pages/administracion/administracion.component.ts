@@ -307,7 +307,6 @@ export class AdministracionComponent implements OnInit {
     ).subscribe({
       next: (actualizado) => {
         this.actualizarEmpleadoEnLista(actualizado);
-        if (this.activeTab === 'primas') this.cargarPrimas();
       },
       error: (error) => {
         console.error('Error actualizando fechas del empleado:', error);
@@ -316,18 +315,18 @@ export class AdministracionComponent implements OnInit {
     });
   }
 
-  claseAscenso(prima: AdminPrima): string {
-    if (prima.estadoAscenso === 'ASCENSO_PENDIENTE') return 'promotion-due';
-    if (prima.estadoAscenso === 'REQUISITOS_CUMPLIDOS') return 'promotion-ready';
+  claseAscenso(empleado: EmpleadoAdmin): string {
+    if (empleado.estadoAscenso === 'ASCENSO_PENDIENTE') return 'promotion-due';
+    if (empleado.estadoAscenso === 'REQUISITOS_CUMPLIDOS') return 'promotion-ready';
     return '';
   }
 
-  textoAscenso(prima: AdminPrima): string {
-    if (prima.estadoAscenso === 'ASCENSO_PENDIENTE') {
-      return `Hay que ascenderlo a ${prima.siguienteRango ?? 'su siguiente rango'}`;
+  textoAscenso(empleado: EmpleadoAdmin): string {
+    if (empleado.estadoAscenso === 'ASCENSO_PENDIENTE') {
+      return `Hay que ascenderlo a ${empleado.siguienteRango ?? 'su siguiente rango'}`;
     }
-    if (prima.estadoAscenso === 'REQUISITOS_CUMPLIDOS') {
-      return `Ha cumplido los requisitos para ascender a ${prima.siguienteRango ?? 'su siguiente rango'}`;
+    if (empleado.estadoAscenso === 'REQUISITOS_CUMPLIDOS') {
+      return `Ha cumplido los requisitos para ascender a ${empleado.siguienteRango ?? 'su siguiente rango'}`;
     }
     return '';
   }

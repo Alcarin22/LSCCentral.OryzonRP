@@ -18,13 +18,16 @@ public class AdministracionEmpleadoService {
 
     private final EmpleadoRepository empleadoRepository;
     private final RangoRepository rangoRepository;
+    private final AscensosService ascensosService;
 
     public AdministracionEmpleadoService(
             EmpleadoRepository empleadoRepository,
-            RangoRepository rangoRepository
+            RangoRepository rangoRepository,
+            AscensosService ascensosService
     ) {
         this.empleadoRepository = empleadoRepository;
         this.rangoRepository = rangoRepository;
+        this.ascensosService = ascensosService;
     }
 
     @Transactional(readOnly = true)
@@ -88,6 +91,12 @@ public class AdministracionEmpleadoService {
         response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
         response.setFechaContratacion(empleado.getFechaContratacion());
         response.setFechaUltimoAscenso(empleado.getFechaUltimoAscenso());
+
+        AscensosService.EvaluacionAscenso ascenso = ascensosService.evaluar(empleado);
+        response.setEstadoAscenso(ascenso.estado().name());
+        response.setSiguienteRango(ascenso.siguienteRango());
+        response.setFechaAscenso(ascenso.fechaAscenso());
+        response.setDetalleAscenso(ascenso.detalle());
 
         if (empleado.getRango() != null) {
             response.setRangoId(empleado.getRango().getId());

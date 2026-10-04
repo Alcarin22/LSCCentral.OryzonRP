@@ -14,6 +14,10 @@ export interface EmpleadoAdmin {
   puedeTrabajarComoSeguridad: boolean;
   fechaContratacion: string | null;
   fechaUltimoAscenso: string | null;
+  estadoAscenso: 'NINGUNO' | 'REQUISITOS_CUMPLIDOS' | 'ASCENSO_PENDIENTE';
+  siguienteRango: string | null;
+  fechaAscenso: string | null;
+  detalleAscenso: string | null;
 }
 
 export interface RangoAdmin {
