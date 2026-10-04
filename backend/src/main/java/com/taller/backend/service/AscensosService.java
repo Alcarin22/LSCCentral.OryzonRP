@@ -43,19 +43,62 @@ public class AscensosService {
     }
 
     private EvaluacionAscenso evaluarAprendiz(Empleado empleado, LocalDate hoy) {
+        // Un Aprendiz todavía no ha tenido un ascenso real. Por eso, aunque
+        // fechaContratacion y fechaUltimoAscenso coincidan, para este rango
+        // SIEMPRE usamos fechaContratacion como referencia.
         LocalDate contratacion = empleado.getFechaContratacion();
-        if (contratacion == null) return new EvaluacionAscenso(EstadoAscenso.NINGUNO, "Mecánico", null, "Falta fecha de contratación");
+        if (contratacion == null) {
+            return new EvaluacionAscenso(
+                    EstadoAscenso.NINGUNO,
+                    "Mecánico",
+                    null,
+                    "Falta fecha de contratación"
+            );
+        }
 
-        LocalDate fechaMinima = contratacion.plusDays(7);
-        LocalDate fechaHoras = fechaEnQueAlcanzaMinutos(empleado.getId(), contratacion, hoy, 7 * 60);
+        // Deben cumplirse 7 días naturales completos desde la contratación.
+        LocalDate fechaMinimaAntiguedad = contratacion.plusDays(7);
+        boolean cumpleDias = !hoy.isBefore(fechaMinimaAntiguedad);
+
+        // Además debe haber acumulado al menos 7 horas desde su contratación.
+        // Esta búsqueda solo llega hasta la fecha actual del sistema (Madrid).
+        LocalDate fechaHoras = fechaEnQueAlcanzaMinutos(
+                empleado.getId(),
+                contratacion,
+                hoy,
+                7 * 60
+        );
         boolean cumpleHoras = fechaHoras != null;
-        boolean cumpleDias = !hoy.isBefore(fechaMinima);
-        if (!cumpleDias || !cumpleHoras) return new EvaluacionAscenso(EstadoAscenso.NINGUNO, "Mecánico", null, "Requiere 7 días naturales y 7 h trabajadas");
 
-        LocalDate requisitosCumplidos = fechaHoras.isAfter(fechaMinima) ? fechaHoras : fechaMinima;
-        LocalDate lunes = siguienteLunesEstricto(requisitosCumplidos);
-        EstadoAscenso estado = !hoy.isBefore(lunes) ? EstadoAscenso.ASCENSO_PENDIENTE : EstadoAscenso.REQUISITOS_CUMPLIDOS;
-        return new EvaluacionAscenso(estado, "Mecánico", lunes, "7 días naturales y 7 h completados");
+        if (!cumpleDias || !cumpleHoras) {
+            return new EvaluacionAscenso(
+                    EstadoAscenso.NINGUNO,
+                    "Mecánico",
+                    null,
+                    "Requiere 7 días naturales y 7 h trabajadas"
+            );
+        }
+
+        // Los requisitos se consideran completados cuando se cumple el último
+        // de los dos: antigüedad mínima u horas mínimas.
+        LocalDate requisitosCumplidos = fechaHoras.isAfter(fechaMinimaAntiguedad)
+                ? fechaHoras
+                : fechaMinimaAntiguedad;
+
+        // El ascenso se oficializa el primer lunes POSTERIOR al momento en el
+        // que se completaron ambos requisitos. Hasta entonces: amarillo.
+        // Desde ese lunes, mientras Discord siga indicando Aprendiz: verde.
+        LocalDate lunesAscenso = siguienteLunesEstricto(requisitosCumplidos);
+        EstadoAscenso estado = !hoy.isBefore(lunesAscenso)
+                ? EstadoAscenso.ASCENSO_PENDIENTE
+                : EstadoAscenso.REQUISITOS_CUMPLIDOS;
+
+        return new EvaluacionAscenso(
+                estado,
+                "Mecánico",
+                lunesAscenso,
+                "7 días naturales y 7 h completados"
+        );
     }
 
     private EvaluacionAscenso evaluarSemanas(Empleado empleado, LocalDate hoy, int horasMinimas, String siguienteRango) {
