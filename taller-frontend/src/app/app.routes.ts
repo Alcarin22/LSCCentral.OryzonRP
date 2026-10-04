@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth-guard';
-import { noAuthGuard } from './core/guards/no-auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { noAuthGuard } from './core/guards/no-auth.guard';
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';

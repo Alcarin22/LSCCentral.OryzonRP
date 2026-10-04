@@ -44,7 +44,7 @@ export class SidebarComponent implements OnInit {
     this.aplicarTema();
   }
 
-  puedeAccederAdministracion(): boolean {
+  puedeVerAdministracion(): boolean {
     const nombreRango = (this.empleado?.rango?.nombre ?? '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')

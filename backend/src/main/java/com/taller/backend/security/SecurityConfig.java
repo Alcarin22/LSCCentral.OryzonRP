@@ -64,6 +64,9 @@ public class SecurityConfig {
     @Value("${discord.empleado-role-id}")
     private String empleadoRoleId;
 
+    @Value("${discord.encargado-role-id:1254582931465441371}")
+    private String encargadoRoleId;
+
     @Value("${discord.bot-token:}")
     private String discordBotToken;
 
@@ -689,6 +692,21 @@ public class SecurityConfig {
         ) {
 
             return Optional.empty();
+        }
+
+        /*
+         * Encargado se identifica por el ID estable del rol de Discord.
+         * De este modo no dependemos del nombre visible del rol.
+         */
+        if (
+                encargadoRoleId != null
+                        && !encargadoRoleId.isBlank()
+                        && memberData.roleIds().contains(encargadoRoleId)
+        ) {
+            Optional<Rango> encargado = rangoRepository.findByNombre("Encargado");
+            if (encargado.isPresent()) {
+                return encargado;
+            }
         }
 
         Map<String, String> rolesServidor =
