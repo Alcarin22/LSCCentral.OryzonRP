@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth-guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
@@ -87,7 +88,7 @@ export const routes: Routes = [
   {
     path: 'administracion',
     component: AdministracionComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, adminGuard]
   },
 
   {

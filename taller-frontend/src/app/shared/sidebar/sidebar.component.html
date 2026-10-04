@@ -54,7 +54,7 @@
       <span>Manual LSC</span>
     </a>
 
-    <a [routerLink]="['/administracion']" routerLinkActive="active">
+    <a *ngIf="puedeAccederAdministracion()" [routerLink]="['/administracion']" routerLinkActive="active">
       <span class="icon">🗂️</span>
       <span>Administración</span>
     </a>

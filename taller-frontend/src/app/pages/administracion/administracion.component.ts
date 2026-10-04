@@ -99,7 +99,14 @@ export class AdministracionComponent implements OnInit {
   }
 
   puedeAcceder(): boolean {
-    return (this.empleadoSesion?.rango?.nivel ?? 0) >= 4;
+    const nombreRango = (this.empleadoSesion?.rango?.nombre ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+
+    return nombreRango === 'encargado'
+      || (this.empleadoSesion?.rango?.nivel ?? 0) >= 4;
   }
 
   setTab(tab: AdminTab): void {

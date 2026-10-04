@@ -3,6 +3,8 @@ package com.taller.backend.security;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.Normalizer;
+import java.util.Locale;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -149,10 +151,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 )
         );
 
-        if (
-                empleado.getRango() != null
-                        && empleado.getRango().getNivel() >= 4
-        ) {
+        if (puedeAccederAdministracion(empleado)) {
 
             authorities.add(
                     new SimpleGrantedAuthority(
@@ -179,4 +178,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authentication
                 );
     }
+    private boolean puedeAccederAdministracion(Empleado empleado) {
+        if (empleado == null || empleado.getRango() == null) {
+            return false;
+        }
+
+        Integer nivel = empleado.getRango().getNivel();
+        String nombre = normalizarRango(empleado.getRango().getNombre());
+
+        // Encargado tiene acceso de forma explícita aunque el nivel
+        // configurado en la tabla de rangos no sea 4.
+        return "encargado".equals(nombre)
+                || (nivel != null && nivel >= 4);
+    }
+
+    private String normalizarRango(String valor) {
+        if (valor == null) {
+            return "";
+        }
+
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim()
+                .toLowerCase(Locale.ROOT);
+    }
+
 }

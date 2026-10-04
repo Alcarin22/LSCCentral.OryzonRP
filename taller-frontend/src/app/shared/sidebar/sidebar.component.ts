@@ -44,6 +44,17 @@ export class SidebarComponent implements OnInit {
     this.aplicarTema();
   }
 
+  puedeAccederAdministracion(): boolean {
+    const nombreRango = (this.empleado?.rango?.nombre ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+
+    return nombreRango === 'encargado'
+      || (this.empleado?.rango?.nivel ?? 0) >= 4;
+  }
+
   logout(): void {
     this.sessionService.logout();
     this.router.navigate(['/login']);
