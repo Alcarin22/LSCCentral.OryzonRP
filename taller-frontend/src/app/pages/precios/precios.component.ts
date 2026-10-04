@@ -48,7 +48,6 @@ export class PreciosComponent implements OnInit {
       { tipo: 'Basica (1-2)', precio: '$600' },
       { tipo: 'Media (3-4)', precio: '$700' },
       { tipo: 'Avanzada (5-6)', precio: '$800' },
-      { tipo: 'LSPD', precio: '$200' },
       { tipo: 'Grua', precio: '$600' }
     ];
 
