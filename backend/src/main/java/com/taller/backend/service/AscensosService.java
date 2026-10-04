@@ -62,8 +62,12 @@ public class AscensosService {
         LocalDate ultimoAscenso = empleado.getFechaUltimoAscenso();
         if (ultimoAscenso == null) return new EvaluacionAscenso(EstadoAscenso.NINGUNO, siguienteRango, null, "Falta fecha del último ascenso");
 
-        // Solo se consideran semanas naturales (lunes-domingo) iniciadas después del ascenso.
-        LocalDate primerLunes = ultimoAscenso.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        // Los ascensos se oficializan en lunes. Si la fecha del último ascenso es lunes,
+        // esa misma semana cuenta como la primera semana del nuevo rango.
+        // Si por datos históricos la fecha no fuese lunes, empezamos en el lunes siguiente.
+        LocalDate primerLunes = ultimoAscenso.getDayOfWeek() == DayOfWeek.MONDAY
+                ? ultimoAscenso
+                : ultimoAscenso.with(TemporalAdjusters.next(DayOfWeek.MONDAY));
         LocalDate semana = primerLunes;
         LocalDate segundaSemanaValida = null;
         boolean anteriorValida = false;
