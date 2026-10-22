@@ -7,6 +7,9 @@ public class EmpleadoAdminUpdateRequest {
     private Long rangoId;
     private Boolean activo;
     private Boolean puedeTrabajarComoSeguridad;
+    private Boolean puedeTasar;
+    public Boolean getPuedeTasar() { return puedeTasar; }
+    public void setPuedeTasar(Boolean puedeTasar) { this.puedeTasar = puedeTasar; }
     private LocalDate fechaContratacion;
     private LocalDate fechaUltimoAscenso;
 

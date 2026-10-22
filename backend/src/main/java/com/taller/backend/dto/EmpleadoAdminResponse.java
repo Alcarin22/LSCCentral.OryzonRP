@@ -12,6 +12,9 @@ public class EmpleadoAdminResponse {
     private String rangoNombre;
     private Integer rangoNivel;
     private Boolean puedeTrabajarComoSeguridad;
+    private Boolean puedeTasar;
+    public Boolean getPuedeTasar() { return puedeTasar; }
+    public void setPuedeTasar(Boolean puedeTasar) { this.puedeTasar = puedeTasar; }
     private LocalDate fechaContratacion;
     private LocalDate fechaUltimoAscenso;
     private String estadoAscenso;

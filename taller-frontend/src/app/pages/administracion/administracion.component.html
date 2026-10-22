@@ -254,6 +254,16 @@
                         </div>
 
                         <div class="admin-detail-item">
+                          <span>Puede tasar</span>
+                          <label class="security-permission-toggle" (click)="$event.stopPropagation()">
+                            <input type="checkbox"
+                              [ngModel]="empleado.puedeTasar"
+                              (ngModelChange)="togglePermisoTasar(empleado, $event)" />
+                            <strong>{{ empleado.puedeTasar ? 'Sí' : 'No' }}</strong>
+                          </label>
+                        </div>
+
+                        <div class="admin-detail-item">
                           <span>Puede trabajar como Seguridad</span>
 
                           <label class="security-permission-toggle" (click)="$event.stopPropagation()">

@@ -67,6 +67,10 @@ public class AdministracionEmpleadoService {
         }
 
 
+        if (request.getPuedeTasar() != null) {
+            empleado.setPuedeTasar(request.getPuedeTasar());
+        }
+
         Empleado actualizado = empleadoRepository.save(empleado);
 
         return mapearEmpleado(actualizado);
@@ -89,6 +93,7 @@ public class AdministracionEmpleadoService {
         response.setNombre(empleado.getNombre());
         response.setActivo(empleado.getActivo());
         response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
+        response.setPuedeTasar(Boolean.TRUE.equals(empleado.getPuedeTasar()));
         response.setFechaContratacion(empleado.getFechaContratacion());
         response.setFechaUltimoAscenso(empleado.getFechaUltimoAscenso());
 

@@ -12,6 +12,7 @@ export interface EmpleadoAdmin {
   rangoNombre: string;
   rangoNivel: number;
   puedeTrabajarComoSeguridad: boolean;
+  puedeTasar: boolean;
   fechaContratacion: string | null;
   fechaUltimoAscenso: string | null;
   estadoAscenso: 'NINGUNO' | 'REQUISITOS_CUMPLIDOS' | 'ASCENSO_PENDIENTE';
@@ -30,6 +31,7 @@ export interface EmpleadoAdminUpdateRequest {
   rangoId: number | null;
   activo: boolean | null;
   puedeTrabajarComoSeguridad?: boolean | null;
+  puedeTasar?: boolean | null;
 }
 
 export interface VehiculoAdmin {

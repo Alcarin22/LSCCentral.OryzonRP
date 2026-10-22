@@ -18,6 +18,7 @@ export interface SessionEmpleado {
   avatarUrl: string;
   nickServidor: string;
   puedeTrabajarComoSeguridad: boolean;
+  puedeTasar: boolean;
   token?: string;
 
   rango: {

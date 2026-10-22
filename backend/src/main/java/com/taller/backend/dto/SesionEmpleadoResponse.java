@@ -10,6 +10,9 @@ public class SesionEmpleadoResponse {
     private String nickServidor;
     private SesionRangoResponse rango;
     private Boolean puedeTrabajarComoSeguridad;
+    private Boolean puedeTasar;
+    public Boolean getPuedeTasar() { return puedeTasar; }
+    public void setPuedeTasar(Boolean puedeTasar) { this.puedeTasar = puedeTasar; }
 
     public Long getId() {
         return id;

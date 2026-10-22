@@ -31,6 +31,7 @@ public class EmpleadoSesionService {
         response.setNombre(empleado.getNombre());
         response.setActivo(empleado.getActivo());
         response.setPuedeTrabajarComoSeguridad(Boolean.TRUE.equals(empleado.getPuedeTrabajarComoSeguridad()));
+        response.setPuedeTasar(Boolean.TRUE.equals(empleado.getPuedeTasar()));
 
         response.setAvatarUrl("");
         response.setNickServidor(empleado.getNombre());

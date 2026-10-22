@@ -100,9 +100,7 @@ public class FacturaController {
             @PathVariable Long id
     ) {
 
-        exigirNivelGestionFacturas(
-                authentication
-        );
+        exigirPermisoTasar(authentication);
 
         return facturaService.marcarTasacionEnviada(
                 id
@@ -122,6 +120,15 @@ public class FacturaController {
         facturaService.eliminarFactura(
                 id
         );
+    }
+
+    private void exigirPermisoTasar(Authentication authentication) {
+        String discordId = obtenerDiscordIdAutenticado(authentication);
+        Empleado empleado = empleadoRepository.findByDiscordId(discordId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Empleado no encontrado"));
+        if (!Boolean.TRUE.equals(empleado.getActivo()) || !Boolean.TRUE.equals(empleado.getPuedeTasar())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para gestionar tasaciones");
+        }
     }
 
     private void exigirNivelGestionFacturas(

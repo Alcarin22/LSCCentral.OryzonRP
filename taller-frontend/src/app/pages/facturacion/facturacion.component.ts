@@ -94,8 +94,7 @@ export class FacturacionComponent implements OnInit {
 
   get puedeGestionarTasaciones(): boolean {
     const empleado = this.sessionService.getEmpleado();
-
-    return (empleado?.rango?.nivel ?? 0) >= 3;
+    return empleado?.activo === true && empleado?.puedeTasar === true;
   }
 
   async cargarEmpleadosActivos(): Promise<void> {

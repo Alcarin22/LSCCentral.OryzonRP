@@ -306,6 +306,20 @@ export class AdministracionComponent implements OnInit {
     });
   }
 
+  togglePermisoTasar(empleado: EmpleadoAdmin, permitido: boolean): void {
+    this.adminService.actualizarEmpleado(empleado.id, {
+      rangoId: null,
+      activo: null,
+      puedeTasar: permitido
+    }).subscribe({
+      next: (actualizado) => this.actualizarEmpleadoEnLista(actualizado),
+      error: (error) => {
+        console.error('Error actualizando permiso de tasaciones:', error);
+        alert('No se pudo actualizar el permiso para tasar.');
+      }
+    });
+  }
+
   guardarFechasEmpleado(empleado: EmpleadoAdmin): void {
     this.adminService.actualizarFechasEmpleado(
       empleado.id,

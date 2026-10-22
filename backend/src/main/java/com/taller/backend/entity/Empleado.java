@@ -36,6 +36,12 @@ public class Empleado {
     @Column(name = "puede_trabajar_como_seguridad", nullable = false)
     private Boolean puedeTrabajarComoSeguridad = false;
 
+    @Column(name = "puede_tasar", nullable = false)
+    private Boolean puedeTasar = false;
+
+    public Boolean getPuedeTasar() { return puedeTasar; }
+    public void setPuedeTasar(Boolean puedeTasar) { this.puedeTasar = puedeTasar; }
+
     @Column(name = "fecha_contratacion")
     private LocalDate fechaContratacion;
 

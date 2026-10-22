@@ -980,6 +980,8 @@ public class SecurityConfig {
                 empleado.getActivo()
         );
 
+        user.put("puedeTasar", Boolean.TRUE.equals(empleado.getPuedeTasar()));
+
         user.put(
                 "puedeTrabajarComoSeguridad",
                 Boolean.TRUE.equals(
