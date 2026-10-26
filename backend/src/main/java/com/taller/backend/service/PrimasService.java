@@ -36,7 +36,7 @@ public class PrimasService {
             LocalDate.of(2026, 4, 13);
 
     private static final int MINUTOS_BASE_SIN_EXTRAS = 7 * 60;
-    private static final int IMPORTE_HORA_EXTRA = 1000;
+    private static final int IMPORTE_HORA_EXTRA = 500;
 
     private static final int IMPORTE_HORA_SEGURIDAD = 1000;
     private static final int IMPORTE_HORA_JEFE_SEGURIDAD = 2000;
