@@ -337,3 +337,19 @@
     width: 100%;
   }
 }
+/* Edición y diferenciación de marca/modelo */
+.vehiculo-card-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.btn-editar { padding:7px 12px; font-size:.82rem; background:var(--brand-primary-soft); color:var(--text-primary); border:1px solid var(--brand-primary); }
+.nombre-vehiculo { font-weight:900; display:flex; flex-wrap:wrap; align-items:baseline; gap:.35em; }
+.nombre-marca { color:var(--text-primary); font-weight:900; }
+.nombre-modelo { color:var(--brand-primary-hover); font-weight:900; }
+body.dark-mode .nombre-modelo { color:#73baf0; }
+.edicion-modal { max-width:680px; max-height:90vh; overflow-y:auto; }
+.edicion-subtitulo { margin:0; color:var(--text-secondary); }
+.edicion-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.edicion-full { grid-column:1/-1; }
+.edicion-check { display:flex; align-items:center; gap:10px; color:var(--text-primary)!important; }
+.edicion-check input { width:auto; }
+.edicion-botones { display:flex; justify-content:flex-end; gap:12px; }
+.error-edicion { color:var(--danger); margin:0; }
+@media(max-width:600px) { .edicion-form { grid-template-columns:1fr; } .edicion-botones { flex-direction:column; } }

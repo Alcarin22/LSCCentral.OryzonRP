@@ -2,9 +2,11 @@ import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize, timeout } from 'rxjs/operators';
+import { SessionService } from '../../core/services/session.service';
 
 import {
   Vehiculo,
+  VehiculoEdicion,
   VehiculosService
 } from '../../core/services/vehiculos.service';
 
@@ -27,9 +29,21 @@ export class VehiculosComponent implements OnInit {
   ordenSeleccionado = 'marca';
 
   vehiculoSeleccionado: Vehiculo | null = null;
+  vehiculoEditando: Vehiculo | null = null;
+  formularioEdicion: VehiculoEdicion = { marca: '', modelo: '', categoria: '', precio: 0, imagenUrl: null, activo: true };
+  guardando = false;
+  errorEdicion = '';
+
+  get puedeEditar(): boolean {
+    const empleado = this.session.getEmpleado();
+    if (!this.session.isLogged() || !empleado) return false;
+    const rango = (empleado.rango?.nombre ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    return rango === 'encargado' || (empleado.rango?.nivel ?? 0) >= 4;
+  }
 
   constructor(
     private vehiculosService: VehiculosService,
+    private session: SessionService,
     private zone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -164,6 +178,55 @@ export class VehiculosComponent implements OnInit {
 
   cerrarDetalle(): void {
     this.vehiculoSeleccionado = null;
+  }
+
+  abrirEdicion(vehiculo: Vehiculo): void {
+    if (!this.puedeEditar) return;
+    this.vehiculoSeleccionado = null;
+    this.vehiculoEditando = vehiculo;
+    this.errorEdicion = '';
+    this.formularioEdicion = {
+      marca: vehiculo.marca, modelo: vehiculo.modelo,
+      categoria: vehiculo.categoria, precio: vehiculo.precio,
+      imagenUrl: vehiculo.imagenUrl, activo: vehiculo.activo
+    };
+  }
+
+  cerrarEdicion(): void {
+    if (this.guardando) return;
+    this.vehiculoEditando = null;
+    this.errorEdicion = '';
+  }
+
+  guardarEdicion(): void {
+    if (!this.puedeEditar || !this.vehiculoEditando || this.guardando) return;
+    const datos: VehiculoEdicion = {
+      ...this.formularioEdicion,
+      marca: this.formularioEdicion.marca.trim(),
+      modelo: this.formularioEdicion.modelo.trim(),
+      categoria: this.formularioEdicion.categoria.trim(),
+      imagenUrl: this.formularioEdicion.imagenUrl?.trim() || null,
+      precio: Number(this.formularioEdicion.precio)
+    };
+    if (!datos.marca || !datos.modelo || !datos.categoria || !Number.isFinite(datos.precio) || datos.precio < 0) {
+      this.errorEdicion = 'Completa marca, modelo, categoría y un precio válido.';
+      return;
+    }
+    this.guardando = true;
+    this.errorEdicion = '';
+    const id = this.vehiculoEditando.id;
+    this.vehiculosService.actualizarVehiculo(id, datos).pipe(finalize(() => {
+      this.zone.run(() => { this.guardando = false; this.cdr.detectChanges(); });
+    })).subscribe({
+      next: () => this.zone.run(() => {
+        this.vehiculoEditando = null;
+        this.cargarVehiculos();
+      }),
+      error: (err) => this.zone.run(() => {
+        this.errorEdicion = err?.error?.message || err?.error?.error || 'No se pudieron guardar los cambios.';
+        this.cdr.detectChanges();
+      })
+    });
   }
 
   ocultarImagenRota(vehiculo: Vehiculo): void {
