@@ -117,8 +117,6 @@
       <div class="vehiculo-content">
         <div class="vehiculo-card-actions">
           <span class="categoria-badge">{{ vehiculo.categoria }}</span>
-          <button *ngIf="puedeEditar" type="button" class="btn btn-editar"
-            (click)="abrirEdicion(vehiculo); $event.stopPropagation()">✎ Editar</button>
         </div>
 
         <h2 class="nombre-vehiculo">
@@ -180,9 +178,11 @@
       </div>
 
       <div class="modal-content">
-        <span class="categoria-badge">
-          {{ vehiculoSeleccionado.categoria }}
-        </span>
+        <div class="vehiculo-card-actions">
+          <span class="categoria-badge">{{ vehiculoSeleccionado.categoria }}</span>
+          <button *ngIf="puedeEditar" type="button" class="btn btn-editar"
+            (click)="abrirEdicion(vehiculoSeleccionado)">✎ Editar</button>
+        </div>
 
         <h2 class="nombre-vehiculo">
           <span class="nombre-marca">{{ vehiculoSeleccionado.marca }}</span>
