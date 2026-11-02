@@ -70,7 +70,7 @@ export class PreciosComponent implements OnInit {
       { tipo: 'Peluche Nitro', precio: '$500' },
       { tipo: 'Mochila (/tienda)', precio: '$500' },
       { tipo: 'Pack 3 Mochilas (/tienda)', precio: '$1.200' },
-      { tipo: 'Colección Mochilas (/tienda)', precio: '$500' }
+      { tipo: 'Colección Mochilas (/tienda)', precio: '$13000' }
     ];
   }
 }
