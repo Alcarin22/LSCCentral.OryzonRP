@@ -59,7 +59,7 @@ export class PreciosComponent implements OnInit {
     ];
 
     this.kits = [
-      { tipo: 'Kit Reparación', precio: '$1.000' },
+      { tipo: 'Kit Reparación', precio: '$800' },
       { tipo: 'Sistema Antilag', precio: '$30000' },
       { tipo: 'Muñeco Arthur', precio: '$800' },
       { tipo: 'Peluche Torque', precio: '$500' },
@@ -67,7 +67,10 @@ export class PreciosComponent implements OnInit {
       { tipo: 'Peluche Remache', precio: '$500' },
       { tipo: 'Peluche Volt', precio: '$500' },
       { tipo: 'Peluche Piston', precio: '$500' },
-      { tipo: 'Peluche Nitro', precio: '$500' }
+      { tipo: 'Peluche Nitro', precio: '$500' },
+      { tipo: 'Mochila (/tienda)', precio: '$500' },
+      { tipo: 'Pack 3 Mochilas (/tienda)', precio: '$1.200' },
+      { tipo: 'Colección Mochilas (/tienda)', precio: '$500' }
     ];
   }
 }
