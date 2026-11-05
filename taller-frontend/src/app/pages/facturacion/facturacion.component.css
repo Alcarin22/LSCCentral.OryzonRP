@@ -147,7 +147,7 @@
 
 .filtros-container {
   display: grid;
-  grid-template-columns: repeat(5, minmax(140px, 1fr)) auto;
+  grid-template-columns: repeat(6, minmax(140px, 1fr)) auto;
   gap: 14px;
   align-items: end;
   background: var(--bg-card);
@@ -156,6 +156,10 @@
   padding: 18px;
   margin-bottom: 18px;
   box-shadow: var(--shadow-card);
+}
+
+.filtro-matricula {
+  min-width: 165px;
 }
 
 .filtro-group {

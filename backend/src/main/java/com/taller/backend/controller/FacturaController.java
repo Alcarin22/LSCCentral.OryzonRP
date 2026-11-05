@@ -79,6 +79,7 @@ public class FacturaController {
             @RequestParam(required = false) String fechaInicio,
             @RequestParam(required = false) String fechaFin,
             @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String matricula,
             @RequestParam(required = false) Long idEmpleado,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -88,6 +89,7 @@ public class FacturaController {
                 fechaInicio,
                 fechaFin,
                 tipo,
+                matricula,
                 idEmpleado,
                 page,
                 size

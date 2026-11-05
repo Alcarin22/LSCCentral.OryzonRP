@@ -44,6 +44,7 @@ export interface FacturacionFiltros {
   fechaInicio?: string;
   fechaFin?: string;
   tipo?: string;
+  matricula?: string;
   idEmpleado?: number | null;
 }
 
@@ -91,6 +92,10 @@ export class FacturacionService {
         'fechaFin',
         filtros.fechaFin
       );
+    }
+
+    if (filtros.matricula?.trim()) {
+      params = params.set('matricula', filtros.matricula.trim());
     }
 
     if (filtros.tipo) {

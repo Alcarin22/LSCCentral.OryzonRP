@@ -44,6 +44,7 @@ export class FacturacionComponent implements OnInit {
     fechaInicio: '',
     fechaFin: '',
     tipo: '',
+    matricula: '',
     idEmpleado: null
   };
 
@@ -292,6 +293,7 @@ export class FacturacionComponent implements OnInit {
       fechaInicio: '',
       fechaFin: '',
       tipo: '',
+      matricula: '',
       idEmpleado: null
     };
 

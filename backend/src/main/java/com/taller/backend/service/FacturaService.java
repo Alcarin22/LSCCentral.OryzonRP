@@ -797,6 +797,7 @@ public class FacturaService {
             String fechaInicio,
             String fechaFin,
             String tipo,
+            String matricula,
             Long idEmpleado,
             int page,
             int size
@@ -866,6 +867,7 @@ public class FacturaService {
                 crearFiltroFacturas(
                         idEmpleado,
                         tipo,
+                        matricula,
                         inicio,
                         fin
                 );
@@ -973,6 +975,7 @@ public class FacturaService {
     private Specification<Factura> crearFiltroFacturas(
             Long idEmpleado,
             String tipo,
+            String matricula,
             LocalDateTime inicio,
             LocalDateTime fin
     ) {
@@ -1015,6 +1018,23 @@ public class FacturaService {
                                         tipo
                                 )
                         );
+            }
+
+            if (matricula != null && !matricula.isBlank()) {
+                String buscada = matricula.replaceAll("[\\s-]", "")
+                        .toUpperCase(Locale.ROOT);
+                if (!buscada.isEmpty()) {
+                    var sinEspacios = cb.function("REPLACE", String.class,
+                            cb.upper(root.get("matricula")),
+                            cb.literal(" "), cb.literal(""));
+                    var normalizada = cb.function("REPLACE", String.class,
+                            sinEspacios, cb.literal("-"), cb.literal(""));
+                    predicates = cb.and(predicates,
+                            cb.like(normalizada,
+                                    "%" + buscada.replace("!", "!!")
+                                            .replace("%", "!%")
+                                            .replace("_", "!_") + "%", '!'));
+                }
             }
 
             if (inicio != null) {
